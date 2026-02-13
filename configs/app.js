@@ -7,8 +7,19 @@ import helmet from 'helmet';
 import { dbConnection } from './db.js';
 import { corsOptions } from './cors-configuration.js';
 import { helmetConfiguration } from './helmet-configuration.js';
+import { validateBearerTokenSelective } from '../middlewares/auth-middleware.js';
+import { createDefaultAdmin } from '../helpers/create-default-admin.js';
+import clientRoutes from '../src/Client/client.routes.js';
 
 const BASE_PATH = '/nexusBank/v1';
+
+const PUBLIC_PATHS = [
+    `${BASE_PATH}/health`,
+    `${BASE_PATH}/client/login`,
+    `${BASE_PATH}/client/register`,
+    `${BASE_PATH}/auth/login`,
+    `${BASE_PATH}/auth/register`
+];
 
 const middlewares = (app) => {
     app.use(express.urlencoded({extended: false, limit: '10mb'}));
@@ -16,9 +27,12 @@ const middlewares = (app) => {
     app.use(cors(corsOptions));
     app.use(helmet(helmetConfiguration));
     app.use(morgan('dev'));
+    app.use(validateBearerTokenSelective(PUBLIC_PATHS));
 }
 
 const routes = (app) => {
+    app.use(`${BASE_PATH}/client`, clientRoutes);
+
     app.use((req, res) =>{
         res.status(404).json({
             success: false,
@@ -34,6 +48,7 @@ export const initServer = async () => {
 
     try {
         await dbConnection();
+        await createDefaultAdmin();
         middlewares(app);
         routes(app);
 

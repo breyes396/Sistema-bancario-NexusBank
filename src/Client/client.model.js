@@ -14,7 +14,28 @@ const clientSchema = mongoose.Schema(
             type: String,
             required: [true, 'El correo es requerido'],
             unique: true,
+            trim: true,
+            lowercase: true,
+            match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Por favor proporcione un email válido']
+        },
+        password: {
+            type: String,
+            required: [true, 'La contraseña es requerida'],
+            minLength: 6,
+            select: false
+        },
+        phone: {
+            type: String,
+            required: [true, 'El teléfono es requerido'],
             trim: true
+        },
+        role: {
+            type: String,
+            enum: {
+                values: ['Client', 'Admin'],
+                message: 'El rol debe ser Client o Admin'
+            },
+            default: 'Client'
         },
         income: {
             type: Number,
@@ -23,11 +44,34 @@ const clientSchema = mongoose.Schema(
         },
         accountNumber: {
             type: String,
-            unique: true
+            unique: true,
+            sparse: true
+        },
+        accountBalance: {
+            type: Number,
+            default: 0,
+            min: 0
+        },
+        documentType: {
+            type: String,
+            enum: {
+                values: ['CC', 'CE', 'PA'],
+                message: 'Tipo de documento inválido. Válidos: CC (Cédula), CE (Cédula Extranjera), PA (Pasaporte)'
+            },
+            required: [true, 'El tipo de documento es requerido']
+        },
+        documentNumber: {
+            type: String,
+            required: [true, 'El número de documento es requerido'],
+            unique: true,
+            trim: true
         },
         isActive: {
             type: Boolean,
             default: true
+        },
+        lastLogin: {
+            type: Date
         }
     },
     {

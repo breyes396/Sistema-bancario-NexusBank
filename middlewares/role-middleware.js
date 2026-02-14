@@ -65,6 +65,32 @@ export const verifyIsAdmin = (req, res, next) => {
     }
 };
 
+export const verifyIsEmployee = (req, res, next) => {
+    try {
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                message: 'Usuario no autenticado'
+            });
+        }
+
+        if (req.user.role !== 'Employee') {
+            return res.status(403).json({
+                success: false,
+                message: 'Acceso denegado. Se requiere rol de Empleado'
+            });
+        }
+
+        next();
+    } catch (error) {
+        console.error('Error al verificar rol de Employee:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Error al verificar los permisos'
+        });
+    }
+};
+
 export const verifyIsClient = (req, res, next) => {
     try {
         if (!req.user) {

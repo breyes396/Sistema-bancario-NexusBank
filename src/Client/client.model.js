@@ -32,8 +32,8 @@ const clientSchema = mongoose.Schema(
         role: {
             type: String,
             enum: {
-                values: ['Client', 'Admin'],
-                message: 'El rol debe ser Client o Admin'
+                values: ['Client', 'Employee', 'Admin'],
+                message: 'El rol debe ser Client, Employee o Admin'
             },
             default: 'Client'
         },

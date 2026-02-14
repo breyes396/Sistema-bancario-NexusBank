@@ -3,31 +3,24 @@
 1) Cantidad de endpoints funcionales: 10
 
 2) Rutas:
-- POST /nexusBank/v1/client/register
+
+## Cliente (Requiere autenticación - solo login)
 - POST /nexusBank/v1/client/login
-- POST /nexusBank/v1/catalog/create
+
+## Catálogo (GET público, POST/PUT/DELETE requiere Admin)
+- POST /nexusBank/v1/catalog/create (requiere Admin)
 - GET /nexusBank/v1/catalog/get
 - GET /nexusBank/v1/catalog/category/:category
 - GET /nexusBank/v1/catalog/:id
-- PUT /nexusBank/v1/catalog/:id
-- PUT /nexusBank/v1/catalog/:id/activate
-- PUT /nexusBank/v1/catalog/:id/deactivate
-- DELETE /nexusBank/v1/catalog/:id
+- PUT /nexusBank/v1/catalog/:id (requiere Admin)
+- PUT /nexusBank/v1/catalog/:id/activate (requiere Admin)
+- PUT /nexusBank/v1/catalog/:id/deactivate (requiere Admin)
+- DELETE /nexusBank/v1/catalog/:id (requiere Admin)
+
+## Empleado (Requiere Employee)
+- POST /nexusBank/v1/employee/create-client (requiere Employee)
 
 Ejemplos (body JSON):
-
-POST /nexusBank/v1/client/register
-```json
-{
-  "name": "Maria Gonzalez",
-  "email": "maria@example.com",
-  "password": "Maria123",
-  "phone": "+573009876543",
-  "income": 3000000,
-  "documentType": "CC",
-  "documentNumber": "9876543210"
-}
-```
 
 POST /nexusBank/v1/client/login
 ```json
@@ -37,7 +30,25 @@ POST /nexusBank/v1/client/login
 }
 ```
 
-POST /nexusBank/v1/catalog/create
+POST /nexusBank/v1/employee/create-client (requiere autenticacion Employee)
+```json
+{
+  "name": "Juan Perez",
+  "email": "juan@example.com",
+  "password": "Juan123",
+  "phone": "+573001234567",
+  "income": 1500000,
+  "documentType": "CC",
+  "documentNumber": "1234567890"
+}
+```
+
+GET /nexusBank/v1/catalog/get (publico)
+```
+?page=1&limit=10&isActive=true&category=CUENTAS
+```
+
+POST /nexusBank/v1/catalog/create (requiere Admin)
 ```json
 {
   "name": "Cuenta Ahorro",
@@ -47,7 +58,7 @@ POST /nexusBank/v1/catalog/create
 }
 ```
 
-PUT /nexusBank/v1/catalog/:id
+PUT /nexusBank/v1/catalog/:id (requiere Admin)
 ```json
 {
   "name": "Cuenta Ahorro Plus",

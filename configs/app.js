@@ -17,9 +17,11 @@ const BASE_PATH = '/nexusBank/v1';
 const PUBLIC_PATHS = [
     `${BASE_PATH}/health`,
     `${BASE_PATH}/client/login`,
-    `${BASE_PATH}/client/register`,
     `${BASE_PATH}/auth/login`,
-    `${BASE_PATH}/auth/register`
+    `${BASE_PATH}/auth/register`,
+    /^\/nexusBank\/v1\/catalog\/get/,
+    /^\/nexusBank\/v1\/catalog\/category\//,
+    /^\/nexusBank\/v1\/catalog\/[a-f0-9]{24}$/
 ];
 
 const middlewares = (app) => {

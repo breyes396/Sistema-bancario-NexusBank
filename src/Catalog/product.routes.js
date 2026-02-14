@@ -14,6 +14,7 @@ import {
     deleteProduct
 } from './product.controller.js';
 import { validateCreateProduct, validateProductStatusChange, validateGetProductById, validateUpdateProductRequest } from '../../middlewares/product-validators.js';
+import { verifyTokenAndGetUser, verifyIsAdmin } from '../../middlewares/role-middleware.js';
 
 /**
  * Instancia del router de Express para gestionar rutas de productos
@@ -30,6 +31,8 @@ const router = Router();
  */
 router.post(
     '/create',
+    verifyTokenAndGetUser,
+    verifyIsAdmin,
     validateCreateProduct,
     createProduct
 )
@@ -80,6 +83,8 @@ router.get('/:id', validateGetProductById, getProductById);
  */
 router.put(
     '/:id',
+    verifyTokenAndGetUser,
+    verifyIsAdmin,
     validateUpdateProductRequest,
     updateProduct
 );
@@ -91,7 +96,7 @@ router.put(
  * @middleware validateProductStatusChange - Valida que el ID sea válido
  * @returns {Object} Producto con estado actualizado a activo
  */
-router.put('/:id/activate', validateProductStatusChange, changeProductStatus);
+router.put('/:id/activate', verifyTokenAndGetUser, verifyIsAdmin, validateProductStatusChange, changeProductStatus);
 
 /**
  * PUT /:id/deactivate
@@ -100,7 +105,7 @@ router.put('/:id/activate', validateProductStatusChange, changeProductStatus);
  * @middleware validateProductStatusChange - Valida que el ID sea válido
  * @returns {Object} Producto con estado actualizado a inactivo
  */
-router.put('/:id/deactivate', validateProductStatusChange, changeProductStatus);
+router.put('/:id/deactivate', verifyTokenAndGetUser, verifyIsAdmin, validateProductStatusChange, changeProductStatus);
 
 /**
  * DELETE /:id
@@ -108,7 +113,7 @@ router.put('/:id/deactivate', validateProductStatusChange, changeProductStatus);
  * @param {string} id - Identificador único del producto
  * @returns {Object} Confirmación de eliminación con datos del producto eliminado
  */
-router.delete('/:id', deleteProduct);
+router.delete('/:id', verifyTokenAndGetUser, verifyIsAdmin, deleteProduct);
 
 /**
  * Exporta el router configurado con todas las rutas

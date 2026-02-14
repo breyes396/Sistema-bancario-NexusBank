@@ -5,6 +5,10 @@ import bcrypt from 'bcryptjs';
 import Client from './client.model.js';
 import { generateAccountNumber } from '../../helpers/account-generator.js';
 
+/**
+ * Endpoint publico para que el cliente se auto-registre (deprecado)
+ * @deprecated Usar employeeCreateClient en su lugar
+ */
 export const registerClient = async (req, res) => {
     try {
         const { income, password } = req.body;
@@ -41,6 +45,52 @@ export const registerClient = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Error al registrar cliente',
+            error: error.message
+        });
+    }
+};
+
+/**
+ * Empleado crea una cuenta de cliente
+ * @param {Object} req - Solicitud HTTP con datos del cliente
+ * @param {Object} res - Respuesta HTTP
+ */
+export const employeeCreateClient = async (req, res) => {
+    try {
+        const { income, password } = req.body;
+
+        if (income < 100) {
+            return res.status(400).json({
+                success: false,
+                message: 'El ingreso debe ser mayor o igual a 100'
+            });
+        }
+
+        const accountNumber = await generateAccountNumber();
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const client = new Client({
+            ...req.body,
+            password: hashedPassword,
+            accountNumber,
+            role: 'Client' // Fuerza el rol a Client
+        });
+
+        await client.save();
+
+        const clientResponse = client.toObject();
+        delete clientResponse.password;
+
+        res.status(201).json({
+            success: true,
+            message: 'Cliente creado exitosamente por empleado',
+            data: clientResponse
+        });
+
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            message: 'Error al crear cliente',
             error: error.message
         });
     }

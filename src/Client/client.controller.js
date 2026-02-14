@@ -179,15 +179,15 @@ export const loginClient = async (req, res) => {
 
 export const getAllClients = async (req, res) => {
     try {
-        if (!req.user || req.user.role !== 'Admin') {
+        if (!req.user || (req.user.role !== 'Admin' && req.user.role !== 'Employee')) {
             return res.status(403).json({ success: false, message: 'Acceso denegado' });
         }
 
-        const clients = await Client.find({ role: 'Client' }).select('name email accountNumber accountBalance isActive');
+        const users = await Client.find().select('name email accountNumber accountBalance isActive role documentNumber');
 
-        return res.status(200).json({ success: true, data: clients });
+        return res.status(200).json({ success: true, data: users });
     } catch (error) {
-        console.error('Error al obtener clientes:', error);
+        console.error('Error al obtener usuarios:', error);
         return res.status(500).json({ success: false, message: 'Error interno', error: error.message });
     }
 };

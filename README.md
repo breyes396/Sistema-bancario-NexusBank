@@ -6,7 +6,7 @@
 
 ## Cliente (Requiere autenticación - solo login)
 - POST /nexusBank/v1/client/login
-- GET /nexusBank/v1/client/users (requiere Admin) - Ver todos los clientes y su saldo
+- GET /nexusBank/v1/client/users (requiere Admin o Employee) - Ver todos los usuarios (Admin, Employee, Client)
 - PUT /nexusBank/v1/client/user/:id - No permite actualizar `documentNumber` (DPI) ni `password`
 - DELETE /nexusBank/v1/client/user/:id (requiere Admin) - No permite eliminar a otro Admin
 
@@ -44,6 +44,13 @@ POST /nexusBank/v1/employee/create-client (requiere autenticacion Employee)
   "documentType": "CC",
   "documentNumber": "1234567890"
 }
+```
+
+GET /nexusBank/v1/client/users (requiere Admin o Employee - con Bearer Token)
+```bash
+curl -X GET \
+  -H "Authorization: Bearer <TOKEN>" \
+  http://localhost:3006/nexusBank/v1/client/users
 ```
 
 PUT /nexusBank/v1/client/user/:id (autenticado — no permitir `documentNumber` ni `password`)
@@ -93,8 +100,8 @@ PUT /nexusBank/v1/catalog/:id (requiere Admin)
 
 .env esta en .gitignore para no subir credenciales.
 
-Crear archivo .env en la raiz (contenido completo):
-```env
+Crear archivo .env en la raiz copiando .env.example:
+```
 NODE_ENV = development
 PORT = 3006
 
@@ -137,5 +144,13 @@ ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000,http://localhost:300
 ADMIN_ALLOWED_ORIGINS=http://localhost:5173
 ```
 
+Luego completar los valores segun tu entorno (MongoDB, JWT_SECRET, Cloudinary, SMTP, etc).
+
+
+
+{
+  "email": "admin@nexusbank.com",
+  "password": "Admin123"
+}
 
 

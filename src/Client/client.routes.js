@@ -2,7 +2,7 @@
 
 import { Router } from 'express';
 import { employeeCreateClient, loginClient, getAllClients, updateUser, deleteUser } from './client.controller.js';
-import { verifyTokenAndGetUser, verifyIsEmployee, verifyIsAdmin } from '../../middlewares/role-middleware.js';
+import { verifyTokenAndGetUser, verifyIsEmployee, verifyIsAdmin, verifyRoles } from '../../middlewares/role-middleware.js';
 
 const router = Router();
 
@@ -22,7 +22,7 @@ router.post(
 router.get(
     '/users',
     verifyTokenAndGetUser,
-    verifyIsAdmin,
+    verifyRoles(['Admin', 'Employee']),
     getAllClients
 );
 

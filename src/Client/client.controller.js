@@ -175,3 +175,80 @@ export const loginClient = async (req, res) => {
         });
     }
 };
+
+
+export const getAllClients = async (req, res) => {
+    try {
+        if (!req.user || req.user.role !== 'Admin') {
+            return res.status(403).json({ success: false, message: 'Acceso denegado' });
+        }
+
+        const clients = await Client.find({ role: 'Client' }).select('name email accountNumber accountBalance isActive');
+
+        return res.status(200).json({ success: true, data: clients });
+    } catch (error) {
+        console.error('Error al obtener clientes:', error);
+        return res.status(500).json({ success: false, message: 'Error interno', error: error.message });
+    }
+};
+
+
+export const updateUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!req.user) {
+            return res.status(401).json({ success: false, message: 'Usuario no autenticado' });
+        }
+
+        
+        if (req.user.role !== 'Admin' && String(req.user.id) !== String(id)) {
+            return res.status(403).json({ success: false, message: 'Acceso denegado' });
+        }
+
+        
+        if (Object.prototype.hasOwnProperty.call(req.body, 'password') || Object.prototype.hasOwnProperty.call(req.body, 'documentNumber')) {
+            return res.status(400).json({ success: false, message: 'No está permitido actualizar DPI ni Contraseña' });
+        }
+
+        const allowedUpdates = { ...req.body };
+
+        const updated = await Client.findByIdAndUpdate(id, allowedUpdates, { new: true }).select('-password');
+
+        if (!updated) {
+            return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+        }
+
+        return res.status(200).json({ success: true, data: updated });
+    } catch (error) {
+        console.error('Error al actualizar usuario:', error);
+        return res.status(500).json({ success: false, message: 'Error interno', error: error.message });
+    }
+};
+
+
+export const deleteUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!req.user || req.user.role !== 'Admin') {
+            return res.status(403).json({ success: false, message: 'Acceso denegado' });
+        }
+
+        const target = await Client.findById(id).select('role');
+        if (!target) {
+            return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+        }
+
+        if (target.role === 'Admin') {
+            return res.status(403).json({ success: false, message: 'No se permite eliminar a otro Admin' });
+        }
+
+        await Client.findByIdAndDelete(id);
+
+        return res.status(200).json({ success: true, message: 'Usuario eliminado correctamente' });
+    } catch (error) {
+        console.error('Error al eliminar usuario:', error);
+        return res.status(500).json({ success: false, message: 'Error interno', error: error.message });
+    }
+};

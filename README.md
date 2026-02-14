@@ -1,11 +1,14 @@
 # Endpoints funcionales
 
-1) Cantidad de endpoints funcionales: 10
+1) Cantidad de endpoints funcionales: 13
 
 2) Rutas:
 
 ## Cliente (Requiere autenticación - solo login)
 - POST /nexusBank/v1/client/login
+- GET /nexusBank/v1/client/users (requiere Admin) - Ver todos los clientes y su saldo
+- PUT /nexusBank/v1/client/user/:id - No permite actualizar `documentNumber` (DPI) ni `password`
+- DELETE /nexusBank/v1/client/user/:id (requiere Admin) - No permite eliminar a otro Admin
 
 ## Catálogo (GET público, POST/PUT/DELETE requiere Admin)
 - POST /nexusBank/v1/catalog/create (requiere Admin)
@@ -42,6 +45,26 @@ POST /nexusBank/v1/employee/create-client (requiere autenticacion Employee)
   "documentNumber": "1234567890"
 }
 ```
+
+PUT /nexusBank/v1/client/user/:id (autenticado — no permitir `documentNumber` ni `password`)
+```json
+{
+  "name": "Nombre Actualizado",
+  "phone": "+573009998877",
+  "income": 2000000
+}
+```
+
+Ejemplo curl:
+```bash
+curl -X PUT \
+  -H "Authorization: Bearer <TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Nombre Actualizado","phone":"+573009998877","income":2000000}' \
+  http://localhost:3000/nexusBank/v1/client/user/<ID>
+```
+
+Nota: Si el body contiene `password` o `documentNumber` la petición será rechazada con 400.
 
 GET /nexusBank/v1/catalog/get (publico)
 ```

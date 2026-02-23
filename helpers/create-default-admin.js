@@ -13,9 +13,9 @@ export const createDefaultAdmin = async () => {
         }
 
         const defaultAdmin = {
-            name: 'Admin NexusBank',
+            name: 'ADMINB',
             email: 'admin@nexusbank.com',
-            password: 'Admin123',
+            password: 'ADMINB',
             phone: '+573001234567',
             role: 'Admin',
             income: 0,

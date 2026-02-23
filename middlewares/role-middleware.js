@@ -13,7 +13,7 @@ export const verifyTokenAndGetUser = (req, res, next) => {
             });
         }
 
-        const decoded = jwt.decode(token);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'nexusbank-secret-key');
 
         if (!decoded) {
             return res.status(401).json({
@@ -23,10 +23,10 @@ export const verifyTokenAndGetUser = (req, res, next) => {
         }
 
         req.user = {
-            id: decoded.id || decoded._id,
+            id: decoded.id, 
             email: decoded.email,
-            role: decoded.role,
-            name: decoded.name
+            role: decoded.role, 
+            name: decoded.name 
         };
 
         next();

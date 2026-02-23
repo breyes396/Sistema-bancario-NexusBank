@@ -1,4 +1,5 @@
-'use strict';
+import jwt from 'jsonwebtoken'; 
+import { User } from '../models/user.model'; 
 
 export const validateBearerToken = (req, res, next) => {
     try {
@@ -11,7 +12,7 @@ export const validateBearerToken = (req, res, next) => {
             });
         }
 
-        const tokenParts = authHeader.split(' ');
+        const tokenParts = authHeader.split(' '); 
         if (tokenParts.length !== 2 || tokenParts[0] !== 'Bearer') {
             return res.status(401).json({
                 success: false,
@@ -28,9 +29,18 @@ export const validateBearerToken = (req, res, next) => {
             });
         }
 
-        req.token = token;
+        jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+            if (err) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Token no válido'
+                });
+            }
 
-        next();
+            
+            req.user = decoded.user; 
+            next(); 
+        });
     } catch (error) {
         console.error('Error en validación de token:', error);
         return res.status(401).json({

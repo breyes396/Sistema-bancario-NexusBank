@@ -1,9 +1,9 @@
-const express = require('express');
+import express from 'express';
+import { createTransfer } from '../controllers/transfer.controller.js';
+import authMiddleware from '../middlewares/auth-middleware.js';
+
 const router = express.Router();
-const authMiddleware = require('../middlewares/auth-middleware'); // Asegúrate de usar el middleware adecuado
-const TransferController = require('../controllers/transfer.controller'); // Controlador que vamos a crear más abajo
 
-// Ruta para crear una transferencia
-router.post('/transfers', authMiddleware, TransferController.createTransfer);
+router.post('/transfers', authMiddleware, createTransfer);
 
-module.exports = router;
+export default router

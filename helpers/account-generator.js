@@ -1,6 +1,6 @@
 'use strict';
 
-import Client from '../src/Client/client.model.js';
+import { Account } from '../src/db/models/index.js';
 
 export const generateAccountNumber = async () => {
     let accountNumber;
@@ -8,8 +8,8 @@ export const generateAccountNumber = async () => {
 
     while (exists) {
         accountNumber = Math.floor(1000000000 + Math.random() * 9000000000).toString();
-        const client = await Client.findOne({ accountNumber });
-        if (!client) exists = false;
+        const account = await Account.findOne({ where: { accountNumber } });
+        if (!account) exists = false;
     }
 
     return accountNumber;

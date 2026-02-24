@@ -1,37 +1,46 @@
 'use strict';
 
 import bcrypt from 'bcryptjs';
-import Client from '../src/Client/client.model.js';
+import { User, Admin, Role } from '../src/db/models/index.js';
 
 export const createDefaultAdmin = async () => {
     try {
-        const adminExists = await Client.findOne({ role: 'Admin' });
+        const [roleAdmin] = await Role.findOrCreate({ where: { name: 'Admin' }, defaults: { description: 'System Administrator' } });
+        const [roleClient] = await Role.findOrCreate({ where: { name: 'Client' }, defaults: { description: 'Bank Client' } });
+        const [roleEmployee] = await Role.findOrCreate({ where: { name: 'Employee' }, defaults: { description: 'Bank Employee' } });
+
+        // Admin defaults
+        const adminEmail = 'admin@nexusbank.com';
+        
+        // Search in Admin table specifically
+        let adminExists = await Admin.findOne({ where: { email: adminEmail } });
 
         if (adminExists) {
-            console.log('✓ Usuario Admin ya existe en la base de datos');
+            console.log('✓ Usuario Admin ya existe en la base de datos (Tabla Admins)');
             return adminExists;
         }
 
+        console.log('Creando usuario Admin por defecto...');
+
         const defaultAdmin = {
-            name: 'Admin NexusBank',
-            email: 'admin@nexusbank.com',
-            password: 'Admin123',
+            name: 'ADMINB',
+            email: adminEmail,
+            password: 'ADMINB',
             phone: '+573001234567',
-            role: 'Admin',
-            income: 0,
-            documentType: 'CC',
-            documentNumber: '1234567890',
-            isActive: true
+            status: true
         };
 
         const salt = await bcrypt.genSalt(10);
         defaultAdmin.password = await bcrypt.hash(defaultAdmin.password, salt);
 
-        const adminCreated = await Client.create(defaultAdmin);
+        const adminCreated = await Admin.create(defaultAdmin);
+        
+        // Associate Role
+        await adminCreated.addRole(roleAdmin);
 
-        console.log('✓ Usuario Admin creado exitosamente');
+        console.log('✓ Usuario Admin creado exitosamente en tabla Admins');
         console.log(`   Email: ${adminCreated.email}`);
-        console.log(`   Contraseña inicial: Admin123 (cambiarla al primer acceso)`);
+        console.log(`   Contraseña inicial: ADMINB (cambiarla al primer acceso)`);
 
         return adminCreated;
     } catch (error) {

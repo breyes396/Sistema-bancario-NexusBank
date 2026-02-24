@@ -1,0 +1,445 @@
+{
+	"info": {
+		"_postman_id": "c7a8b9d0-1e2f-4a5b-9c8d-7e6f5a4b3c2d",
+		"name": "NexusBank API",
+		"description": "Colección de Postman para probar la API de NexusBank (PostgreSQL + MongoDB)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Auth & Users",
+			"item": [
+				{
+					"name": "Login (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.success && jsonData.token) {",
+									"    pm.environment.set(\"token\", jsonData.token);",
+									"    console.log(\"Token updated successfully\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@nexusbank.com\",\n    \"password\": \"ADMINB\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/client/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"client",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Client (Employee/Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Cliente Nuevo\",\n    \"email\": \"cliente@test.com\",\n    \"password\": \"123456\",\n    \"phone\": \"+50212345678\",\n    \"income\": 5000,\n    \"documentType\": \"CC\",\n    \"documentNumber\": \"10101010\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/client/employee/create-client",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"client",
+								"employee",
+								"create-client"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Users",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/client/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"client",
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Cliente Actualizado\",\n    \"phone\": \"99999999\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/client/users/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"client",
+								"users",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/client/users/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"client",
+								"users",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Catalog / Products",
+			"item": [
+				{
+					"name": "Create Product",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Cuenta de Ahorro Premium\",\n    \"description\": \"Cuenta de ahorro con los mejores beneficios\",\n    \"price\": 500,\n    \"category\": \"CUENTAS\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/catalog/create",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"catalog",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/catalog/get",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"catalog",
+								"get"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Product by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/catalog/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"catalog",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "651234567890abcdef123456"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Product",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"price\": 600\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/catalog/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"catalog",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "651234567890abcdef123456"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Activate Product",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/catalog/:id/activate",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"catalog",
+								":id",
+								"activate"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "651234567890abcdef123456"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Deactivate Product",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/catalog/:id/deactivate",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"catalog",
+								":id",
+								"deactivate"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "651234567890abcdef123456"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Product",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/catalog/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"catalog",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "651234567890abcdef123456"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3006/nexusBank/v1",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

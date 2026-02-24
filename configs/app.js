@@ -5,6 +5,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import helmet from 'helmet';
 import { dbConnection } from './db.js';
+import { dbConnectionPostgres } from './postgres-db.js';
 import { corsOptions } from './cors-configuration.js';
 import { helmetConfiguration } from './helmet-configuration.js';
 import { validateBearerTokenSelective } from '../middlewares/auth-middleware.js';
@@ -52,6 +53,7 @@ export const initServer = async () => {
 
     try {
         await dbConnection();
+        await dbConnectionPostgres();
         await createDefaultAdmin();
         middlewares(app);
         routes(app);

@@ -12,7 +12,7 @@ import { validateBearerTokenSelective } from '../middlewares/auth-middleware.js'
 import { createDefaultAdmin } from '../helpers/create-default-admin.js';
 import clientRoutes from '../src/Client/client.routes.js';
 import productRoutes from '../src/Catalog/product.routes.js';
-import postRoutes from '../src/Post/transfer.routes.js';
+import postRoutes from '../src/transt/transfer.routes.js';
 
 const BASE_PATH = '/nexusBank/v1';
 

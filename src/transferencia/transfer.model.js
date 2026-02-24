@@ -20,4 +20,3 @@ export const Account = sequelize.define('Account', {
     tableName: 'accounts',
     timestamps: true
 });
-

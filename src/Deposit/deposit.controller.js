@@ -15,7 +15,12 @@ const createDeposit = async (req, res) => {
 
     const t = await sequelize.transaction();
     try {
-        const account = await Account.findOne({ where: { userId: req.user.id }, transaction: t, lock: t.LOCK.UPDATE });
+        const account = await Account.findOne({ 
+            where: { userId: req.user.id }, 
+            transaction: t, 
+            lock: t.LOCK.UPDATE 
+        });
+        
         if (!account) {
             await t.rollback();
             return res.status(404).json({ success: false, message: 'Cuenta no encontrada' });

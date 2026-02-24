@@ -1,44 +1,35 @@
-import mongoose from 'mongoose';
+import { DataTypes } from 'sequelize';
+import sequelize from '../../../configs/postgres-db.js';
 
-const { Schema, model } = mongoose;
-
-const depositSchema = new Schema({
-    fromClient: { 
-        type: Schema.Types.ObjectId, 
-        ref: 'Client', 
-        required: false 
+export const Deposit = sequelize.define('Deposit', {
+    fromClientId: {
+        type: DataTypes.INTEGER,
+        allowNull: true
     },
-    toClient: { 
-        type: Schema.Types.ObjectId, 
-        ref: 'Client', 
-        required: true 
+    toClientId: {
+        type: DataTypes.INTEGER,
+        allowNull: false
     },
-    fromAccountNumber: { 
-        type: String, 
-        required: false 
+    fromAccountNumber: {
+        type: DataTypes.STRING,
+        allowNull: true
     },
-    toAccountNumber: { 
-        type: String, 
-        required: true 
+    toAccountNumber: {
+        type: DataTypes.STRING,
+        allowNull: false
     },
-    amount: { 
-        type: Number, 
-        required: true 
+    amount: {
+        type: DataTypes.DECIMAL(12,2),
+        allowNull: false
     },
-    type: { type: String, 
-        enum: [
-            'deposit', 
-            'transfer', 
-            'withdrawal'
-        ], 
-        default: 'deposit' 
-    },
-    createdAt: { 
-        type: Date, 
-        default: Date.now 
+    type: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        defaultValue: 'deposit'
     }
 }, {
-    collection: 'deposits'
+    tableName: 'deposits',
+    timestamps: true
 });
 
-export default model('Deposit', depositSchema);
+

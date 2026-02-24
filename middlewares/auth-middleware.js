@@ -37,9 +37,12 @@ export const validateBearerToken = (req, res, next) => {
                 });
             }
 
-            
-            req.user = decoded.user; 
-            next(); 
+            // Guardar token y normalizar user para compatibilidad con distintos payloads
+            // Algunos tokens llevan payload en { user: { id, email, role } } y otros en { id, email, role }
+            req.token = token;
+            req.user = (decoded && decoded.user) ? decoded.user : decoded;
+
+            next();
         });
     } catch (error) {
         console.error('Error en validación de token:', error);

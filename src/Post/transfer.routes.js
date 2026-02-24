@@ -1,9 +1,17 @@
-import express from 'express';
-import { createTransfer } from '../controllers/transfer.controller.js';
-import authMiddleware from '../middlewares/auth-middleware.js';
+// ...existing code...
+import { Router } from 'express';
+import { createTransfer } from './transfer.controller.js';
+import { verifyTokenAndGetUser, verifyIsClient } from '../../middlewares/role-middleware.js';
 
-const router = express.Router();
+const router = Router();
 
-router.post('/transfers', authMiddleware, createTransfer);
+// POST /nexusBank/v1/transfers
+router.post(
+    '/transfers',
+    verifyTokenAndGetUser,
+    verifyIsClient,
+    createTransfer
+);
 
-export default router
+export default router;
+// ...existing code...

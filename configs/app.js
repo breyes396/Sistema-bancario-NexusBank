@@ -12,6 +12,7 @@ import { validateBearerTokenSelective } from '../middlewares/auth-middleware.js'
 import { createDefaultAdmin } from '../helpers/create-default-admin.js';
 import clientRoutes from '../src/Client/client.routes.js';
 import productRoutes from '../src/Catalog/product.routes.js';
+import postRoutes from '../src/Post/transfer.routes.js';
 
 const BASE_PATH = '/nexusBank/v1';
 
@@ -37,6 +38,7 @@ const middlewares = (app) => {
 const routes = (app) => {
     app.use(`${BASE_PATH}/client`, clientRoutes);
     app.use(`${BASE_PATH}/catalog`, productRoutes);
+    app.use(`${BASE_PATH}`, postRoutes);
 
     app.use((req, res) =>{
         res.status(404).json({

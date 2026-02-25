@@ -17,6 +17,10 @@ export const User = sequelize.define('User', {
     },
     lastLogin: {
         type: DataTypes.DATE
+    },
+    saldo: {
+        type: DataTypes.DECIMAL(12, 2),
+        defaultValue: 0.00
     }
 }, {
     tableName: 'users',

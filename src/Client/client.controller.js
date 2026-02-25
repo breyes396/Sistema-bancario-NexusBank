@@ -2,9 +2,10 @@
 
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import { User, Account, Role, UserProfile, Admin } from '../db/models/index.js';
+import { User, Account, Role, UserProfile, Admin, UserEmail } from '../db/models/index.js';
 import sequelize from '../../configs/postgres-db.js';
 import { generateAccountNumber } from '../../helpers/account-generator.js';
+import { sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail, sendPasswordChangedEmail } from '../../services/email.service.js';
 
 export const registerClient = async (req, res) => {
     const t = await sequelize.transaction();
@@ -22,11 +23,11 @@ export const registerClient = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
         const accountNumber = await generateAccountNumber();
 
-        // 1. Create User (Auth data)
+        // 1. Create User (Auth data) - Initially INACTIVE until email verification
         const user = await User.create({
             email,
             password: hashedPassword,
-            status: true,
+            status: false,
             lastLogin: null
         }, { transaction: t });
 
@@ -56,18 +57,39 @@ export const registerClient = async (req, res) => {
             userId: user.id
         }, { transaction: t });
 
+        // 5. Generate verification token (JWT)
+        const verificationToken = jwt.sign(
+            { userId: user.id, email: user.email, type: 'email_verification' },
+            process.env.JWT_SECRET,
+            { expiresIn: `${process.env.VERIFICATION_EMAIL_EXPIRY_HOURS || 24}h` }
+        );
+
+        // 6. Save verification token
+        await UserEmail.create({
+            userId: user.id,
+            email: user.email,
+            verificationToken,
+            isVerified: false
+        }, { transaction: t });
+
         await t.commit();
+
+        // 7. Send verification email (async, don't wait)
+        sendVerificationEmail(email, name, verificationToken).catch(err => {
+            console.error('Error enviando email de verificación:', err);
+        });
 
         const userResponse = user.toJSON();
         delete userResponse.password;
 
         res.status(201).json({
             success: true,
-            message: 'Cliente registrado exitosamente',
+            message: 'Cliente registrado exitosamente. Revisa tu correo para verificar tu cuenta.',
             data: { 
                 email: user.email, 
                 name, 
-                accountNumber 
+                accountNumber,
+                verificationRequired: true
             }
         });
 
@@ -285,5 +307,308 @@ export const deleteUser = async (req, res) => {
         if (t) await t.rollback();
         console.error('Error al eliminar usuario:', error);
         return res.status(500).json({ success: false, message: 'Error interno', error: error.message });
+    }
+};
+
+// ===== EMAIL VERIFICATION ENDPOINTS =====
+
+export const verifyEmail = async (req, res) => {
+    try {
+        const { token } = req.body;
+
+        if (!token) {
+            return res.status(400).json({
+                success: false,
+                message: 'Token de verificación requerido'
+            });
+        }
+
+        // Verify JWT token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        if (decoded.type !== 'email_verification') {
+            return res.status(400).json({
+                success: false,
+                message: 'Token inválido'
+            });
+        }
+
+        const userEmail = await UserEmail.findOne({ 
+            where: { 
+                userId: decoded.userId,
+                verificationToken: token,
+                isVerified: false
+            }
+        });
+
+        if (!userEmail) {
+            return res.status(400).json({
+                success: false,
+                message: 'Token inválido o ya fue usado'
+            });
+        }
+
+        const t = await sequelize.transaction();
+
+        try {
+            // Activate user
+            await User.update(
+                { status: true },
+                { where: { id: decoded.userId }, transaction: t }
+            );
+
+            // Mark email as verified
+            await userEmail.update({ isVerified: true }, { transaction: t });
+
+            await t.commit();
+
+            // Get user data
+            const user = await User.findByPk(decoded.userId, {
+                include: [
+                    { model: UserProfile, as: 'profile' },
+                    { model: Account, as: 'account' }
+                ]
+            });
+
+            // Send welcome email
+            if (user && user.profile && user.account) {
+                sendWelcomeEmail(
+                    user.email, 
+                    user.profile.name, 
+                    user.account.accountNumber
+                ).catch(err => {
+                    console.error('Error enviando email de bienvenida:', err);
+                });
+            }
+
+            return res.status(200).json({
+                success: true,
+                message: '¡Email verificado exitosamente! Tu cuenta está ahora activa.'
+            });
+
+        } catch (error) {
+            await t.rollback();
+            throw error;
+        }
+
+    } catch (error) {
+        if (error.name === 'TokenExpiredError') {
+            return res.status(400).json({
+                success: false,
+                message: 'El token de verificación ha expirado. Solicita uno nuevo.'
+            });
+        }
+        console.error('Error al verificar email:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Error al verificar email',
+            error: error.message
+        });
+    }
+};
+
+export const resendVerificationEmail = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email requerido'
+            });
+        }
+
+        const user = await User.findOne({ 
+            where: { email },
+            include: [
+                { model: UserProfile, as: 'profile' },
+                { model: UserEmail, as: 'emails' }
+            ]
+        });
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'Usuario no encontrado'
+            });
+        }
+
+        if (user.status) {
+            return res.status(400).json({
+                success: false,
+                message: 'Esta cuenta ya está verificada'
+            });
+        }
+
+        // Generate new token
+        const verificationToken = jwt.sign(
+            { userId: user.id, email: user.email, type: 'email_verification' },
+            process.env.JWT_SECRET,
+            { expiresIn: `${process.env.VERIFICATION_EMAIL_EXPIRY_HOURS || 24}h` }
+        );
+
+        // Update or create UserEmail record
+        const [userEmail] = await UserEmail.findOrCreate({
+            where: { userId: user.id },
+            defaults: {
+                email: user.email,
+                verificationToken,
+                isVerified: false
+            }
+        });
+
+        if (userEmail) {
+            await userEmail.update({ 
+                verificationToken,
+                isVerified: false 
+            });
+        }
+
+        // Send email
+        await sendVerificationEmail(
+            user.email, 
+            user.profile?.name || 'Usuario', 
+            verificationToken
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: 'Email de verificación reenviado exitosamente'
+        });
+
+    } catch (error) {
+        console.error('Error al reenviar email:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Error al reenviar email',
+            error: error.message
+        });
+    }
+};
+
+export const requestPasswordReset = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email requerido'
+            });
+        }
+
+        const user = await User.findOne({ 
+            where: { email },
+            include: [{ model: UserProfile, as: 'profile' }]
+        });
+
+        if (!user) {
+            // Don't reveal if user exists
+            return res.status(200).json({
+                success: true,
+                message: 'Si el email existe, recibirás instrucciones para restablecer tu contraseña'
+            });
+        }
+
+        // Generate reset token
+        const resetToken = jwt.sign(
+            { userId: user.id, email: user.email, type: 'password_reset' },
+            process.env.JWT_SECRET,
+            { expiresIn: `${process.env.PASSWORD_RESET_EXPIRY_HOURS || 1}h` }
+        );
+
+        // Send email
+        await sendPasswordResetEmail(
+            user.email, 
+            user.profile?.name || 'Usuario', 
+            resetToken
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: 'Si el email existe, recibirás instrucciones para restablecer tu contraseña'
+        });
+
+    } catch (error) {
+        console.error('Error al solicitar reset de contraseña:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Error al procesar solicitud',
+            error: error.message
+        });
+    }
+};
+
+export const resetPassword = async (req, res) => {
+    try {
+        const { token, newPassword } = req.body;
+
+        if (!token || !newPassword) {
+            return res.status(400).json({
+                success: false,
+                message: 'Token y nueva contraseña requeridos'
+            });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({
+                success: false,
+                message: 'La contraseña debe tener al menos 6 caracteres'
+            });
+        }
+
+        // Verify JWT token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        if (decoded.type !== 'password_reset') {
+            return res.status(400).json({
+                success: false,
+                message: 'Token inválido'
+            });
+        }
+
+        const user = await User.findByPk(decoded.userId, {
+            include: [{ model: UserProfile, as: 'profile' }]
+        });
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'Usuario no encontrado'
+            });
+        }
+
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        // Update password
+        await user.update({ password: hashedPassword });
+
+        // Send confirmation email
+        sendPasswordChangedEmail(
+            user.email,
+            user.profile?.name || 'Usuario'
+        ).catch(err => {
+            console.error('Error enviando email de confirmación:', err);
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: 'Contraseña restablecida exitosamente'
+        });
+
+    } catch (error) {
+        if (error.name === 'TokenExpiredError') {
+            return res.status(400).json({
+                success: false,
+                message: 'El token ha expirado. Solicita un nuevo restablecimiento de contraseña.'
+            });
+        }
+        console.error('Error al restablecer contraseña:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Error al restablecer contraseña',
+            error: error.message
+        });
     }
 };

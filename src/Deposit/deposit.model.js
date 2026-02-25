@@ -1,5 +1,5 @@
 import { DataTypes } from 'sequelize';
-import sequelize from '../../../configs/postgres-db.js';
+import sequelize from '../../configs/postgres-db.js';
 
 export const Deposit = sequelize.define('Deposit', {
     fromClientId: {

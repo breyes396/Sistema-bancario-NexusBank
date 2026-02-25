@@ -427,8 +427,101 @@
 					},
 					"response": []
 				}
-			]
-		}
+			]		},
+		{
+			"name": "Test - Implementación",
+			"item": [
+				{
+					"name": "Verificar Implementación",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"console.log('Respuesta:', pm.response.text());",
+									"if (pm.response.code === 200) {",
+									"    console.log('✓ Implementación verificada');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fromUserId\": 1,\n    \"toUserId\": 2\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/test/verify-implementation",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"test",
+								"verify-implementation"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Crear Transacción",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fromUserId\": 1,\n    \"toUserId\": 2,\n    \"monto\": 100.50,\n    \"tipo\": \"Transferencia\",\n    \"descripcion\": \"Prueba de transacción\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/test/create-transaction",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"test",
+								"create-transaction"
+							]
+						}
+					},
+					"response": []
+				}
+			]		}
 	],
 	"variable": [
 		{

@@ -4,6 +4,10 @@ import mongoose from "mongoose";
 
 export const dbConnection = async () => {
     try {
+        if (!process.env.URI_MONGO) {
+            console.warn('MongoDB URI not set (URI_MONGO). Skipping MongoDB connection.');
+            return false;
+        }
         mongoose.connection.on('error', () => {
             console.log('MongoDB | no se pudo conectar a mongoDB');
             mongoose.disconnect();
@@ -28,8 +32,10 @@ export const dbConnection = async () => {
             serverSelectionTimeoutMS: 5000,
             maxPoolSize: 10
         })
+        return true;
     } catch (error) {
         console.log(`Error al conectar la db: ${error}`);
+        return false;
     }
 }
 

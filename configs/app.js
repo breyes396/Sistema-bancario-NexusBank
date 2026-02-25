@@ -12,7 +12,8 @@ import { validateBearerTokenSelective } from '../middlewares/auth-middleware.js'
 import { createDefaultAdmin } from '../helpers/create-default-admin.js';
 import clientRoutes from '../src/Client/client.routes.js';
 import productRoutes from '../src/Catalog/product.routes.js';
-import postRoutes from '../src/transt/transfer.routes.js';
+import postRoutes from '../src/transferencia/transfer.routes.js';
+import adminRoutes from '../src/admin/admin.routes.js';
 
 const BASE_PATH = '/nexusBank/v1';
 
@@ -39,6 +40,7 @@ const routes = (app) => {
     app.use(`${BASE_PATH}/client`, clientRoutes);
     app.use(`${BASE_PATH}/catalog`, productRoutes);
     app.use(`${BASE_PATH}`, postRoutes);
+    app.use(`${BASE_PATH}/admin`, adminRoutes);
 
     app.use((req, res) =>{
         res.status(404).json({
@@ -54,9 +56,15 @@ export const initServer = async () => {
     app.set('trus proxy', 1);
 
     try {
-        await dbConnection();
-        await dbConnectionPostgres();
-        await createDefaultAdmin();
+        const mongoConnected = await dbConnection();
+        const postgresConnected = await dbConnectionPostgres();
+
+        // Only create default admin if Postgres is available (Sequelize models depend on Postgres)
+        if (postgresConnected) {
+            await createDefaultAdmin();
+        } else {
+            console.warn('Skipping createDefaultAdmin because Postgres is not connected.');
+        }
         middlewares(app);
         routes(app);
 

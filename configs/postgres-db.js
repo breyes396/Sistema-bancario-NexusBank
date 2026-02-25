@@ -22,12 +22,19 @@ const sequelize = new Sequelize(
 
 export const dbConnectionPostgres = async () => {
     try {
+        if (!process.env.DB_NAME || !process.env.DB_USERNAME || !process.env.DB_PASSWORD || !process.env.DB_HOST) {
+            console.warn('Postgres connection env vars not fully set (DB_NAME, DB_USERNAME, DB_PASSWORD, DB_HOST). Skipping Postgres connection.');
+            return false;
+        }
+
         await sequelize.authenticate();
         console.log('Connection to PostgreSQL established successfully.');
         await sequelize.sync({ alter: true }); // Automatically sync models with database
         console.log('PostgreSQL models synchronized.');
+        return true;
     } catch (error) {
         console.error('Unable to connect to the PostgreSQL database:', error);
+        return false;
     }
 }
 

@@ -1,7 +1,7 @@
 import { User } from './user.model.js';
 import { Admin } from './admin.model.js';
-import { Account } from '../../transferencia/account.model.js';
-import { Deposit } from '../../Deposit/deposit.model.js';
+import { Account } from './account.model.js';
+import { Deposit } from './deposit.model.js';
 import { Role } from './role.model.js';
 import { UserRole } from './user-role.model.js';
 import { UserProfile } from './user-profile.model.js';

@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken'; 
-import { User } from '../models/user.model'; 
+import { User } from '../src/db/models/index.js'; 
 
 export const validateBearerToken = (req, res, next) => {
     try {

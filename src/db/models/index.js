@@ -7,6 +7,8 @@ import { UserRole } from './user-role.model.js';
 import { UserProfile } from './user-profile.model.js';
 import { UserEmail } from './user-email.model.js';
 import { UserPasswordReset } from './user-password-reset.model.js';
+import { FailedTransaction } from '../../account/failedTransaction.model.js';
+import { FraudAlert } from '../../account/fraudAlert.model.js';
 
 // Admin - Role (Many-to-Many - assuming Admin also has roles, if not just default)
 Admin.belongsToMany(Role, { through: 'admin_roles', foreignKey: 'adminId', as: 'roles' });
@@ -47,5 +49,7 @@ export {
     UserRole, 
     UserProfile, 
     UserEmail, 
-    UserPasswordReset 
+    UserPasswordReset,
+    FailedTransaction,
+    FraudAlert
 };

@@ -341,3 +341,232 @@ export const sendSecurityChangeEmail = async (email, name, changeData = {}) => {
 
     return await sendEmail(email, 'NexusBank - Cambio de seguridad', html);
 };
+// ====== ALERTAS DE FRAUDE ======
+
+export const sendAccountBlockedEmail = async (email, name, blockData = {}) => {
+    const { blockedUntil, failedAttempts, reason } = blockData;
+    const blockedTime = blockedUntil ? new Date(blockedUntil).toLocaleString('es-ES') : 'N/A';
+
+    const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+                .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+                .alert-box { background: #fee2e2; border-left: 4px solid #dc2626; padding: 15px; margin: 20px 0; border-radius: 5px; }
+                .action-box { background: #fef2f2; border: 1px solid #fecaca; padding: 15px; margin: 20px 0; border-radius: 5px; }
+                .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>🔒 ALERTA DE SEGURIDAD - CUENTA BLOQUEADA</h1>
+                </div>
+                <div class="content">
+                    <h2>Hola ${name},</h2>
+                    <div class="alert-box">
+                        <strong>⚠️ Tu cuenta ha sido bloqueada temporalmente por razones de seguridad.</strong>
+                    </div>
+                    
+                    <h3>Detalles del Bloqueo:</h3>
+                    <ul>
+                        <li><strong>Razón:</strong> ${reason || 'Múltiples intentos fallidos de operaciones monetarias'}</li>
+                        <li><strong>Intentos fallidos:</strong> ${failedAttempts || '3'}</li>
+                        <li><strong>Bloqueado hasta:</strong> ${blockedTime}</li>
+                        <li><strong>Duración:</strong> 30 minutos</li>
+                    </ul>
+
+                    <div class="action-box">
+                        <h3>¿Qué hacer?</h3>
+                        <p>Tu cuenta estará disponible nuevamente después del tiempo indicado. Mientras tanto:</p>
+                        <ul>
+                            <li>No intentes realizar más operaciones monetarias</li>
+                            <li>Revisa tus intentos fallidos en la sección de seguridad</li>
+                            <li>Si esto fue sospechoso, <strong>cambia tu contraseña inmediatamente</strong></li>
+                            <li>Contacta a soporte si crees que esto fue un error</li>
+                        </ul>
+                    </div>
+
+                    <p><strong>Si no fuiste tú quien intentó estas operaciones, por favor contacta a nuestro equipo de seguridad inmediatamente.</strong></p>
+                    <p>Teléfono de soporte: +502 XXXX XXXX</p>
+                    <p>Email: soporte@nexusbank.com</p>
+
+                    <p><em>Fecha: ${new Date().toLocaleString('es-ES')}</em></p>
+                </div>
+                <div class="footer">
+                    <p>© ${new Date().getFullYear()} NexusBank. Todos los derechos reservados.</p>
+                    <p>Este email fue enviado por nuestro sistema de seguridad automático.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+    `;
+
+    return await sendEmail(email, '🔒 ALERTA: Tu cuenta ha sido bloqueada temporalmente', html);
+};
+
+export const sendFraudAlertEmail = async (email, name, alertData = {}) => {
+    const { alertType, severity, description, detectedAt } = alertData;
+    
+    const severityColors = {
+        'CRITICAL': '#dc2626',
+        'HIGH': '#ea580c',
+        'MEDIUM': '#f59e0b',
+        'LOW': '#3b82f6'
+    };
+
+    const severityColor = severityColors[severity] || '#6b7280';
+
+    const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background: linear-gradient(135deg, ${severityColor} 0%, rgba(0,0,0,0.1) 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+                .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+                .alert-box { background: #f0f9ff; border-left: 4px solid ${severityColor}; padding: 15px; margin: 20px 0; border-radius: 5px; }
+                .severity { display: inline-block; padding: 5px 10px; background: ${severityColor}; color: white; border-radius: 20px; font-size: 12px; font-weight: bold; }
+                .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>⚠️ ALERTA DE FRAUDE DETECTADA</h1>
+                </div>
+                <div class="content">
+                    <h2>Hola ${name},</h2>
+                    <p>Nuestro sistema de seguridad ha detectado una actividad sospechosa en tu cuenta.</p>
+                    
+                    <div class="alert-box">
+                        <p><strong>Tipo de alerta:</strong> ${getAlertTypeInSpanish(alertType)}</p>
+                        <p><strong>Severidad:</strong> <span class="severity">${severity}</span></p>
+                        <p><strong>Descripción:</strong> ${description}</p>
+                        <p><strong>Detectado:</strong> ${new Date(detectedAt || Date.now()).toLocaleString('es-ES')}</p>
+                    </div>
+
+                    <h3>¿Qué significa esto?</h3>
+                    <p>Hemos detectado un patrón inusual en tu cuenta que podría indicar fraude. Esto puede incluir:</p>
+                    <ul>
+                        <li>Múltiples intentos fallidos de operaciones</li>
+                        <li>Acceso desde múltiples ubicaciones geográficas</li>
+                        <li>Transacciones inusualmente rápidas</li>
+                        <li>Montos anormalmente altos</li>
+                    </ul>
+
+                    <h3>Recomendaciones:</h3>
+                    <ul>
+                        <li>✅ <strong>Revisa tu cuenta</strong> en la sección de seguridad para ver más detalles</li>
+                        <li>✅ <strong>Verifica tus intentos fallidos</strong> para confirmar la actividad</li>
+                        <li>✅ <strong>Cambia tu contraseña</strong> si sospechas acceso no autorizado</li>
+                        <li>✅ <strong>Contacta a soporte</strong> si no reconoces la actividad</li>
+                    </ul>
+
+                    <p style="color: #666; font-style: italic;">Si realizaste estas operaciones, puedes ignorar este email. Está todo bajo control.</p>
+
+                    <p><strong>Contacto de seguridad:</strong><br>
+                    Email: seguridad@nexusbank.com<br>
+                    Teléfono: +502 XXXX XXXX</p>
+                </div>
+                <div class="footer">
+                    <p>© ${new Date().getFullYear()} NexusBank. Todos los derechos reservados.</p>
+                    <p>Este email fue enviado por nuestro sistema de seguridad automático.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+    `;
+
+    return await sendEmail(email, `⚠️ ALERTA: Actividad sospechosa detectada en tu cuenta (${severity})`, html);
+};
+
+export const sendFailedAttemptEmail = async (email, name, attemptData = {}) => {
+    const { type, amount, reason, ipAddress, attemptNumber } = attemptData;
+
+    const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+                .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+                .info-box { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; border-radius: 5px; }
+                .warning { color: #b45309; font-weight: bold; }
+                .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>⚠️ Intento de operación fallido</h1>
+                </div>
+                <div class="content">
+                    <h2>Hola ${name},</h2>
+                    <p>Se registró un intento fallido de operación en tu cuenta.</p>
+                    
+                    <div class="info-box">
+                        <p><strong>Tipo de operación:</strong> ${getOperationTypeInSpanish(type)}</p>
+                        <p><strong>Monto:</strong> Q${Number(amount).toFixed(2)}</p>
+                        <p><strong>Razón del fallo:</strong> ${reason}</p>
+                        <p><strong>Ubicación (IP):</strong> ${ipAddress || 'No disponible'}</p>
+                        <p><strong>Intento #:</strong> ${attemptNumber || 1}</p>
+                        <p><strong>Hora:</strong> ${new Date().toLocaleString('es-ES')}</p>
+                    </div>
+
+                    <div class="info-box" style="border-left-color: #dc2626; background: #fee2e2;">
+                        <p class="warning">⚠️ ATENCIÓN: Si acumulas 3 intentos fallidos en 1 hora, tu cuenta será bloqueada por 30 minutos.</p>
+                        <p class="warning">Intentos registrados en tu sesión: ${attemptNumber || 1} de 3</p>
+                    </div>
+
+                    <h3>¿Qué hacer?</h3>
+                    <ul>
+                        <li>Revisa que los datos sean correctos</li>
+                        <li>Asegúrate de tener saldo suficiente</li>
+                        <li>Verifica que el monto no supere los límites</li>
+                        <li>Si el problema persiste, contacta a soporte</li>
+                    </ul>
+
+                    <p style="color: #666; margin-top: 30px;">No necesitas tomar acción si este fue un error tuyo. Puedes reintentar en unos iros.</p>
+                </div>
+                <div class="footer">
+                    <p>© ${new Date().getFullYear()} NexusBank. Todos los derechos reservados.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+    `;
+
+    return await sendEmail(email, `⚠️ Intento fallido: ${getOperationTypeInSpanish(type)}`, html);
+};
+
+// Funciones auxiliares
+function getAlertTypeInSpanish(alertType) {
+    const types = {
+        'EXCESSIVE_FAILED_ATTEMPTS': 'Múltiples intentos fallidos',
+        'RAPID_TRANSACTIONS': 'Transacciones rápidas sospechosas',
+        'UNUSUAL_AMOUNT': 'Monto inusualmente alto',
+        'UNUSUAL_LOCATION': 'Acceso desde ubicación inusual',
+        'NEW_RECIPIENT': 'Nuevo destinatario detectado',
+        'BLOCKED_ACCOUNT': 'Cuenta bloqueada',
+        'MULTIPLE_IPS': 'Múltiples ubicaciones geográficas',
+        'PATTERN_DETECTED': 'Patrón sospechoso detectado'
+    };
+    return types[alertType] || alertType;
+}
+
+function getOperationTypeInSpanish(type) {
+    const types = {
+        'TRANSFER': 'Transferencia',
+        'DEPOSIT': 'Depósito',
+        'WITHDRAWAL': 'Retiro'
+    };
+    return types[type] || type;
+}

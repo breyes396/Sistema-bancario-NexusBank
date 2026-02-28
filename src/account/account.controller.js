@@ -10,6 +10,9 @@ import { TransactionAudit } from './transactionAudit.model.js';
 import { User, UserProfile } from '../user/user.model.js';
 import { validateAndApplyCoupon, incrementPromotionUsage } from '../catalog/catalog.controller.js';
 import Catalog from '../catalog/catalog.model.js';
+import { FailedTransaction } from './failedTransaction.model.js';
+import { FraudAlert } from './fraudAlert.model.js';
+import fraudDetectionService from '../../services/fraud-detection.service.js';
 import {
     sendAccountCreatedEmail,
     sendAccountRejectedEmail,
@@ -669,6 +672,152 @@ export const getAdminAccountDetails = async (req, res) => {
     }
 };
 
+// ====== ENDPOINTS DE SEGURIDAD Y ANTIFRAUDE ======
+
+/**
+ * Obtiene el estado de seguridad del usuario
+ * Verifica bloqueos activos, intentos fallidos recientes y alertas de fraude
+ */
+export const getUserSecurityStatus = async (req, res) => {
+    try {
+        const currentUserId = req.user?.id;
+
+        if (!currentUserId) {
+            return res.status(401).json({ success: false, message: 'Usuario no autenticado' });
+        }
+
+        // Verificar si el usuario está bloqueado
+        const blockStatus = await fraudDetectionService.isUserBlocked(currentUserId);
+
+        // Obtener intentos fallidos recientes (últimas 24 horas)
+        const recentFailures = await FailedTransaction.count({
+            where: {
+                userId: currentUserId,
+                createdAt: { [Op.gte]: new Date(Date.now() - 24 * 60 * 60 * 1000) }
+            }
+        });
+
+        // Obtener alertas activas
+        const activeAlerts = await FraudAlert.count({
+            where: {
+                userId: currentUserId,
+                status: 'ACTIVE'
+            }
+        });
+
+        return res.status(200).json({
+            success: true,
+            data: {
+                isBlocked: blockStatus.blocked,
+                blockedUntil: blockStatus.blockedUntil || null,
+                blockReason: blockStatus.reason || null,
+                recentFailedAttempts: recentFailures,
+                activeAlerts: activeAlerts,
+                security: {
+                    status: blockStatus.blocked ? 'BLOCKED' : 'ACTIVE',
+                    riskLevel: activeAlerts > 0 ? 'HIGH' : (recentFailures >= 2 ? 'MEDIUM' : 'LOW')
+                }
+            }
+        });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'Error en el servidor', error: error.message });
+    }
+};
+
+/**
+ * Obtiene los intentos fallidos recientes del usuario
+ */
+export const getFailedAttempts = async (req, res) => {
+    try {
+        const currentUserId = req.user?.id;
+
+        if (!currentUserId) {
+            return res.status(401).json({ success: false, message: 'Usuario no autenticado' });
+        }
+
+        const attempts = await fraudDetectionService.getUserFailedAttempts(currentUserId);
+
+        const summary = {
+            totalAttempts: attempts.length,
+            blockedAttempts: attempts.filter(a => a.isBlocked).length,
+            byType: {
+                TRANSFER: attempts.filter(a => a.type === 'TRANSFER').length,
+                DEPOSIT: attempts.filter(a => a.type === 'DEPOSIT').length,
+                WITHDRAWAL: attempts.filter(a => a.type === 'WITHDRAWAL').length
+            },
+            byReason: {}
+        };
+
+        // Contar por razón
+        attempts.forEach(attempt => {
+            summary.byReason[attempt.failureReason] = (summary.byReason[attempt.failureReason] || 0) + 1;
+        });
+
+        return res.status(200).json({
+            success: true,
+            data: {
+                summary,
+                attempts: attempts.map(a => ({
+                    id: a.id,
+                    type: a.type,
+                    amount: a.amount,
+                    reason: a.failureReason,
+                    isBlocked: a.isBlocked,
+                    blockedUntil: a.blockedUntil,
+                    ipAddress: a.ipAddress,
+                    createdAt: a.createdAt
+                }))
+            }
+        });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'Error en el servidor', error: error.message });
+    }
+};
+
+/**
+ * Obtiene las alertas de fraude del usuario
+ */
+export const getFraudAlerts = async (req, res) => {
+    try {
+        const currentUserId = req.user?.id;
+
+        if (!currentUserId) {
+            return res.status(401).json({ success: false, message: 'Usuario no autenticado' });
+        }
+
+        const alerts = await fraudDetectionService.getUserFraudAlerts(currentUserId);
+
+        const summary = {
+            totalAlerts: alerts.length,
+            activeAlerts: alerts.filter(a => a.status === 'ACTIVE').length,
+            bySeverity: {
+                CRITICAL: alerts.filter(a => a.severity === 'CRITICAL').length,
+                HIGH: alerts.filter(a => a.severity === 'HIGH').length,
+                MEDIUM: alerts.filter(a => a.severity === 'MEDIUM').length,
+                LOW: alerts.filter(a => a.severity === 'LOW').length
+            }
+        };
+
+        return res.status(200).json({
+            success: true,
+            data: {
+                summary,
+                alerts: alerts.map(a => ({
+                    id: a.id,
+                    type: a.alertType,
+                    severity: a.severity,
+                    description: a.description,
+                    status: a.status,
+                    failedAttempts: a.failedAttempts,
+                    createdAt: a.createdAt,
+                    reviewedAt: a.reviewedAt
+                }))
+            }
+        });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'Error en el servidor', error: error.message });
+    }
+};
 export const createDepositRequest = async (req, res) => {
     try {
         const currentUserId = req.user?.id;
@@ -991,6 +1140,21 @@ export const createTransfer = async (req, res) => {
             return res.status(401).json({ success: false, message: 'Usuario no autenticado' });
         }
 
+        // ====== VALIDACIÓN ANTIFRAUDE: Verificar bloqueo del usuario ======
+        const blockStatus = await fraudDetectionService.isUserBlocked(currentUserId);
+        if (blockStatus.blocked) {
+            await dbTransaction.rollback();
+            await notifyTransferRejected(
+                currentUserId, 
+                `Transferencia bloqueada: Tu cuenta fue temporalmente bloqueada por múltiples intentos fallidos. Intenta de nuevo después de ${blockStatus.blockedUntil.toLocaleTimeString()}`
+            );
+            return res.status(423).json({ 
+                success: false, 
+                message: 'Tu cuenta ha sido bloqueada temporalmente por razones de seguridad',
+                data: { blockedUntil: blockStatus.blockedUntil }
+            });
+        }
+
         const {
             sourceAccountNumber,
             destinationAccountNumber,
@@ -1030,6 +1194,18 @@ export const createTransfer = async (req, res) => {
 
         if (numericAmount > MAX_TRANSFER_AMOUNT) {
             await dbTransaction.rollback();
+            
+            // ====== REGISTRO DE INTENTO FALLIDO - MONTO EXCEDIDO ======
+            await fraudDetectionService.recordFailedTransaction(req, currentUserId, {
+                type: 'TRANSFER',
+                amount: numericAmount,
+                reason: 'Monto excede el límite máximo',
+                metadata: { 
+                    attemptedAmount: numericAmount,
+                    maxAllowed: MAX_TRANSFER_AMOUNT
+                }
+            });
+            
             await notifyTransferRejected(
                 currentUserId,
                 `Transferencia rechazada: el monto excede el límite máximo por transacción de Q${MAX_TRANSFER_AMOUNT}`
@@ -1122,6 +1298,26 @@ export const createTransfer = async (req, res) => {
 
         if (sourceBalance < numericAmount) {
             await dbTransaction.rollback();
+            
+            // ====== REGISTRO DE INTENTO FALLIDO ======
+            await fraudDetectionService.recordFailedTransaction(req, currentUserId, {
+                type: 'TRANSFER',
+                accountId: sourceAccount.id,
+                amount: numericAmount,
+                reason: 'Saldo insuficiente',
+                metadata: { 
+                    requiredAmount: numericAmount,
+                    availableBalance: sourceBalance
+                }
+            });
+            
+            // Detectar patrones sospechosos
+            await fraudDetectionService.detectFraudPatterns(req, currentUserId, {
+                type: 'TRANSFER',
+                accountId: sourceAccount.id,
+                amount: numericAmount
+            });
+
             await notifyTransferRejected(sourceAccount.userId, 'Transferencia rechazada: saldo insuficiente');
             return res.status(400).json({
                 success: false,
@@ -1335,6 +1531,15 @@ export const createTransfer = async (req, res) => {
         });
     } catch (error) {
         await dbTransaction.rollback();
+        
+        // ====== REGISTRO DE INTENTO FALLIDO PARA ANTIFRAUDE ======
+        await fraudDetectionService.recordFailedTransaction(req, req.user?.id, {
+            type: 'TRANSFER',
+            amount: req.body.amount,
+            reason: error.message,
+            metadata: { errorType: error.name }
+        });
+
         return res.status(500).json({ success: false, message: 'Error en el servidor', error: error.message });
     }
 };

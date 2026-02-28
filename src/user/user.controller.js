@@ -24,6 +24,81 @@ const createSensitiveAudit = async ({ req, actorUserId, targetUserId, outcome, m
   }
 };
 
+const maskEmail = (email) => {
+  if (!email || typeof email !== 'string') return email;
+  const [localPart = '', domainPart = ''] = email.split('@');
+  if (!domainPart) return '***';
+
+  const safeLocal = localPart.length <= 2
+    ? `${localPart.charAt(0) || '*'}***`
+    : `${localPart.slice(0, 2)}***`;
+
+  const [domainName = '', domainTld = ''] = domainPart.split('.');
+  const safeDomain = domainName
+    ? `${domainName.charAt(0)}***`
+    : '***';
+
+  return `${safeLocal}@${safeDomain}${domainTld ? `.${domainTld}` : ''}`;
+};
+
+const maskDocumentNumber = (documentNumber) => {
+  if (!documentNumber || typeof documentNumber !== 'string') return documentNumber;
+  const cleanValue = documentNumber.replace(/\s+/g, '');
+  if (cleanValue.length <= 4) return '****';
+  return `${'*'.repeat(Math.max(0, cleanValue.length - 4))}${cleanValue.slice(-4)}`;
+};
+
+const maskPhoneNumber = (phoneNumber) => {
+  if (!phoneNumber || typeof phoneNumber !== 'string') return phoneNumber;
+  const cleanValue = phoneNumber.replace(/\D/g, '');
+  if (cleanValue.length <= 3) return '***';
+  return `${'*'.repeat(Math.max(0, cleanValue.length - 3))}${cleanValue.slice(-3)}`;
+};
+
+const maskAddress = (address) => {
+  if (!address || typeof address !== 'string') return address;
+  const trimmedAddress = address.trim();
+  if (trimmedAddress.length <= 6) return '***';
+  return `${trimmedAddress.slice(0, 6)}***`;
+};
+
+const maskProfileForAdminView = (profile) => {
+  if (!profile) return profile;
+
+  return {
+    ...profile,
+    PhoneNumber: maskPhoneNumber(profile.PhoneNumber),
+    Address: maskAddress(profile.Address),
+    DocumentNumber: maskDocumentNumber(profile.DocumentNumber),
+    Income: profile.Income !== null && profile.Income !== undefined ? 'CONFIDENCIAL' : profile.Income
+  };
+};
+
+const applyAdminExposureRules = (userData) => {
+  if (!userData) return userData;
+
+  const plainUser = typeof userData.toJSON === 'function' ? userData.toJSON() : { ...userData };
+
+  return {
+    ...plainUser,
+    email: maskEmail(plainUser.email),
+    UserProfile: maskProfileForAdminView(plainUser.UserProfile),
+    profile: maskProfileForAdminView(plainUser.profile),
+    UserEmails: Array.isArray(plainUser.UserEmails)
+      ? plainUser.UserEmails.map((item) => ({
+          ...item,
+          email: maskEmail(item.email)
+        }))
+      : plainUser.UserEmails,
+    userEmails: Array.isArray(plainUser.userEmails)
+      ? plainUser.userEmails.map((item) => ({
+          ...item,
+          email: maskEmail(item.email)
+        }))
+      : plainUser.userEmails
+  };
+};
+
 export const getAllUsers = async (req, res) => {
   try {
     const users = await User.findAll({
@@ -31,27 +106,33 @@ export const getAllUsers = async (req, res) => {
       include: [
         {
           model: UserProfile,
+          as: 'UserProfile',
           attributes: ['Name', 'Username', 'PhoneNumber', 'Address', 'DocumentType', 'DocumentNumber', 'Income']
         },
         {
           model: UserEmail,
+          as: 'UserEmails',
           attributes: ['email', 'verified']
         },
         {
           model: UserRole,
+          as: 'UserRoles',
           include: [
             {
               model: Role,
+              as: 'Role',
               attributes: ['name']
             }
           ]
         },
         {
           model: Account,
+          as: 'Accounts',
           attributes: ['id', 'accountNumber', 'accountType', 'accountBalance', 'status'],
           include: [
             {
               model: Transaction,
+              as: 'Transactions',
               limit: 5,
               order: [['createdAt', 'DESC']],
               attributes: ['id', 'type', 'amount', 'description', 'balanceAfter', 'createdAt', 'status']
@@ -63,7 +144,7 @@ export const getAllUsers = async (req, res) => {
     });
 
     const formattedUsers = users.map(user => {
-      const userJson = user.toJSON();
+      const userJson = applyAdminExposureRules(user);
       
       const roleName = userJson.UserRoles?.[0]?.Role?.name || 'Cliente';
       
@@ -158,6 +239,8 @@ export const getUserById = async (req, res) => {
     res.status(200).json({
       success: true,
       data: user
+        ? applyAdminExposureRules(user)
+        : user
     });
   } catch (err) {
     console.error('Error al obtener usuario:', err);
@@ -263,18 +346,20 @@ export const getAdminClientDetail = async (req, res) => {
       }
     });
 
+    const maskedUser = applyAdminExposureRules(user);
+
     return res.status(200).json({
       success: true,
       data: {
         client: {
-          id: user.id,
-          email: user.email,
-          status: user.status,
-          isVerified: user.isVerified,
-          lastLogin: user.lastLogin,
-          createdAt: user.createdAt,
-          role: user.UserRoles?.[0]?.Role?.name || 'Cliente',
-          profile: user.UserProfile
+          id: maskedUser.id,
+          email: maskedUser.email,
+          status: maskedUser.status,
+          isVerified: maskedUser.isVerified,
+          lastLogin: maskedUser.lastLogin,
+          createdAt: maskedUser.createdAt,
+          role: maskedUser.UserRoles?.[0]?.Role?.name || 'Cliente',
+          profile: maskedUser.UserProfile
         },
         accounts,
         availableBalance: totalAvailableBalance.toFixed(2),
@@ -373,13 +458,26 @@ export const updateUser = async (req, res) => {
       include: [UserProfile]
     });
     
+    const isAdminRequester = req.user?.role === 'Admin';
+    const responseUser = isAdminRequester
+      ? applyAdminExposureRules({
+          id: user.id,
+          email: user.email,
+          profile: user.UserProfile
+        })
+      : {
+          id: user.id,
+          email: user.email,
+          profile: user.UserProfile
+        };
+
     res.status(200).json({
       success: true,
       msg: 'Usuario actualizado exitosamente',
       data: {
-        id: user.id,
-        email: user.email,
-        profile: user.UserProfile
+        id: responseUser.id,
+        email: responseUser.email,
+        profile: responseUser.profile
       }
     });
   } catch (err) {

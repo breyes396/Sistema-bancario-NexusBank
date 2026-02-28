@@ -1462,3 +1462,125 @@ export const revertDeposit = async (req, res) => {
         });
     }
 };
+
+export const getMyAccountHistory = async (req, res) => {
+    try {
+        const currentUserId = req.user?.id;
+
+        if (!currentUserId) {
+            return res.status(401).json({ 
+                success: false, 
+                message: 'Usuario no autenticado' 
+            });
+        }
+
+        // Buscar todas las cuentas del cliente
+        const accounts = await Account.findAll({
+            where: { userId: currentUserId },
+            attributes: ['id', 'accountNumber', 'accountBalance', 'accountType', 'status', 'createdAt'],
+            order: [['createdAt', 'DESC']]
+        });
+
+        if (!accounts || accounts.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'No se encontraron cuentas para este usuario'
+            });
+        }
+
+        // Extraer IDs de las cuentas
+        const accountIds = accounts.map(acc => acc.id);
+
+        // Buscar todas las transacciones de esas cuentas
+        const transactions = await Transaction.findAll({
+            where: {
+                accountId: {
+                    [Op.in]: accountIds
+                }
+            },
+            attributes: [
+                'id',
+                'accountId',
+                'type',
+                'amount',
+                'description',
+                'balanceAfter',
+                'relatedAccountId',
+                'status',
+                'isReverted',
+                'revertedAt',
+                'appliedCouponId',
+                'createdAt',
+                'updatedAt'
+            ],
+            order: [['createdAt', 'DESC']]
+        });
+
+        // Formatear las cuentas con su información
+        const accountsData = accounts.map(acc => ({
+            accountId: acc.id,
+            accountNumber: acc.accountNumber,
+            accountType: acc.accountType,
+            currentBalance: acc.accountBalance,
+            status: acc.status,
+            createdAt: acc.createdAt
+        }));
+
+        // Formatear las transacciones
+        const transactionsData = transactions.map(trx => {
+            const transactionInfo = {
+                transactionId: trx.id,
+                accountId: trx.accountId,
+                type: trx.type,
+                amount: trx.amount,
+                description: trx.description,
+                balanceAfter: trx.balanceAfter,
+                status: trx.status,
+                date: trx.createdAt,
+                updatedAt: trx.updatedAt
+            };
+
+            // Información adicional opcional
+            if (trx.relatedAccountId) {
+                transactionInfo.relatedAccountId = trx.relatedAccountId;
+            }
+            if (trx.isReverted) {
+                transactionInfo.isReverted = true;
+                transactionInfo.revertedAt = trx.revertedAt;
+            }
+            if (trx.appliedCouponId) {
+                transactionInfo.appliedCouponId = trx.appliedCouponId;
+            }
+
+            return transactionInfo;
+        });
+
+        // Calcular totales
+        const totalBalance = accounts.reduce((sum, acc) => {
+            return sum + getNumericAmount(acc.accountBalance);
+        }, 0);
+
+        return res.status(200).json({
+            success: true,
+            message: 'Historial de cuenta obtenido exitosamente',
+            data: {
+                accounts: accountsData,
+                totalBalance: totalBalance.toFixed(2),
+                transactions: transactionsData,
+                summary: {
+                    totalAccounts: accounts.length,
+                    totalTransactions: transactions.length,
+                    activeAccounts: accounts.filter(acc => acc.status).length
+                }
+            }
+        });
+
+    } catch (error) {
+        console.error('Error obteniendo historial de cuenta:', error);
+        return res.status(500).json({ 
+            success: false, 
+            message: 'Error en el servidor', 
+            error: error.message 
+        });
+    }
+};

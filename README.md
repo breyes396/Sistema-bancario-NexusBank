@@ -215,6 +215,23 @@ PUT /accounts/deposit-requests/SE PONE AQUI EL ID DE LA CUENTA/approve
 Authorization: Bearer {{adminToken}}
 ```
 
+## 5.3.1 Editar monto de solicitud de depósito (Employee/Admin)
+
+```http
+PUT /accounts/deposit-requests/SE PONE AQUI EL ID DE LA SOLICITUD/amount
+Authorization: Bearer {{employeeOrAdminToken}}
+Content-Type: application/json
+```
+
+```json
+{
+  "amount": 850,
+  "reason": "Corrección de monto ingresado"
+}
+```
+
+> Regla: solo se permite editar solicitudes en estado `PENDIENTE`.
+
 ## 5.4 Transferencia
 
 ```http

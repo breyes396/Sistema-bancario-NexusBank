@@ -1,5 +1,5 @@
 import express from 'express';
-import { createAccount, listAccounts, updateAccountLimits, convertAccountBalance, createDepositRequest, approveDepositRequest, revertDeposit, createTransfer, getAccountLimitsAdmin, updateAccountLimitsAdmin, getAdminAccountDetails, getMyAccountHistory, getDashboardTransactionRanking } from './account.controller.js';
+import { createAccount, listAccounts, updateAccountLimits, convertAccountBalance, createDepositRequest, updateDepositRequestAmount, approveDepositRequest, revertDeposit, createTransfer, getAccountLimitsAdmin, updateAccountLimitsAdmin, getAdminAccountDetails, getMyAccountHistory, getDashboardTransactionRanking } from './account.controller.js';
 import { verifyTokenAndGetUser, verifyRoles } from '../../middlewares/role-middleware.js';
 
 const router = express.Router();
@@ -23,6 +23,8 @@ router.get('/my-account/balance/convert', verifyTokenAndGetUser, verifyRoles(['C
 router.get('/my-account/history', verifyTokenAndGetUser, verifyRoles(['Client']), getMyAccountHistory);
 
 router.post('/accounts/deposit-requests', verifyTokenAndGetUser, verifyRoles(['Client']), createDepositRequest);
+
+router.put('/accounts/deposit-requests/:id/amount', verifyTokenAndGetUser, verifyRoles(['Employee', 'Admin']), updateDepositRequestAmount);
 
 router.put('/accounts/deposit-requests/:id/approve', verifyTokenAndGetUser, verifyRoles(['Employee', 'Admin']), approveDepositRequest);
 

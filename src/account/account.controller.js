@@ -644,6 +644,68 @@ export const createDepositRequest = async (req, res) => {
     }
 };
 
+export const updateDepositRequestAmount = async (req, res) => {
+    try {
+        const actorUserId = req.user?.id;
+
+        if (!actorUserId) {
+            return res.status(401).json({ success: false, message: 'Usuario no autenticado' });
+        }
+
+        const { id } = req.params;
+        const { amount, reason } = req.body;
+
+        const numericAmount = getNumericAmount(amount);
+        if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Monto invalido'
+            });
+        }
+
+        const depositRequest = await Transaction.findOne({
+            where: {
+                id,
+                type: 'DEPOSITO'
+            }
+        });
+
+        if (!depositRequest) {
+            return res.status(404).json({
+                success: false,
+                message: 'Solicitud de deposito no encontrada'
+            });
+        }
+
+        if (depositRequest.status !== 'PENDIENTE') {
+            return res.status(400).json({
+                success: false,
+                message: 'Solo se puede editar el monto de solicitudes en estado PENDIENTE'
+            });
+        }
+
+        const previousAmount = getNumericAmount(depositRequest.amount);
+
+        depositRequest.amount = numericAmount.toFixed(2);
+        depositRequest.description = `${depositRequest.description || 'Solicitud de deposito'} | Monto ajustado de Q${previousAmount.toFixed(2)} a Q${numericAmount.toFixed(2)} por ${actorUserId}${reason ? ` (Motivo: ${reason})` : ''}`;
+        await depositRequest.save();
+
+        return res.status(200).json({
+            success: true,
+            message: 'Monto de la solicitud de deposito actualizado exitosamente',
+            data: {
+                transactionId: depositRequest.id,
+                previousAmount: previousAmount.toFixed(2),
+                newAmount: depositRequest.amount,
+                status: depositRequest.status,
+                updatedBy: actorUserId
+            }
+        });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'Error en el servidor', error: error.message });
+    }
+};
+
 export const approveDepositRequest = async (req, res) => {
     const dbTransaction = await sequelize.transaction();
 

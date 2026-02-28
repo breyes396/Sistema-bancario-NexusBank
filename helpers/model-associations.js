@@ -3,6 +3,8 @@ import { UserEmail } from '../src/auth/userEmail.model.js';
 import { Role, UserRole } from '../src/auth/role.model.js';
 import { Account } from '../src/account/account.model.js';
 import { Transaction } from '../src/account/transaction.model.js';
+import Catalog from '../src/catalog/catalog.model.js';
+import CatalogAudit from '../src/catalog/catalogAudit.model.js';
 
 export function initializeAssociations() {
     User.hasOne(UserProfile, { 
@@ -86,5 +88,16 @@ export function initializeAssociations() {
     Transaction.belongsTo(Account, {
         foreignKey: 'accountId',
         as: 'Account'
+    });
+
+    // Catalog Associations
+    Catalog.hasMany(CatalogAudit, {
+        foreignKey: 'catalogId',
+        as: 'Audits',
+        onDelete: 'CASCADE'
+    });
+    CatalogAudit.belongsTo(Catalog, {
+        foreignKey: 'catalogId',
+        as: 'Catalog'
     });
 }

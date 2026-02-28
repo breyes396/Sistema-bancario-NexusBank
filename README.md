@@ -495,4 +495,123 @@ Content-Type: application/json
 
 ---
 
+## 8) Aplicar Cupones de Promoción en Operaciones
+
+Los clientes pueden aplicar cupones de promoción al realizar transferencias o depósitos. Si el cupón es válido y cumple las condiciones, se aplicará automáticamente el beneficio.
+
+### 8.1 Aplicar cupón en Transferencia
+
+**Endpoint:** `POST /nexusBank/v1/account/transfer`
+
+**Headers:**
+```json
+{
+  "Authorization": "Bearer {{token_cliente}}"
+}
+```
+
+**Body:**
+```json
+{
+  "sourceAccountNumber": "1234567890",
+  "destinationAccountNumber": "0987654321",
+  "recipientType": "TERCERO",
+  "amount": 500,
+  "description": "Pago con cupón",
+  "couponId": "cat_5HpxDvF3g8Kq"
+}
+```
+
+**Respuesta exitosa con cupón válido:**
+```json
+{
+  "success": true,
+  "message": "Transferencia realizada exitosamente con cupón Descuento Especial 25%",
+  "data": {
+    "transactionId": "txn_abc123",
+    "sourceAccountId": "acc_...",
+    "destinationAccountId": "acc_...",
+    "recipientType": "TERCERO",
+    "amount": "500.00",
+    "sourceNewBalance": "375.00",
+    "destinationNewBalance": "1500.00",
+    "appliedPromotion": {
+      "id": "cat_5HpxDvF3g8Kq",
+      "name": "Descuento Especial 25%",
+      "discount": "125.00",
+      "finalAmount": "375.00"
+    }
+  }
+}
+```
+
+**Respuesta con cupón inválido:**
+```json
+{
+  "success": false,
+  "message": "Cupón inválido: promoción no está activa"
+}
+```
+
+**Otros mensajes de error posibles:**
+- `"Cupón inválido: promoción no encontrada"`
+- `"Cupón inválido: promoción expirada o límite alcanzado"`
+- `"Cupón inválido: esta promoción no aplica para transferencia tercero"`
+- `"Cupón inválido: la transferencia debe ser mínimo Q500"`
+
+---
+
+### 8.2 Aplicar cupón en Depósito (al aprobar)
+
+**Endpoint:** `PUT /nexusBank/v1/account/deposit/:id/approve`
+
+**Headers:**
+```json
+{
+  "Authorization": "Bearer {{token_admin_employee}}"
+}
+```
+
+**Body:**
+```json
+{
+  "couponId": "cat_9AbCdEfGhIjK"
+}
+```
+
+**Respuesta exitosa con cupón válido:**
+```json
+{
+  "success": true,
+  "message": "Deposito aprobado exitosamente con cupón Cashback 10% Depósitos",
+  "data": {
+    "transactionId": "txn_dep123",
+    "accountId": "acc_...",
+    "depositAmount": "1000.00",
+    "newBalance": "2100.00",
+    "appliedPromotion": {
+      "id": "cat_9AbCdEfGhIjK",
+      "name": "Cashback 10% Depósitos",
+      "cashback": "100.00",
+      "totalCredited": "1100.00"
+    }
+  }
+}
+```
+
+**Cómo funciona:**
+- **Transferencias a tercero:** Aplica descuento en el monto debitado de la cuenta origen
+- **Transferencias propias:** Otorga bonus o puntos adicionales
+- **Depósitos:** Agrega cashback adicional al monto depositado
+
+**Validaciones automáticas:**
+- El cupón debe existir
+- La promoción debe estar ACTIVA
+- La promoción no debe estar expirada (fechas válidas)
+- El tipo de promoción debe coincidir con la operación
+- El monto debe cumplir los límites mínimos/máximos
+- No debe haberse alcanzado el límite de usos
+
+---
+
 

@@ -1,106 +1,89 @@
 'use strict';
 
-import { DataTypes } from 'sequelize';
-import sequelize from '../../configs/db.js';
-import { generateAuditId } from '../../helpers/uuid-generator.js';
+import mongoose from 'mongoose';
 
 /**
- * MODELO CATALOG AUDIT - AUDITORÍA DE CAMBIOS EN PROMOCIONES
- * 
- * Registra todos los cambios realizados en promociones para trazabilidad completa.
+ * MODELO CATALOG AUDIT - AUDITORÍA DE CAMBIOS (MONGODB)
  */
 
-export const CatalogAudit = sequelize.define(
-  'CatalogAudit',
+const catalogAuditSchema = new mongoose.Schema(
   {
-    id: {
-      type: DataTypes.STRING(16),
-      primaryKey: true,
-      defaultValue: () => generateAuditId(),
-      field: 'id'
-    },
-    catalogId: {
-      type: DataTypes.STRING(16),
-      allowNull: false,
-      field: 'catalog_id',
-      references: {
-        model: 'catalogs',
-        key: 'id'
+    _id: {
+      type: String,
+      default: () => {
+        const chars = '123456789ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz';
+        let id = 'aud_';
+        for (let i = 0; i < 12; i++) {
+          id += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return id;
       }
     },
+
+    catalogId: {
+      type: String,
+      required: true,
+      index: true
+    },
+
     action: {
-      type: DataTypes.ENUM('CREAR', 'ACTUALIZAR', 'DESACTIVAR', 'PAUSAR', 'REACTIVAR'),
-      allowNull: false,
-      field: 'action'
+      type: String,
+      enum: ['CREAR', 'ACTUALIZAR', 'DESACTIVAR', 'PAUSAR', 'REACTIVAR'],
+      required: true
     },
+
     actorUserId: {
-      type: DataTypes.STRING(16),
-      allowNull: false,
-      field: 'actor_user_id'
+      type: String,
+      required: true,
+      index: true
     },
+
     previousValues: {
-      type: DataTypes.JSON,
-      allowNull: true,
-      defaultValue: null,
-      field: 'previous_values'
+      type: mongoose.Schema.Types.Mixed,
+      default: null
     },
+
     newValues: {
-      type: DataTypes.JSON,
-      allowNull: true,
-      defaultValue: null,
-      field: 'new_values'
+      type: mongoose.Schema.Types.Mixed,
+      default: null
     },
+
     changedFields: {
-      type: DataTypes.JSON,
-      allowNull: true,
-      defaultValue: null,
-      field: 'changed_fields'
+      type: [String],
+      default: null
     },
+
     reason: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-      defaultValue: null,
-      field: 'reason'
+      type: String,
+      default: null
     },
+
     ipAddress: {
-      type: DataTypes.STRING(45),
-      allowNull: true,
-      defaultValue: null,
-      field: 'ip_address'
+      type: String,
+      maxlength: 45,
+      default: null
     },
+
     userAgent: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-      defaultValue: null,
-      field: 'user_agent'
+      type: String,
+      default: null
     },
+
     metadata: {
-      type: DataTypes.JSON,
-      allowNull: true,
-      defaultValue: null,
-      field: 'metadata'
+      type: mongoose.Schema.Types.Mixed,
+      default: null
     }
   },
   {
-    sequelize,
-    tableName: 'catalog_audits',
+    _id: true,
     timestamps: true,
-    underscored: true,
-    indexes: [
-      {
-        fields: ['catalog_id']
-      },
-      {
-        fields: ['actor_user_id']
-      },
-      {
-        fields: ['action']
-      },
-      {
-        fields: ['created_at']
-      }
-    ]
+    collection: 'catalog_audits'
   }
 );
+
+catalogAuditSchema.index({ action: 1 });
+catalogAuditSchema.index({ createdAt: -1 });
+
+export const CatalogAudit = mongoose.models.CatalogAudit || mongoose.model('CatalogAudit', catalogAuditSchema);
 
 export default CatalogAudit;

@@ -7,6 +7,7 @@ import { Op } from 'sequelize';
 import { Transaction } from './transaction.model.js';
 import { AccountLimitAudit } from './accountLimitAudit.model.js';
 import { User, UserProfile } from '../user/user.model.js';
+import { validateAndApplyCoupon, incrementPromotionUsage } from '../catalog/catalog.controller.js';
 
 const getNumericAmount = (value) => {
     const amount = Number(value);
@@ -653,6 +654,7 @@ export const approveDepositRequest = async (req, res) => {
         }
 
         const { id } = req.params;
+        const { couponId } = req.body;
 
         const depositRequest = await Transaction.findOne({
             where: {
@@ -754,24 +756,69 @@ export const approveDepositRequest = async (req, res) => {
             });
         }
 
-        destinationAccount.accountBalance = resultingBalance.toFixed(2);
+        // Validar y aplicar cupón de promoción si se proporcionó
+        let appliedPromotion = null;
+        let cashbackAmount = 0;
+
+        if (couponId) {
+            const couponValidation = await validateAndApplyCoupon(couponId, 'DEPOSITO', requestAmount, dbTransaction);
+
+            if (!couponValidation.valid) {
+                await dbTransaction.rollback();
+                return res.status(400).json({
+                    success: false,
+                    message: couponValidation.message
+                });
+            }
+
+            appliedPromotion = couponValidation.promotion;
+            cashbackAmount = couponValidation.benefit.amount;
+        }
+
+        const finalBalance = resultingBalance + cashbackAmount;
+        destinationAccount.accountBalance = finalBalance.toFixed(2);
         await destinationAccount.save({ transaction: dbTransaction });
 
+        let depositDescription = depositRequest.description || 'Depósito aprobado';
+        if (appliedPromotion) {
+            depositDescription += ` - Cupón aplicado: ${appliedPromotion.name} (Cashback: Q${cashbackAmount.toFixed(2)})`;
+        }
+        depositDescription += ` | Aprobada por ${approverUserId}`;
+
         depositRequest.status = 'COMPLETADA';
-        depositRequest.balanceAfter = resultingBalance.toFixed(2);
-        depositRequest.description = `${depositRequest.description || ''} | Aprobada por ${approverUserId}`;
+        depositRequest.balanceAfter = finalBalance.toFixed(2);
+        depositRequest.description = depositDescription;
         await depositRequest.save({ transaction: dbTransaction });
+
+        // Incrementar contador de uso de la promoción si se aplicó
+        if (appliedPromotion) {
+            await incrementPromotionUsage(couponId, dbTransaction);
+        }
 
         await dbTransaction.commit();
 
+        const responseData = {
+            transactionId: depositRequest.id,
+            accountId: destinationAccount.id,
+            depositAmount: requestAmount.toFixed(2),
+            newBalance: destinationAccount.accountBalance
+        };
+
+        if (appliedPromotion) {
+            responseData.appliedPromotion = {
+                id: appliedPromotion.id,
+                name: appliedPromotion.name,
+                cashback: cashbackAmount.toFixed(2),
+                totalCredited: (requestAmount + cashbackAmount).toFixed(2)
+            };
+        }
+
         return res.status(200).json({
             success: true,
-            message: 'Deposito aprobado exitosamente',
-            data: {
-                transactionId: depositRequest.id,
-                accountId: destinationAccount.id,
-                newBalance: destinationAccount.accountBalance
-            }
+            message: appliedPromotion
+                ? `Deposito aprobado exitosamente con cupón ${appliedPromotion.name}`
+                : 'Deposito aprobado exitosamente',
+            data: responseData
         });
     } catch (error) {
         await dbTransaction.rollback();
@@ -795,7 +842,8 @@ export const createTransfer = async (req, res) => {
             destinationAccountNumber,
             recipientType,
             amount,
-            description
+            description,
+            couponId
         } = req.body;
 
         if (!sourceAccountNumber || !destinationAccountNumber || !amount || !recipientType) {
@@ -979,7 +1027,34 @@ export const createTransfer = async (req, res) => {
             });
         }
 
-        const sourceNewBalance = sourceBalance - numericAmount;
+        // Validar y aplicar cupón de promoción si se proporcionó
+        let appliedPromotion = null;
+        let benefitAmount = 0;
+        let finalTransferAmount = numericAmount;
+
+        if (couponId) {
+            const operationType = normalizedRecipientType === 'PROPIA' ? 'TRANSFERENCIA_PROPIA' : 'TRANSFERENCIA_TERCERO';
+            const couponValidation = await validateAndApplyCoupon(couponId, operationType, numericAmount, dbTransaction);
+
+            if (!couponValidation.valid) {
+                await dbTransaction.rollback();
+                return res.status(400).json({
+                    success: false,
+                    message: couponValidation.message
+                });
+            }
+
+            appliedPromotion = couponValidation.promotion;
+            benefitAmount = couponValidation.benefit.amount;
+
+            // Aplicar descuento si es transferencia a tercero
+            if (couponValidation.benefit.type === 'DISCOUNT') {
+                // El descuento reduce el monto debitado de la cuenta origen
+                finalTransferAmount = numericAmount - benefitAmount;
+            }
+        }
+
+        const sourceNewBalance = sourceBalance - finalTransferAmount;
         const destinationNewBalance = destinationBalance + numericAmount;
 
         sourceAccount.accountBalance = sourceNewBalance.toFixed(2);
@@ -988,12 +1063,15 @@ export const createTransfer = async (req, res) => {
         await sourceAccount.save({ transaction: dbTransaction });
         await destinationAccount.save({ transaction: dbTransaction });
 
-        const transferDescription = description || `Transferencia ${normalizedRecipientType.toLowerCase()}`;
+        let transferDescription = description || `Transferencia ${normalizedRecipientType.toLowerCase()}`;
+        if (appliedPromotion) {
+            transferDescription += ` - Cupón aplicado: ${appliedPromotion.name}`;
+        }
 
         const sentTransaction = await Transaction.create({
             accountId: sourceAccount.id,
             type: 'TRANSFERENCIA_ENVIADA',
-            amount: numericAmount.toFixed(2),
+            amount: finalTransferAmount.toFixed(2),
             description: transferDescription,
             balanceAfter: sourceNewBalance.toFixed(2),
             relatedAccountId: destinationAccount.id,
@@ -1010,20 +1088,38 @@ export const createTransfer = async (req, res) => {
             status: 'COMPLETADA'
         }, { transaction: dbTransaction });
 
+        // Incrementar contador de uso de la promoción si se aplicó
+        if (appliedPromotion) {
+            await incrementPromotionUsage(couponId, dbTransaction);
+        }
+
         await dbTransaction.commit();
+
+        const responseData = {
+            transactionId: sentTransaction.id,
+            sourceAccountId: sourceAccount.id,
+            destinationAccountId: destinationAccount.id,
+            recipientType: normalizedRecipientType,
+            amount: numericAmount.toFixed(2),
+            sourceNewBalance: sourceNewBalance.toFixed(2),
+            destinationNewBalance: destinationNewBalance.toFixed(2)
+        };
+
+        if (appliedPromotion) {
+            responseData.appliedPromotion = {
+                id: appliedPromotion.id,
+                name: appliedPromotion.name,
+                discount: benefitAmount.toFixed(2),
+                finalAmount: finalTransferAmount.toFixed(2)
+            };
+        }
 
         return res.status(200).json({
             success: true,
-            message: 'Transferencia realizada exitosamente',
-            data: {
-                transactionId: sentTransaction.id,
-                sourceAccountId: sourceAccount.id,
-                destinationAccountId: destinationAccount.id,
-                recipientType: normalizedRecipientType,
-                amount: numericAmount.toFixed(2),
-                sourceNewBalance: sourceNewBalance.toFixed(2),
-                destinationNewBalance: destinationNewBalance.toFixed(2)
-            }
+            message: appliedPromotion 
+                ? `Transferencia realizada exitosamente con cupón ${appliedPromotion.name}` 
+                : 'Transferencia realizada exitosamente',
+            data: responseData
         });
     } catch (error) {
         await dbTransaction.rollback();

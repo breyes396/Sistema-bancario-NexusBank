@@ -1,208 +1,97 @@
 'use strict';
 
-import { DataTypes } from 'sequelize';
-import sequelize from '../../configs/db.js';
-import { generateCatalogId } from '../../helpers/uuid-generator.js';
+import mongoose from 'mongoose';
 
 /**
- * MODELO CATALOG - PROMOCIONES BANCARIAS
+ * MODELO CATALOG - PROMOCIONES BANCARIAS (MONGODB)
  * 
- * Este modelo gestiona promociones y ofertas especiales para transacciones bancarias.
- * Las promociones tienen reglas definidas y son auditadas en todos sus cambios.
+ * Almacena promociones, ofertas y servicios exclusivos del banco
  */
 
-export const Catalog = sequelize.define(
-  'Catalog',
+const catalogSchema = new mongoose.Schema(
   {
-    id: {
-      type: DataTypes.STRING(16),
-      primaryKey: true,
-      defaultValue: () => generateCatalogId(),
-      field: 'id'
+    _id: {
+      type: String,
+      default: () => {
+        const chars = '123456789ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz';
+        let id = 'cat_';
+        for (let i = 0; i < 12; i++) {
+          id += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return id;
+      }
     },
-    // Información General
+
     name: {
-      type: DataTypes.STRING(100),
-      allowNull: false,
-      field: 'name'
+      type: String,
+      required: true,
+      maxlength: 100,
+      trim: true
     },
+
     description: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-      field: 'description'
+      type: String,
+      default: null,
+      trim: true
     },
-    
-    // Tipo de promoción
+
     promotionType: {
-      type: DataTypes.ENUM(
-        'DEPOSITO_CASHBACK',           // Cashback en depósitos
-        'TRANSFERENCIA_DESCUENTO',     // Descuento en transferencias
-        'TRANSFERENCIA_PROPIA_BONUS',  // Bonus por transferencias entre cuentas propias
-        'TRANSACCIONES_FRECUENTES',    // Bonus por N transacciones
-        'SALDO_MINIMO_REWARD',         // Rewward por mantener saldo mínimo
-        'APERTURA_CUENTA_BONUS'        // Bonus por apertura de cuenta
-      ),
-      allowNull: false,
-      field: 'promotion_type'
+      type: String,
+      enum: [
+        'DEPOSITO_CASHBACK',
+        'TRANSFERENCIA_DESCUENTO',
+        'TRANSFERENCIA_PROPIA_BONUS',
+        'TRANSACCIONES_FRECUENTES',
+        'SALDO_MINIMO_REWARD',
+        'APERTURA_CUENTA_BONUS'
+      ],
+      required: true
     },
 
-    // CONDICIONES - Cuándo aplica la promoción
-    minDepositAmount: {
-      type: DataTypes.DECIMAL(12, 2),
-      allowNull: true,
-      defaultValue: null,
-      field: 'min_deposit_amount'
-    },
-    maxDepositAmount: {
-      type: DataTypes.DECIMAL(12, 2),
-      allowNull: true,
-      defaultValue: null,
-      field: 'max_deposit_amount'
-    },
-    minTransferAmount: {
-      type: DataTypes.DECIMAL(12, 2),
-      allowNull: true,
-      defaultValue: null,
-      field: 'min_transfer_amount'
-    },
-    maxTransferAmount: {
-      type: DataTypes.DECIMAL(12, 2),
-      allowNull: true,
-      defaultValue: null,
-      field: 'max_transfer_amount'
-    },
-    minConsecutiveTransactions: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      defaultValue: null,
-      field: 'min_consecutive_transactions'
-    },
-    minAccountBalance: {
-      type: DataTypes.DECIMAL(12, 2),
-      allowNull: true,
-      defaultValue: null,
-      field: 'min_account_balance'
-    },
+    minDepositAmount: { type: Number, default: null },
+    maxDepositAmount: { type: Number, default: null },
+    minTransferAmount: { type: Number, default: null },
+    maxTransferAmount: { type: Number, default: null },
+    minConsecutiveTransactions: { type: Number, default: null },
+    minAccountBalance: { type: Number, default: null },
 
-    // BENEFICIOS - Qué ofrece la promoción
-    discountPercentage: {
-      type: DataTypes.DECIMAL(5, 2),
-      allowNull: true,
-      defaultValue: null,
-      field: 'discount_percentage'
-    },
-    cashbackAmount: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: true,
-      defaultValue: null,
-      field: 'cashback_amount'
-    },
-    cashbackPercentage: {
-      type: DataTypes.DECIMAL(5, 2),
-      allowNull: true,
-      defaultValue: null,
-      field: 'cashback_percentage'
-    },
-    bonusPoints: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      defaultValue: null,
-      field: 'bonus_points'
-    },
+    discountPercentage: { type: Number, default: null },
+    cashbackPercentage: { type: Number, default: null },
+    cashbackAmount: { type: Number, default: null },
+    bonusPoints: { type: Number, default: null },
 
-    // LÍMITES DE USO
-    maxUsesPerClient: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      defaultValue: null,
-      field: 'max_uses_per_client'
-    },
-    maxUsesTotalPromotion: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      defaultValue: null,
-      field: 'max_uses_total_promotion'
-    },
-    usesCountTotal: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 0,
-      field: 'uses_count_total'
-    },
+    maxUsesPerClient: { type: Number, default: null },
+    maxUsesTotalPromotion: { type: Number, default: null },
+    usesCountTotal: { type: Number, default: 0 },
 
-    // PERÍODOS DE VALIDEZ
-    startDate: {
-      type: DataTypes.DATEONLY,
-      allowNull: true,
-      defaultValue: null,
-      field: 'start_date'
-    },
-    endDate: {
-      type: DataTypes.DATEONLY,
-      allowNull: true,
-      defaultValue: null,
-      field: 'end_date'
-    },
-    daysOfWeekApplicable: {
-      type: DataTypes.JSON,
-      allowNull: true,
-      defaultValue: null,
-      field: 'days_of_week_applicable'
-    },
+    startDate: { type: Date, default: null },
+    endDate: { type: Date, default: null },
+    daysOfWeekApplicable: { type: [Number], default: null },
 
-    // ESTADO
     status: {
-      type: DataTypes.ENUM('ACTIVA', 'INACTIVA', 'PAUSADA', 'EXPIRADA'),
-      allowNull: false,
-      defaultValue: 'ACTIVA',
-      field: 'status'
-    },
-    isExclusive: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-      defaultValue: false,
-      field: 'is_exclusive'
+      type: String,
+      enum: ['ACTIVA', 'INACTIVA', 'PAUSADA', 'EXPIRADA'],
+      default: 'ACTIVA'
     },
 
-    // AUDITORÍA
-    createdBy: {
-      type: DataTypes.STRING(16),
-      allowNull: false,
-      field: 'created_by'
-    },
-    updatedBy: {
-      type: DataTypes.STRING(16),
-      allowNull: true,
-      defaultValue: null,
-      field: 'updated_by'
-    },
-    notes: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-      defaultValue: null,
-      field: 'notes'
-    }
+    isExclusive: { type: Boolean, default: false },
+
+    createdBy: { type: String, default: null },
+    updatedBy: { type: String, default: null },
+    notes: { type: String, default: null }
   },
   {
-    sequelize,
-    tableName: 'catalogs',
+    _id: true,
     timestamps: true,
-    underscored: true,
-    indexes: [
-      {
-        fields: ['status']
-      },
-      {
-        fields: ['promotion_type']
-      },
-      {
-        fields: ['start_date', 'end_date']
-      },
-      {
-        fields: ['created_by']
-      }
-    ]
+    collection: 'catalogs'
   }
 );
+
+catalogSchema.index({ status: 1 });
+catalogSchema.index({ promotionType: 1 });
+catalogSchema.index({ createdAt: -1 });
+catalogSchema.index({ name: 'text' });
+
+export const Catalog = mongoose.models.Catalog || mongoose.model('Catalog', catalogSchema);
 
 export default Catalog;

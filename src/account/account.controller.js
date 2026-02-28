@@ -1647,6 +1647,253 @@ export const getMyAccountHistory = async (req, res) => {
     }
 };
 
+export const getMyTransactions = async (req, res) => {
+    return getMyAccountHistory(req, res);
+};
+
+export const getAdminTransactions = async (req, res) => {
+    try {
+        const actorUserId = req.user?.id;
+
+        if (!actorUserId) {
+            return res.status(401).json({
+                success: false,
+                message: 'Usuario no autenticado'
+            });
+        }
+
+        const {
+            accountId,
+            userId,
+            type,
+            status,
+            startDate,
+            endDate,
+            page = 1,
+            limit = 20
+        } = req.query;
+
+        const parsedPage = Math.max(parseInt(page, 10) || 1, 1);
+        const parsedLimit = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100);
+        const offset = (parsedPage - 1) * parsedLimit;
+
+        const transactionWhere = {};
+
+        if (accountId) {
+            transactionWhere.accountId = String(accountId).trim();
+        }
+
+        if (type) {
+            transactionWhere.type = String(type).trim().toUpperCase();
+        }
+
+        if (status) {
+            transactionWhere.status = String(status).trim().toUpperCase();
+        }
+
+        if (startDate || endDate) {
+            const dateWhere = {};
+
+            if (startDate) {
+                const parsedStartDate = new Date(startDate);
+                if (Number.isNaN(parsedStartDate.getTime())) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'startDate inválida'
+                    });
+                }
+                dateWhere[Op.gte] = parsedStartDate;
+            }
+
+            if (endDate) {
+                const parsedEndDate = new Date(endDate);
+                if (Number.isNaN(parsedEndDate.getTime())) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'endDate inválida'
+                    });
+                }
+                dateWhere[Op.lte] = parsedEndDate;
+            }
+
+            transactionWhere.createdAt = dateWhere;
+        }
+
+        let targetAccountIds = null;
+
+        if (userId) {
+            const accountsByUser = await Account.findAll({
+                where: { userId: String(userId).trim() },
+                attributes: ['id'],
+                raw: true
+            });
+
+            targetAccountIds = accountsByUser.map((account) => account.id);
+
+            if (targetAccountIds.length === 0) {
+                return res.status(200).json({
+                    success: true,
+                    message: 'No se encontraron cuentas para el usuario indicado',
+                    data: [],
+                    pagination: {
+                        page: parsedPage,
+                        limit: parsedLimit,
+                        totalRecords: 0,
+                        totalPages: 0
+                    }
+                });
+            }
+
+            if (transactionWhere.accountId && !targetAccountIds.includes(transactionWhere.accountId)) {
+                return res.status(200).json({
+                    success: true,
+                    message: 'La cuenta no pertenece al usuario indicado',
+                    data: [],
+                    pagination: {
+                        page: parsedPage,
+                        limit: parsedLimit,
+                        totalRecords: 0,
+                        totalPages: 0
+                    }
+                });
+            }
+
+            if (!transactionWhere.accountId) {
+                transactionWhere.accountId = { [Op.in]: targetAccountIds };
+            }
+        }
+
+        const { count, rows } = await Transaction.findAndCountAll({
+            where: transactionWhere,
+            attributes: [
+                'id',
+                'accountId',
+                'type',
+                'amount',
+                'description',
+                'balanceAfter',
+                'relatedAccountId',
+                'status',
+                'isReverted',
+                'revertedAt',
+                'appliedCouponId',
+                'createdAt',
+                'updatedAt'
+            ],
+            order: [['createdAt', 'DESC']],
+            offset,
+            limit: parsedLimit
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: 'Transacciones globales obtenidas exitosamente',
+            data: rows,
+            pagination: {
+                page: parsedPage,
+                limit: parsedLimit,
+                totalRecords: count,
+                totalPages: Math.ceil(count / parsedLimit)
+            }
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: 'Error en el servidor',
+            error: error.message
+        });
+    }
+};
+
+export const getEmployeeAccountTransactions = async (req, res) => {
+    try {
+        const actorUserId = req.user?.id;
+
+        if (!actorUserId) {
+            return res.status(401).json({
+                success: false,
+                message: 'Usuario no autenticado'
+            });
+        }
+
+        const { accountId } = req.params;
+        const { page = 1, limit = 20, type, status } = req.query;
+
+        if (!accountId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Id de cuenta requerido'
+            });
+        }
+
+        const account = await Account.findByPk(String(accountId).trim(), {
+            attributes: ['id', 'accountNumber', 'accountType', 'status', 'userId']
+        });
+
+        if (!account) {
+            return res.status(404).json({
+                success: false,
+                message: 'Cuenta no encontrada'
+            });
+        }
+
+        const parsedPage = Math.max(parseInt(page, 10) || 1, 1);
+        const parsedLimit = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100);
+        const offset = (parsedPage - 1) * parsedLimit;
+
+        const where = { accountId: account.id };
+
+        if (type) {
+            where.type = String(type).trim().toUpperCase();
+        }
+
+        if (status) {
+            where.status = String(status).trim().toUpperCase();
+        }
+
+        const { count, rows } = await Transaction.findAndCountAll({
+            where,
+            attributes: [
+                'id',
+                'accountId',
+                'type',
+                'amount',
+                'description',
+                'balanceAfter',
+                'relatedAccountId',
+                'status',
+                'isReverted',
+                'revertedAt',
+                'createdAt'
+            ],
+            order: [['createdAt', 'DESC']],
+            offset,
+            limit: parsedLimit
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: 'Transacciones de cuenta obtenidas exitosamente',
+            data: {
+                account,
+                transactions: rows
+            },
+            pagination: {
+                page: parsedPage,
+                limit: parsedLimit,
+                totalRecords: count,
+                totalPages: Math.ceil(count / parsedLimit)
+            }
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: 'Error en el servidor',
+            error: error.message
+        });
+    }
+};
+
 export const getDashboardTransactionRanking = async (req, res) => {
     try {
         const actorUserId = req.user?.id;

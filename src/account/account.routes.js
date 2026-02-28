@@ -1,6 +1,7 @@
 import express from 'express';
-import { createAccount, listAccounts, updateAccountLimits, convertAccountBalance, createDepositRequest, updateDepositRequestAmount, approveDepositRequest, revertDeposit, createTransfer, getAccountLimitsAdmin, updateAccountLimitsAdmin, getAdminAccountDetails, getMyAccountHistory, getDashboardTransactionRanking } from './account.controller.js';
+import { createAccount, listAccounts, updateAccountLimits, convertAccountBalance, createDepositRequest, updateDepositRequestAmount, approveDepositRequest, revertDeposit, createTransfer, getAccountLimitsAdmin, updateAccountLimitsAdmin, getAdminAccountDetails, getMyAccountHistory, getMyTransactions, getAdminTransactions, getEmployeeAccountTransactions, getDashboardTransactionRanking } from './account.controller.js';
 import { verifyTokenAndGetUser, verifyRoles } from '../../middlewares/role-middleware.js';
+import { validateClientTransactionsQuery, validateAdminTransactionsQuery, validateEmployeeAccountTransactions } from '../../middlewares/transaction-validations.js';
 
 const router = express.Router();
 
@@ -21,6 +22,12 @@ router.get('/dashboard/transaction-ranking', verifyTokenAndGetUser, verifyRoles(
 router.get('/my-account/balance/convert', verifyTokenAndGetUser, verifyRoles(['Client']), convertAccountBalance);
 
 router.get('/my-account/history', verifyTokenAndGetUser, verifyRoles(['Client']), getMyAccountHistory);
+
+router.get('/client/transactions', verifyTokenAndGetUser, verifyRoles(['Client']), validateClientTransactionsQuery, getMyTransactions);
+
+router.get('/admin/transactions', verifyTokenAndGetUser, verifyRoles(['Admin']), validateAdminTransactionsQuery, getAdminTransactions);
+
+router.get('/employee/accounts/:accountId/transactions', verifyTokenAndGetUser, verifyRoles(['Employee']), validateEmployeeAccountTransactions, getEmployeeAccountTransactions);
 
 router.post('/accounts/deposit-requests', verifyTokenAndGetUser, verifyRoles(['Client']), createDepositRequest);
 

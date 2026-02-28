@@ -1336,6 +1336,58 @@ export const createTransfer = async (req, res) => {
             });
         }
 
+        // ====== VALIDACIÓN: Bloqueo de 24h entre transferencias a la misma cuenta ======
+        const last24HoursStart = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const recentTransferToSameDest = await Transaction.findOne({
+            where: {
+                accountId: sourceAccount.id,
+                relatedAccountId: destinationAccount.id,
+                type: 'TRANSFERENCIA_ENVIADA',
+                status: 'COMPLETADA',
+                createdAt: {
+                    [Op.gte]: last24HoursStart
+                }
+            },
+            order: [['createdAt', 'DESC']]
+        });
+
+        if (recentTransferToSameDest) {
+            await dbTransaction.rollback();
+            const timeSinceTransfer = Date.now() - new Date(recentTransferToSameDest.createdAt).getTime();
+            const minutesRemaining = Math.ceil((24 * 60 * 60 * 1000 - timeSinceTransfer) / 60000);
+            const hoursRemaining = Math.ceil(minutesRemaining / 60);
+
+            await fraudDetectionService.recordFailedTransaction(req, currentUserId, {
+                type: 'TRANSFER',
+                accountId: sourceAccount.id,
+                amount: numericAmount,
+                reason: 'Bloqueo por transferencia dentro de 24h a misma cuenta',
+                metadata: {
+                    destinationAccountId: destinationAccount.id,
+                    previousTransferId: recentTransferToSameDest.id,
+                    hoursRemaining: hoursRemaining,
+                    minutesRemaining: minutesRemaining
+                }
+            });
+
+            await notifyTransferRejected(
+                sourceAccount.userId,
+                `Transferencia bloqueada: Ya realizaste una transferencia a esta cuenta en las últimas 24 horas. Intenta en ${hoursRemaining} horas.`
+            );
+
+            return res.status(400).json({
+                success: false,
+                message: 'Transferencia bloqueada: No puedes transferir a la misma cuenta nuevamente hasta completar las 24 horas desde la última transferencia',
+                data: {
+                    destinationAccountNumber: destinationAccount.accountNumber,
+                    lastTransferAt: recentTransferToSameDest.createdAt,
+                    hoursRemaining: hoursRemaining,
+                    minutesRemaining: minutesRemaining,
+                    blockedUntil: new Date(new Date(recentTransferToSameDest.createdAt).getTime() + 24 * 60 * 60 * 1000)
+                }
+            });
+        }
+
         const { start, end } = getDayRange();
 
         const sourceTransferredTodayRaw = await Transaction.sum('amount', {
@@ -1364,6 +1416,59 @@ export const createTransfer = async (req, res) => {
 
         const sourceTransferredToday = getNumericAmount(sourceTransferredTodayRaw || 0);
         const destinationReceivedToday = getNumericAmount(destinationReceivedTodayRaw || 0);
+
+        // ====== VALIDACIÓN: Límite de Q2,000 acumulativo específico por destino al día ======
+        const sourceToDestinationTodayRaw = await Transaction.sum('amount', {
+            where: {
+                accountId: sourceAccount.id,
+                relatedAccountId: destinationAccount.id,
+                type: 'TRANSFERENCIA_ENVIADA',
+                status: 'COMPLETADA',
+                createdAt: {
+                    [Op.between]: [start, end]
+                }
+            },
+            transaction: dbTransaction
+        });
+
+        const MAX_TRANSFER_BY_DESTINATION_PAIR = 2000;
+        const sourceToDestinationToday = getNumericAmount(sourceToDestinationTodayRaw || 0);
+        const sourceToDestinationAfterTransfer = sourceToDestinationToday + numericAmount;
+
+        if (sourceToDestinationAfterTransfer > MAX_TRANSFER_BY_DESTINATION_PAIR) {
+            await dbTransaction.rollback();
+
+            await fraudDetectionService.recordFailedTransaction(req, currentUserId, {
+                type: 'TRANSFER',
+                accountId: sourceAccount.id,
+                amount: numericAmount,
+                reason: 'Límite diario por destino excedido',
+                metadata: {
+                    destinationAccountId: destinationAccount.id,
+                    transferredToDestinationToday: sourceToDestinationToday,
+                    requestedAmount: numericAmount,
+                    dailyLimit: MAX_TRANSFER_BY_DESTINATION_PAIR
+                }
+            });
+
+            const availableToThisDestination = MAX_TRANSFER_BY_DESTINATION_PAIR - sourceToDestinationToday;
+            await notifyTransferRejected(
+                sourceAccount.userId,
+                `Transferencia rechazada: ya has transferido Q${sourceToDestinationToday.toFixed(2)} a esta cuenta hoy. El límite diario a esta cuenta es Q${MAX_TRANSFER_BY_DESTINATION_PAIR}`
+            );
+
+            return res.status(400).json({
+                success: false,
+                message: `Transferencia rechazada: límite diario de Q${MAX_TRANSFER_BY_DESTINATION_PAIR} a esta cuenta ha sido alcanzado`,
+                data: {
+                    destinationAccountNumber: destinationAccount.accountNumber,
+                    transferredToDestinationToday: sourceToDestinationToday.toFixed(2),
+                    dailyLimit: MAX_TRANSFER_BY_DESTINATION_PAIR.toFixed(2),
+                    remainingAvailable: availableToThisDestination.toFixed(2),
+                    requestedAmount: numericAmount.toFixed(2)
+                }
+            });
+        }
 
         const sourceAfterThisTransfer = sourceTransferredToday + numericAmount;
         if (sourceAfterThisTransfer > MAX_DAILY_TRANSFER_BY_SOURCE) {

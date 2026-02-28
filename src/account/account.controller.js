@@ -6,8 +6,10 @@ import config from '../../configs/config.js';
 import { Op } from 'sequelize';
 import { Transaction } from './transaction.model.js';
 import { AccountLimitAudit } from './accountLimitAudit.model.js';
+import { TransactionAudit } from './transactionAudit.model.js';
 import { User, UserProfile } from '../user/user.model.js';
 import { validateAndApplyCoupon, incrementPromotionUsage } from '../catalog/catalog.controller.js';
+import Catalog from '../catalog/catalog.model.js';
 
 const getNumericAmount = (value) => {
     const amount = Number(value);
@@ -788,6 +790,9 @@ export const approveDepositRequest = async (req, res) => {
         depositRequest.status = 'COMPLETADA';
         depositRequest.balanceAfter = finalBalance.toFixed(2);
         depositRequest.description = depositDescription;
+        if (appliedPromotion) {
+            depositRequest.appliedCouponId = couponId;
+        }
         await depositRequest.save({ transaction: dbTransaction });
 
         // Incrementar contador de uso de la promoción si se aplicó
@@ -1031,6 +1036,7 @@ export const createTransfer = async (req, res) => {
         let appliedPromotion = null;
         let benefitAmount = 0;
         let finalTransferAmount = numericAmount;
+        let bonusToDestination = 0;
 
         if (couponId) {
             const operationType = normalizedRecipientType === 'PROPIA' ? 'TRANSFERENCIA_PROPIA' : 'TRANSFERENCIA_TERCERO';
@@ -1052,10 +1058,15 @@ export const createTransfer = async (req, res) => {
                 // El descuento reduce el monto debitado de la cuenta origen
                 finalTransferAmount = numericAmount - benefitAmount;
             }
+            // Aplicar cashback/bonus si es transferencia propia
+            else if (couponValidation.benefit.type === 'CASHBACK') {
+                // El bonus se suma a la cuenta destino
+                bonusToDestination = benefitAmount;
+            }
         }
 
         const sourceNewBalance = sourceBalance - finalTransferAmount;
-        const destinationNewBalance = destinationBalance + numericAmount;
+        const destinationNewBalance = destinationBalance + numericAmount + bonusToDestination;
 
         sourceAccount.accountBalance = sourceNewBalance.toFixed(2);
         destinationAccount.accountBalance = destinationNewBalance.toFixed(2);
@@ -1065,7 +1076,11 @@ export const createTransfer = async (req, res) => {
 
         let transferDescription = description || `Transferencia ${normalizedRecipientType.toLowerCase()}`;
         if (appliedPromotion) {
-            transferDescription += ` - Cupón aplicado: ${appliedPromotion.name}`;
+            if (bonusToDestination > 0) {
+                transferDescription += ` - Cupón: ${appliedPromotion.name} (Bonus: Q${bonusToDestination.toFixed(2)})`;
+            } else if (benefitAmount > 0) {
+                transferDescription += ` - Cupón: ${appliedPromotion.name} (Descuento: Q${benefitAmount.toFixed(2)})`;
+            }
         }
 
         const sentTransaction = await Transaction.create({
@@ -1078,10 +1093,11 @@ export const createTransfer = async (req, res) => {
             status: 'COMPLETADA'
         }, { transaction: dbTransaction });
 
+        const totalReceivedAmount = numericAmount + bonusToDestination;
         await Transaction.create({
             accountId: destinationAccount.id,
             type: 'TRANSFERENCIA_RECIBIDA',
-            amount: numericAmount.toFixed(2),
+            amount: totalReceivedAmount.toFixed(2),
             description: transferDescription,
             balanceAfter: destinationNewBalance.toFixed(2),
             relatedAccountId: sourceAccount.id,
@@ -1109,8 +1125,11 @@ export const createTransfer = async (req, res) => {
             responseData.appliedPromotion = {
                 id: appliedPromotion.id,
                 name: appliedPromotion.name,
-                discount: benefitAmount.toFixed(2),
-                finalAmount: finalTransferAmount.toFixed(2)
+                benefitType: bonusToDestination > 0 ? 'BONUS' : 'DISCOUNT',
+                benefitAmount: benefitAmount.toFixed(2),
+                amountDebited: finalTransferAmount.toFixed(2),
+                amountReceived: (numericAmount + bonusToDestination).toFixed(2),
+                bonusApplied: bonusToDestination.toFixed(2)
             };
         }
 
@@ -1124,5 +1143,322 @@ export const createTransfer = async (req, res) => {
     } catch (error) {
         await dbTransaction.rollback();
         return res.status(500).json({ success: false, message: 'Error en el servidor', error: error.message });
+    }
+};
+
+/**
+ * createTransactionAudit
+ * 
+ * Función auxiliar para registrar auditoría de transacciones.
+ * Utilizada principalmente para reversiones.
+ */
+const createTransactionAudit = async ({
+    transactionId,
+    actorUserId,
+    action,
+    outcome,
+    previousStatus = null,
+    newStatus = null,
+    revertedAmount = null,
+    relatedCouponId = null,
+    reason = null,
+    timeElapsedSeconds = null,
+    ipAddress = null,
+    userAgent = null,
+    metadata = null
+}) => {
+    try {
+        await TransactionAudit.create({
+            transactionId,
+            actorUserId,
+            action,
+            outcome,
+            previousStatus,
+            newStatus,
+            revertedAmount,
+            relatedCouponId,
+            reason,
+            timeElapsedSeconds,
+            ipAddress,
+            userAgent,
+            metadata
+        });
+    } catch (auditError) {
+        console.error('Error registrando auditoría de transacción:', auditError.message);
+    }
+};
+
+/**
+ * revertDeposit
+ * Endpoint: PUT /accounts/deposit-requests/:id/revert
+ * Acceso: Solo Admin y Employee
+ * 
+ * Propósito:
+ * Permite revertir un depósito aprobado dentro de una ventana de tiempo de 1 minuto.
+ * Después de ese tiempo, la reversión se bloquea automáticamente.
+ * 
+ * Validaciones:
+ * 1. El depósito debe existir y estar en estado COMPLETADA
+ * 2. Debe ser de tipo DEPOSITO
+ * 3. No debe haber sido revertido previamente
+ * 4. Debe estar dentro de la ventana de 1 minuto
+ * 5. La cuenta debe tener saldo suficiente para revertir
+ * 
+ * Lógica:
+ * 1. Busca el depósito y valida todos los criterios
+ * 2. Si tenía cupón aplicado, revierte el cashback y decrementa uso
+ * 3. Resta el monto del saldo de la cuenta
+ * 4. Marca la transacción como revertida
+ * 5. Registra evento en auditoría con todos los detalles
+ */
+export const revertDeposit = async (req, res) => {
+    try {
+        const actorUserId = req.user?.id;
+
+        if (!actorUserId) {
+            return res.status(401).json({ 
+                success: false, 
+                message: 'Usuario no autenticado' 
+            });
+        }
+
+        const { id } = req.params;
+        const reason = req.body?.reason || null;
+
+        // ANTES de la transacción: buscar el depósito (consulta inicial)
+        let deposit = await Transaction.findOne({
+            where: {
+                id,
+                type: 'DEPOSITO'
+            }
+        });
+
+        if (!deposit) {
+            return res.status(404).json({
+                success: false,
+                message: 'Depósito no encontrado'
+            });
+        }
+
+        // Validar que esté completado
+        if (deposit.status !== 'COMPLETADA') {
+            await createTransactionAudit({
+                transactionId: deposit.id,
+                actorUserId,
+                action: 'REVERT_DENIED',
+                outcome: 'DENIED',
+                previousStatus: deposit.status,
+                reason: `Depósito en estado ${deposit.status}, solo se pueden revertir depósitos completados`,
+                ipAddress: req.ip,
+                userAgent: req.headers['user-agent']
+            });
+
+            return res.status(400).json({
+                success: false,
+                message: 'Solo se pueden revertir depósitos completados'
+            });
+        }
+
+        // Validar que no esté ya revertido
+        if (deposit.isReverted) {
+            await createTransactionAudit({
+                transactionId: deposit.id,
+                actorUserId,
+                action: 'REVERT_DENIED',
+                outcome: 'DENIED',
+                previousStatus: deposit.status,
+                reason: 'Depósito ya fue revertido previamente',
+                ipAddress: req.ip,
+                userAgent: req.headers['user-agent'],
+                metadata: {
+                    revertedAt: deposit.revertedAt,
+                    revertedBy: deposit.revertedBy
+                }
+            });
+
+            return res.status(400).json({
+                success: false,
+                message: 'Este depósito ya fue revertido previamente',
+                revertedAt: deposit.revertedAt,
+                revertedBy: deposit.revertedBy
+            });
+        }
+
+        // Calcular tiempo transcurrido
+        const now = new Date();
+        const transactionTime = new Date(deposit.updatedAt);
+        const timeElapsedMs = now - transactionTime;
+        const timeElapsedSeconds = Math.floor(timeElapsedMs / 1000);
+        const ONE_MINUTE_MS = 60000;
+
+        // Validar ventana de 1 minuto
+        if (timeElapsedMs > ONE_MINUTE_MS) {
+            await createTransactionAudit({
+                transactionId: deposit.id,
+                actorUserId,
+                action: 'REVERT_DENIED',
+                outcome: 'DENIED',
+                previousStatus: deposit.status,
+                reason: `Ventana de reversión expirada. Han pasado ${timeElapsedSeconds} segundos (límite: 60)`,
+                timeElapsedSeconds,
+                ipAddress: req.ip,
+                userAgent: req.headers['user-agent']
+            });
+
+            return res.status(400).json({
+                success: false,
+                message: 'La ventana de reversión ha expirado. Solo se pueden revertir depósitos dentro de 1 minuto de su aprobación',
+                timeElapsedSeconds,
+                timeLimit: 60
+            });
+        }
+
+        // Buscar promoción ANTES de la transacción (si aplica)
+        let hadCoupon = false;
+        let cashbackToRevert = 0;
+        const couponId = deposit.appliedCouponId;
+
+        if (couponId) {
+            const promotion = await Catalog.findById(couponId);
+            if (promotion && promotion.promotionType === 'DEPOSITO_CASHBACK') {
+                hadCoupon = true;
+                if (promotion.cashbackPercentage) {
+                    cashbackToRevert = (getNumericAmount(deposit.amount) * promotion.cashbackPercentage) / 100;
+                } else if (promotion.cashbackAmount) {
+                    cashbackToRevert = promotion.cashbackAmount;
+                }
+            }
+        }
+
+        // AHORA inicia la transacción Sequelize
+        const dbTransaction = await sequelize.transaction();
+
+        try {
+            // Buscar el depósito nuevamente con lock para transacción
+            deposit = await Transaction.findOne({
+                where: { id },
+                transaction: dbTransaction,
+                lock: dbTransaction.LOCK.UPDATE
+            });
+
+            // Buscar la cuenta con lock
+            const account = await Account.findByPk(deposit.accountId, {
+                transaction: dbTransaction,
+                lock: dbTransaction.LOCK.UPDATE
+            });
+
+            if (!account) {
+                await dbTransaction.rollback();
+                return res.status(404).json({
+                    success: false,
+                    message: 'Cuenta no encontrada'
+                });
+            }
+
+            const depositAmount = getNumericAmount(deposit.amount);
+            const currentBalance = getNumericAmount(account.accountBalance);
+            const totalToRevert = depositAmount + cashbackToRevert;
+
+            // Validar saldo
+            if (currentBalance < totalToRevert) {
+                await createTransactionAudit({
+                    transactionId: deposit.id,
+                    actorUserId,
+                    action: 'REVERT_DENIED',
+                    outcome: 'ERROR',
+                    previousStatus: deposit.status,
+                    revertedAmount: totalToRevert,
+                    relatedCouponId: couponId,
+                    reason: `Saldo insuficiente para revertir. Balance actual: Q${currentBalance.toFixed(2)}, se requiere: Q${totalToRevert.toFixed(2)}`,
+                    timeElapsedSeconds,
+                    ipAddress: req.ip,
+                    userAgent: req.headers['user-agent']
+                });
+
+                await dbTransaction.rollback();
+                return res.status(400).json({
+                    success: false,
+                    message: 'Saldo insuficiente para revertir el depósito',
+                    currentBalance: currentBalance.toFixed(2),
+                    amountToRevert: totalToRevert.toFixed(2)
+                });
+            }
+
+            // Revertir saldo
+            const newBalance = currentBalance - totalToRevert;
+            account.accountBalance = newBalance.toFixed(2);
+            await account.save({ transaction: dbTransaction });
+
+            // Actualizar transacción
+            deposit.status = 'REVERTIDA';
+            deposit.isReverted = true;
+            deposit.revertedAt = now;
+            deposit.revertedBy = actorUserId;
+            deposit.revertReason = reason || 'Reversión dentro de ventana de 1 minuto';
+            deposit.description = `${deposit.description} | REVERTIDA por ${actorUserId}: ${deposit.revertReason}`;
+            await deposit.save({ transaction: dbTransaction });
+
+            // Commit ANTES de operaciones en MongoDB
+            await dbTransaction.commit();
+
+            // DESPUÉS del commit: operaciones en MongoDB
+            if (hadCoupon && couponId) {
+                await Catalog.findByIdAndUpdate(
+                    couponId,
+                    { $inc: { usesCountTotal: -1 } }
+                );
+            }
+
+            // Registrar auditoría
+            await createTransactionAudit({
+                transactionId: deposit.id,
+                actorUserId,
+                action: 'REVERT_SUCCESS',
+                outcome: 'SUCCESS',
+                previousStatus: 'COMPLETADA',
+                newStatus: 'REVERTIDA',
+                revertedAmount: totalToRevert,
+                relatedCouponId: couponId || null,
+                reason: deposit.revertReason,
+                timeElapsedSeconds,
+                ipAddress: req.ip,
+                userAgent: req.headers['user-agent'],
+                metadata: {
+                    hadCoupon,
+                    cashbackReverted: cashbackToRevert,
+                    previousBalance: currentBalance.toFixed(2),
+                    newBalance: newBalance.toFixed(2)
+                }
+            });
+
+            return res.status(200).json({
+                success: true,
+                message: 'Depósito revertido exitosamente',
+                data: {
+                    transactionId: deposit.id,
+                    accountId: account.id,
+                    amountReverted: totalToRevert.toFixed(2),
+                    depositAmount: depositAmount.toFixed(2),
+                    cashbackReverted: cashbackToRevert.toFixed(2),
+                    newBalance: newBalance.toFixed(2),
+                    revertedAt: deposit.revertedAt,
+                    revertedBy: actorUserId,
+                    timeElapsedSeconds,
+                    hadCoupon
+                }
+            });
+
+        } catch (error) {
+            await dbTransaction.rollback();
+            throw error;
+        }
+
+    } catch (error) {
+        console.error('Error revirtiendo depósito:', error);
+        return res.status(500).json({ 
+            success: false, 
+            message: 'Error en el servidor', 
+            error: error.message 
+        });
     }
 };

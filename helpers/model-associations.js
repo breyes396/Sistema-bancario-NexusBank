@@ -3,6 +3,7 @@ import { UserEmail } from '../src/auth/userEmail.model.js';
 import { Role, UserRole } from '../src/auth/role.model.js';
 import { Account } from '../src/account/account.model.js';
 import { Transaction } from '../src/account/transaction.model.js';
+import { TransactionAudit } from '../src/account/transactionAudit.model.js';
 
 export function initializeAssociations() {
     User.hasOne(UserProfile, { 
@@ -86,5 +87,15 @@ export function initializeAssociations() {
     Transaction.belongsTo(Account, {
         foreignKey: 'accountId',
         as: 'Account'
+    });
+
+    Transaction.hasMany(TransactionAudit, {
+        foreignKey: 'transactionId',
+        as: 'Audits',
+        onDelete: 'CASCADE'
+    });
+    TransactionAudit.belongsTo(Transaction, {
+        foreignKey: 'transactionId',
+        as: 'Transaction'
     });
 }

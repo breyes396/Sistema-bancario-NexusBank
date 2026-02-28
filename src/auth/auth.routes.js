@@ -1,17 +1,3 @@
-<<<<<<< HEAD
-
-const express = require('express');
-const router = express.Router();
-const authCtrl = require('./auth.controller');
-
-// Login (cliente o admin)
-router.post('/login', authCtrl.login);
-
-// Registro de cliente
-router.post('/register', authCtrl.register);
-
-module.exports = router;
-=======
 import express from 'express';
 import {
 	login,
@@ -57,4 +43,3 @@ router.post('/reset-password', validateResetPassword, resetPassword);
 router.get('/profile', validateBearerToken, getProfile);
 
 export default router;
->>>>>>> 617c0ff7ecaad94375311acd0c54da979f1bb189

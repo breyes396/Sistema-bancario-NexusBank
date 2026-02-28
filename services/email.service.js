@@ -218,3 +218,126 @@ export const sendPasswordChangedEmail = async (email, name) => {
 
     return await sendEmail(email, 'Tu contraseña ha sido actualizada', html);
 };
+
+export const sendAccountCreatedEmail = async (email, name, accountData = {}) => {
+    const { accountNumber, accountType, accountBalance = 0 } = accountData;
+    const html = `
+        <p>Hola ${name || 'cliente'},</p>
+        <p>Se creó una cuenta en NexusBank.</p>
+        <ul>
+            <li><strong>Número:</strong> ${accountNumber || 'N/A'}</li>
+            <li><strong>Tipo:</strong> ${accountType || 'N/A'}</li>
+            <li><strong>Saldo inicial:</strong> Q${Number(accountBalance || 0).toFixed(2)}</li>
+        </ul>
+        <p>Fecha: ${new Date().toLocaleString('es-ES')}</p>
+    `;
+
+    return await sendEmail(email, 'NexusBank - Cuenta creada', html);
+};
+
+export const sendAccountRejectedEmail = async (email, name, reason) => {
+    const html = `
+        <p>Hola ${name || 'cliente'},</p>
+        <p>Tu solicitud/transacción fue rechazada.</p>
+        <p><strong>Motivo:</strong> ${reason || 'No especificado'}</p>
+        <p>Fecha: ${new Date().toLocaleString('es-ES')}</p>
+    `;
+
+    return await sendEmail(email, 'NexusBank - Solicitud rechazada', html);
+};
+
+export const sendDepositAlertEmail = async (email, name, depositData = {}) => {
+    const { accountNumber, amount, newBalance } = depositData;
+    const html = `
+        <p>Hola ${name || 'cliente'},</p>
+        <p>Se acreditó un depósito en tu cuenta.</p>
+        <ul>
+            <li><strong>Cuenta:</strong> ${accountNumber || 'N/A'}</li>
+            <li><strong>Monto:</strong> Q${Number(amount || 0).toFixed(2)}</li>
+            <li><strong>Nuevo saldo:</strong> Q${Number(newBalance || 0).toFixed(2)}</li>
+        </ul>
+        <p>Fecha: ${new Date().toLocaleString('es-ES')}</p>
+    `;
+
+    return await sendEmail(email, 'NexusBank - Depósito aplicado', html);
+};
+
+export const sendTransferSentEmail = async (email, name, transferData = {}) => {
+    const { fromAccountNumber, toAccountNumber, amount, newBalance } = transferData;
+    const html = `
+        <p>Hola ${name || 'cliente'},</p>
+        <p>Se realizó una transferencia desde tu cuenta.</p>
+        <ul>
+            <li><strong>Cuenta origen:</strong> ${fromAccountNumber || 'N/A'}</li>
+            <li><strong>Cuenta destino:</strong> ${toAccountNumber || 'N/A'}</li>
+            <li><strong>Monto:</strong> Q${Number(amount || 0).toFixed(2)}</li>
+            <li><strong>Nuevo saldo:</strong> Q${Number(newBalance || 0).toFixed(2)}</li>
+        </ul>
+        <p>Fecha: ${new Date().toLocaleString('es-ES')}</p>
+    `;
+
+    return await sendEmail(email, 'NexusBank - Transferencia enviada', html);
+};
+
+export const sendTransferReceivedEmail = async (email, name, transferData = {}) => {
+    const { fromAccountNumber, toAccountNumber, amount, newBalance } = transferData;
+    const html = `
+        <p>Hola ${name || 'cliente'},</p>
+        <p>Recibiste una transferencia en tu cuenta.</p>
+        <ul>
+            <li><strong>Cuenta origen:</strong> ${fromAccountNumber || 'N/A'}</li>
+            <li><strong>Cuenta destino:</strong> ${toAccountNumber || 'N/A'}</li>
+            <li><strong>Monto:</strong> Q${Number(amount || 0).toFixed(2)}</li>
+            <li><strong>Nuevo saldo:</strong> Q${Number(newBalance || 0).toFixed(2)}</li>
+        </ul>
+        <p>Fecha: ${new Date().toLocaleString('es-ES')}</p>
+    `;
+
+    return await sendEmail(email, 'NexusBank - Transferencia recibida', html);
+};
+
+export const sendDepositRevertedEmail = async (email, name, revertData = {}) => {
+    const { accountNumber, amount, reason, newBalance } = revertData;
+    const html = `
+        <p>Hola ${name || 'cliente'},</p>
+        <p>Se revirtió un depósito en tu cuenta.</p>
+        <ul>
+            <li><strong>Cuenta:</strong> ${accountNumber || 'N/A'}</li>
+            <li><strong>Monto revertido:</strong> Q${Number(amount || 0).toFixed(2)}</li>
+            <li><strong>Nuevo saldo:</strong> Q${Number(newBalance || 0).toFixed(2)}</li>
+            <li><strong>Motivo:</strong> ${reason || 'No especificado'}</li>
+        </ul>
+        <p>Fecha: ${new Date().toLocaleString('es-ES')}</p>
+    `;
+
+    return await sendEmail(email, 'NexusBank - Reversión de depósito', html);
+};
+
+export const sendSecurityChangeEmail = async (email, name, changeData = {}) => {
+    const { accountNumber, changeType, changes = {}, reason } = changeData;
+    const lines = [];
+
+    if (changes.perTransactionLimit !== undefined) {
+        lines.push(`<li><strong>Límite por operación:</strong> ${changes.perTransactionLimit === null ? 'Sin límite' : 'Q' + Number(changes.perTransactionLimit).toFixed(2)}</li>`);
+    }
+    if (changes.dailyTransactionLimit !== undefined) {
+        lines.push(`<li><strong>Límite diario:</strong> ${changes.dailyTransactionLimit === null ? 'Sin límite' : 'Q' + Number(changes.dailyTransactionLimit).toFixed(2)}</li>`);
+    }
+    if (changes.status !== undefined) {
+        lines.push(`<li><strong>Estado de cuenta:</strong> ${changes.status ? 'Activa' : 'Inactiva'}</li>`);
+    }
+
+    const html = `
+        <p>Hola ${name || 'cliente'},</p>
+        <p>Se registró un cambio de seguridad en tu cuenta.</p>
+        <ul>
+            <li><strong>Cuenta:</strong> ${accountNumber || 'N/A'}</li>
+            <li><strong>Tipo de cambio:</strong> ${changeType || 'Actualización de seguridad'}</li>
+            ${lines.join('')}
+        </ul>
+        ${reason ? `<p><strong>Motivo:</strong> ${reason}</p>` : ''}
+        <p>Fecha: ${new Date().toLocaleString('es-ES')}</p>
+    `;
+
+    return await sendEmail(email, 'NexusBank - Cambio de seguridad', html);
+};

@@ -10,10 +10,61 @@ import { TransactionAudit } from './transactionAudit.model.js';
 import { User, UserProfile } from '../user/user.model.js';
 import { validateAndApplyCoupon, incrementPromotionUsage } from '../catalog/catalog.controller.js';
 import Catalog from '../catalog/catalog.model.js';
+import {
+    sendAccountCreatedEmail,
+    sendAccountRejectedEmail,
+    sendDepositAlertEmail,
+    sendTransferSentEmail,
+    sendTransferReceivedEmail,
+    sendDepositRevertedEmail,
+    sendSecurityChangeEmail
+} from '../../services/email.service.js';
 
 const getNumericAmount = (value) => {
     const amount = Number(value);
     return Number.isFinite(amount) ? amount : NaN;
+};
+
+const getUserEmailAndName = async (userId) => {
+    try {
+        if (!userId) return null;
+        const user = await User.findByPk(userId, { attributes: ['id', 'email'] });
+        if (!user?.email) return null;
+
+        const profile = await UserProfile.findOne({
+            where: { UserId: userId },
+            attributes: ['Name', 'Username']
+        });
+
+        return {
+            email: user.email,
+            name: profile?.Name || profile?.Username || user.email
+        };
+    } catch (error) {
+        console.error('Error al obtener información del usuario para email:', error.message);
+        return null;
+    }
+};
+
+const sendEmailSafe = async (sendFn) => {
+    try {
+        await sendFn();
+    } catch (error) {
+        console.error('Error enviando alerta por email:', error.message);
+    }
+};
+
+const notifyTransferRejected = async (userId, reason) => {
+    if (!userId || !reason) return;
+
+    const accountOwner = await getUserEmailAndName(userId);
+    if (!accountOwner) return;
+
+    await sendEmailSafe(() => sendAccountRejectedEmail(
+        accountOwner.email,
+        accountOwner.name,
+        reason
+    ));
 };
 
 const MAX_TRANSFER_AMOUNT = Number.isFinite(config.transfers?.maxAmount) && config.transfers.maxAmount > 0
@@ -151,6 +202,15 @@ export const createAccount = async (req, res) => {
 
         const account = await Account.create(accountPayload);
 
+        const createdAccountOwner = await getUserEmailAndName(targetUserId);
+        if (createdAccountOwner) {
+            await sendEmailSafe(() => sendAccountCreatedEmail(createdAccountOwner.email, createdAccountOwner.name, {
+                accountNumber: account.accountNumber,
+                accountType: account.accountType,
+                accountBalance: account.accountBalance
+            }));
+        }
+
         return res.status(201).json({ 
             success: true, 
             message: 'Cuenta creada exitosamente',
@@ -212,6 +272,28 @@ export const updateAccountLimits = async (req, res) => {
         updates.lastAdminChangeReason = reason || 'Actualizacion de limites';
 
         await account.update(updates);
+
+        const accountOwner = await getUserEmailAndName(account.userId);
+        if (accountOwner) {
+            await sendEmailSafe(() => sendSecurityChangeEmail(accountOwner.email, accountOwner.name, {
+                accountNumber: account.accountNumber,
+                changeType: 'Actualizacion de limites',
+                changes: {
+                    perTransactionLimit: updates.perTransactionLimit,
+                    dailyTransactionLimit: updates.dailyTransactionLimit,
+                    status: updates.status
+                },
+                reason: updates.lastAdminChangeReason
+            }));
+
+            if (updates.status === false) {
+                await sendEmailSafe(() => sendAccountRejectedEmail(
+                    accountOwner.email,
+                    accountOwner.name,
+                    updates.lastAdminChangeReason || 'Cuenta desactivada'
+                ));
+            }
+        }
 
         return res.status(200).json({
             success: true,
@@ -466,6 +548,28 @@ export const updateAccountLimitsAdmin = async (req, res) => {
 
         await account.update(updates);
 
+        const accountOwner = await getUserEmailAndName(account.userId);
+        if (accountOwner) {
+            await sendEmailSafe(() => sendSecurityChangeEmail(accountOwner.email, accountOwner.name, {
+                accountNumber: account.accountNumber,
+                changeType: 'Actualizacion de limites por administrador',
+                changes: {
+                    perTransactionLimit: updates.perTransactionLimit,
+                    dailyTransactionLimit: updates.dailyTransactionLimit,
+                    status: updates.status
+                },
+                reason: updates.lastAdminChangeReason
+            }));
+
+            if (updates.status === false) {
+                await sendEmailSafe(() => sendAccountRejectedEmail(
+                    accountOwner.email,
+                    accountOwner.name,
+                    updates.lastAdminChangeReason || 'Cuenta desactivada por administrador'
+                ));
+            }
+        }
+
         await createAccountLimitAudit({
             req,
             actorUserId,
@@ -699,6 +803,15 @@ export const approveDepositRequest = async (req, res) => {
             await depositRequest.save({ transaction: dbTransaction });
             await dbTransaction.commit();
 
+            const destinationOwner = await getUserEmailAndName(destinationAccount.userId);
+            if (destinationOwner) {
+                await sendEmailSafe(() => sendAccountRejectedEmail(
+                    destinationOwner.email,
+                    destinationOwner.name,
+                    'Solicitud de depósito rechazada: cuenta destino inactiva'
+                ));
+            }
+
             return res.status(400).json({
                 success: false,
                 message: 'La cuenta destino esta inactiva. Solicitud rechazada automaticamente'
@@ -717,6 +830,15 @@ export const approveDepositRequest = async (req, res) => {
             await depositRequest.save({ transaction: dbTransaction });
             await dbTransaction.commit();
 
+            const destinationOwner = await getUserEmailAndName(destinationAccount.userId);
+            if (destinationOwner) {
+                await sendEmailSafe(() => sendAccountRejectedEmail(
+                    destinationOwner.email,
+                    destinationOwner.name,
+                    'Solicitud de depósito rechazada: perfil del titular no encontrado'
+                ));
+            }
+
             return res.status(400).json({
                 success: false,
                 message: 'No se encontro el perfil del titular para validar limite de ingresos. Solicitud rechazada'
@@ -733,6 +855,15 @@ export const approveDepositRequest = async (req, res) => {
             await depositRequest.save({ transaction: dbTransaction });
             await dbTransaction.commit();
 
+            const destinationOwner = await getUserEmailAndName(destinationAccount.userId);
+            if (destinationOwner) {
+                await sendEmailSafe(() => sendAccountRejectedEmail(
+                    destinationOwner.email,
+                    destinationOwner.name,
+                    'Solicitud de depósito rechazada: datos inválidos para validar el límite de ingresos'
+                ));
+            }
+
             return res.status(400).json({
                 success: false,
                 message: 'No fue posible validar el limite de ingresos. Solicitud rechazada'
@@ -745,6 +876,15 @@ export const approveDepositRequest = async (req, res) => {
             depositRequest.description = `${depositRequest.description || ''} | Rechazada por limite de ingresos (${incomeLimit.toFixed(2)})`;
             await depositRequest.save({ transaction: dbTransaction });
             await dbTransaction.commit();
+
+            const destinationOwner = await getUserEmailAndName(destinationAccount.userId);
+            if (destinationOwner) {
+                await sendEmailSafe(() => sendAccountRejectedEmail(
+                    destinationOwner.email,
+                    destinationOwner.name,
+                    `Solicitud de depósito rechazada por límite de ingresos (Q${incomeLimit.toFixed(2)})`
+                ));
+            }
 
             return res.status(400).json({
                 success: false,
@@ -801,6 +941,15 @@ export const approveDepositRequest = async (req, res) => {
         }
 
         await dbTransaction.commit();
+
+        const destinationOwner = await getUserEmailAndName(destinationAccount.userId);
+        if (destinationOwner) {
+            await sendEmailSafe(() => sendDepositAlertEmail(destinationOwner.email, destinationOwner.name, {
+                accountNumber: destinationAccount.accountNumber,
+                amount: requestAmount,
+                newBalance: destinationAccount.accountBalance
+            }));
+        }
 
         const responseData = {
             transactionId: depositRequest.id,
@@ -862,6 +1011,7 @@ export const createTransfer = async (req, res) => {
         const normalizedRecipientType = String(recipientType).trim().toUpperCase();
         if (!['PROPIA', 'TERCERO'].includes(normalizedRecipientType)) {
             await dbTransaction.rollback();
+            await notifyTransferRejected(currentUserId, 'Transferencia rechazada: tipo de destinatario inválido');
             return res.status(400).json({
                 success: false,
                 message: 'Tipo de destinatario invalido. Valores permitidos: PROPIA o TERCERO'
@@ -871,6 +1021,7 @@ export const createTransfer = async (req, res) => {
         const numericAmount = getNumericAmount(amount);
         if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
             await dbTransaction.rollback();
+            await notifyTransferRejected(currentUserId, 'Transferencia rechazada: monto inválido');
             return res.status(400).json({
                 success: false,
                 message: 'Monto invalido'
@@ -879,6 +1030,10 @@ export const createTransfer = async (req, res) => {
 
         if (numericAmount > MAX_TRANSFER_AMOUNT) {
             await dbTransaction.rollback();
+            await notifyTransferRejected(
+                currentUserId,
+                `Transferencia rechazada: el monto excede el límite máximo por transacción de Q${MAX_TRANSFER_AMOUNT}`
+            );
             return res.status(400).json({
                 success: false,
                 message: `Transferencia rechazada: el monto excede el limite maximo por transaccion de Q${MAX_TRANSFER_AMOUNT}`
@@ -887,6 +1042,7 @@ export const createTransfer = async (req, res) => {
 
         if (sourceAccountNumber === destinationAccountNumber) {
             await dbTransaction.rollback();
+            await notifyTransferRejected(currentUserId, 'Transferencia rechazada: la cuenta origen y destino no pueden ser la misma');
             return res.status(400).json({
                 success: false,
                 message: 'La cuenta origen y destino no pueden ser la misma'
@@ -904,6 +1060,7 @@ export const createTransfer = async (req, res) => {
 
         if (!sourceAccount) {
             await dbTransaction.rollback();
+            await notifyTransferRejected(currentUserId, 'Transferencia rechazada: cuenta origen no encontrada para el cliente autenticado');
             return res.status(404).json({
                 success: false,
                 message: 'Cuenta origen no encontrada para el cliente autenticado'
@@ -918,6 +1075,7 @@ export const createTransfer = async (req, res) => {
 
         if (!destinationAccount) {
             await dbTransaction.rollback();
+            await notifyTransferRejected(sourceAccount.userId, 'Transferencia rechazada: cuenta destino no encontrada');
             return res.status(404).json({
                 success: false,
                 message: 'Cuenta destino no encontrada'
@@ -926,6 +1084,7 @@ export const createTransfer = async (req, res) => {
 
         if (!sourceAccount.status || !destinationAccount.status) {
             await dbTransaction.rollback();
+            await notifyTransferRejected(sourceAccount.userId, 'Transferencia rechazada: ambas cuentas deben estar activas para realizar la transferencia');
             return res.status(400).json({
                 success: false,
                 message: 'Ambas cuentas deben estar activas para realizar la transferencia'
@@ -935,6 +1094,7 @@ export const createTransfer = async (req, res) => {
         const isOwnDestination = destinationAccount.userId === currentUserId;
         if (normalizedRecipientType === 'PROPIA' && !isOwnDestination) {
             await dbTransaction.rollback();
+            await notifyTransferRejected(sourceAccount.userId, 'Transferencia rechazada: el tipo de destinatario PROPIA no coincide con la cuenta destino');
             return res.status(400).json({
                 success: false,
                 message: 'El tipo de destinatario PROPIA no coincide con la cuenta destino'
@@ -943,6 +1103,7 @@ export const createTransfer = async (req, res) => {
 
         if (normalizedRecipientType === 'TERCERO' && isOwnDestination) {
             await dbTransaction.rollback();
+            await notifyTransferRejected(sourceAccount.userId, 'Transferencia rechazada: el tipo de destinatario TERCERO no coincide con la cuenta destino');
             return res.status(400).json({
                 success: false,
                 message: 'El tipo de destinatario TERCERO no coincide con la cuenta destino'
@@ -952,6 +1113,7 @@ export const createTransfer = async (req, res) => {
         const sourceBalance = getNumericAmount(sourceAccount.accountBalance);
         if (!Number.isFinite(sourceBalance)) {
             await dbTransaction.rollback();
+            await notifyTransferRejected(sourceAccount.userId, 'Transferencia rechazada: saldo de cuenta origen inválido');
             return res.status(400).json({
                 success: false,
                 message: 'Saldo de cuenta origen invalido'
@@ -960,6 +1122,7 @@ export const createTransfer = async (req, res) => {
 
         if (sourceBalance < numericAmount) {
             await dbTransaction.rollback();
+            await notifyTransferRejected(sourceAccount.userId, 'Transferencia rechazada: saldo insuficiente');
             return res.status(400).json({
                 success: false,
                 message: 'Saldo insuficiente'
@@ -969,6 +1132,7 @@ export const createTransfer = async (req, res) => {
         const destinationBalance = getNumericAmount(destinationAccount.accountBalance);
         if (!Number.isFinite(destinationBalance)) {
             await dbTransaction.rollback();
+            await notifyTransferRejected(sourceAccount.userId, 'Transferencia rechazada: saldo de cuenta destino inválido');
             return res.status(400).json({
                 success: false,
                 message: 'Saldo de cuenta destino invalido'
@@ -1007,6 +1171,10 @@ export const createTransfer = async (req, res) => {
         const sourceAfterThisTransfer = sourceTransferredToday + numericAmount;
         if (sourceAfterThisTransfer > MAX_DAILY_TRANSFER_BY_SOURCE) {
             await dbTransaction.rollback();
+            await notifyTransferRejected(
+                sourceAccount.userId,
+                `Transferencia rechazada: la cuenta origen supera el límite diario de Q${MAX_DAILY_TRANSFER_BY_SOURCE}`
+            );
             return res.status(400).json({
                 success: false,
                 message: `Transferencia rechazada: la cuenta origen supera el limite diario de Q${MAX_DAILY_TRANSFER_BY_SOURCE}`,
@@ -1021,6 +1189,10 @@ export const createTransfer = async (req, res) => {
         const destinationAfterThisTransfer = destinationReceivedToday + numericAmount;
         if (destinationAfterThisTransfer > MAX_DAILY_TRANSFER_BY_DESTINATION) {
             await dbTransaction.rollback();
+            await notifyTransferRejected(
+                sourceAccount.userId,
+                `Transferencia rechazada: la cuenta destino supera el límite diario de recepción de Q${MAX_DAILY_TRANSFER_BY_DESTINATION}`
+            );
             return res.status(400).json({
                 success: false,
                 message: `Transferencia rechazada: la cuenta destino supera el limite diario de recepcion de Q${MAX_DAILY_TRANSFER_BY_DESTINATION}`,
@@ -1044,6 +1216,7 @@ export const createTransfer = async (req, res) => {
 
             if (!couponValidation.valid) {
                 await dbTransaction.rollback();
+                await notifyTransferRejected(sourceAccount.userId, `Transferencia rechazada: ${couponValidation.message}`);
                 return res.status(400).json({
                     success: false,
                     message: couponValidation.message
@@ -1131,6 +1304,26 @@ export const createTransfer = async (req, res) => {
                 amountReceived: (numericAmount + bonusToDestination).toFixed(2),
                 bonusApplied: bonusToDestination.toFixed(2)
             };
+        }
+
+        const sourceOwner = await getUserEmailAndName(sourceAccount.userId);
+        if (sourceOwner) {
+            await sendEmailSafe(() => sendTransferSentEmail(sourceOwner.email, sourceOwner.name, {
+                fromAccountNumber: sourceAccount.accountNumber,
+                toAccountNumber: destinationAccount.accountNumber,
+                amount: finalTransferAmount,
+                newBalance: sourceAccount.accountBalance
+            }));
+        }
+
+        const destinationOwner = await getUserEmailAndName(destinationAccount.userId);
+        if (destinationOwner) {
+            await sendEmailSafe(() => sendTransferReceivedEmail(destinationOwner.email, destinationOwner.name, {
+                fromAccountNumber: sourceAccount.accountNumber,
+                toAccountNumber: destinationAccount.accountNumber,
+                amount: numericAmount + bonusToDestination,
+                newBalance: destinationAccount.accountBalance
+            }));
         }
 
         return res.status(200).json({
@@ -1430,6 +1623,16 @@ export const revertDeposit = async (req, res) => {
                     newBalance: newBalance.toFixed(2)
                 }
             });
+
+            const accountOwner = await getUserEmailAndName(account.userId);
+            if (accountOwner) {
+                await sendEmailSafe(() => sendDepositRevertedEmail(accountOwner.email, accountOwner.name, {
+                    accountNumber: account.accountNumber,
+                    amount: totalToRevert,
+                    reason: deposit.revertReason,
+                    newBalance
+                }));
+            }
 
             return res.status(200).json({
                 success: true,

@@ -192,6 +192,30 @@ GET /accounts
 Authorization: Bearer {{clientToken}}
 ```
 
+## 5.1.1 Editar perfil propio (Cliente)
+
+```http
+PUT /profile/edit
+Authorization: Bearer {{clientToken}}
+Content-Type: application/json
+```
+
+```json
+{
+  "name": "Juan Pérez",
+  "username": "juan3nxd",
+  "address": "Zona 10, Ciudad de Guatemala",
+  "jobName": "Analista QA",
+  "income": 8500
+}
+```
+
+Reglas:
+- El usuario a editar se obtiene desde el token JWT (no se recibe id en URL).
+- Solo se actualizan: `name`, `fullName`, `username`, `address`, `jobName`, `income`.
+- El `username` solo se puede cambiar 1 vez cada 7 días.
+- Se ignoran intentos de cambiar DPI, password o id en este endpoint.
+
 ## 5.2 Solicitar depósito
 
 ```http

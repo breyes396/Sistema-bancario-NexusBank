@@ -391,3 +391,135 @@ export const updateUser = async (req, res) => {
     });
   }
 };
+
+export const editOwnProfile = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        msg: 'Usuario no autenticado'
+      });
+    }
+
+    const {
+      name,
+      fullName,
+      username,
+      address,
+      jobName,
+      income
+    } = req.body;
+
+    const user = await User.findByPk(userId, {
+      include: [UserProfile]
+    });
+
+    if (!user || !user.UserProfile) {
+      return res.status(404).json({
+        success: false,
+        msg: 'Perfil de usuario no encontrado'
+      });
+    }
+
+    const updateData = {};
+
+    if (name !== undefined || fullName !== undefined) {
+      updateData.Name = fullName ?? name;
+    }
+
+    if (username !== undefined) {
+      const normalizedUsername = String(username).trim();
+      const currentUsername = String(user.UserProfile.Username || '').trim();
+
+      if (normalizedUsername !== currentUsername) {
+        const lastUsernameUpdateAt = user.UserProfile.UsernameUpdatedAt
+          ? new Date(user.UserProfile.UsernameUpdatedAt)
+          : null;
+
+        if (lastUsernameUpdateAt) {
+          const now = new Date();
+          const msSinceLastChange = now - lastUsernameUpdateAt;
+          const cooldownMs = 7 * 24 * 60 * 60 * 1000;
+
+          if (msSinceLastChange < cooldownMs) {
+            const remainingMs = cooldownMs - msSinceLastChange;
+            const remainingDays = Math.ceil(remainingMs / (24 * 60 * 60 * 1000));
+
+            return res.status(400).json({
+              success: false,
+              msg: `Solo puedes cambiar tu username una vez cada 7 dias. Intenta nuevamente en ${remainingDays} dia(s)`
+            });
+          }
+        }
+
+        const existingProfile = await UserProfile.findOne({
+          where: {
+            Username: normalizedUsername,
+            UserId: {
+              [Op.ne]: userId
+            }
+          }
+        });
+
+        if (existingProfile) {
+          return res.status(409).json({
+            success: false,
+            msg: 'El username ya esta en uso'
+          });
+        }
+
+        updateData.Username = normalizedUsername;
+        updateData.UsernameUpdatedAt = new Date();
+      }
+    }
+
+    if (address !== undefined) {
+      updateData.Address = address;
+    }
+
+    if (jobName !== undefined) {
+      updateData.JobName = jobName;
+    }
+
+    if (income !== undefined) {
+      const numericIncome = Number(income);
+      if (!Number.isFinite(numericIncome) || numericIncome < 0) {
+        return res.status(400).json({
+          success: false,
+          msg: 'Ingreso mensual invalido'
+        });
+      }
+      updateData.Income = numericIncome;
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({
+        success: false,
+        msg: 'No hay campos validos para actualizar'
+      });
+    }
+
+    await user.UserProfile.update(updateData);
+
+    await user.reload({ include: [UserProfile] });
+
+    return res.status(200).json({
+      success: true,
+      msg: 'Perfil actualizado exitosamente',
+      data: {
+        id: user.id,
+        email: user.email,
+        profile: user.UserProfile
+      }
+    });
+  } catch (err) {
+    console.error('Error al editar perfil propio:', err);
+    return res.status(500).json({
+      success: false,
+      msg: 'Error al editar perfil',
+      error: err.message
+    });
+  }
+};

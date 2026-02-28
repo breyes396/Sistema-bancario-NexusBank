@@ -1,5 +1,4 @@
-import jwt from 'jsonwebtoken'; 
-import { User } from '../src/db/models/index.js'; 
+import jwt from 'jsonwebtoken';
 
 export const validateBearerToken = (req, res, next) => {
     try {
@@ -37,8 +36,6 @@ export const validateBearerToken = (req, res, next) => {
                 });
             }
 
-            // Guardar token y normalizar user para compatibilidad con distintos payloads
-            // Algunos tokens llevan payload en { user: { id, email, role } } y otros en { id, email, role }
             req.token = token;
             req.user = (decoded && decoded.user) ? decoded.user : decoded;
 
@@ -55,11 +52,13 @@ export const validateBearerToken = (req, res, next) => {
 
 export const validateBearerTokenSelective = (publicPaths = []) => {
     return (req, res, next) => {
+        const requestPath = req.originalUrl || req.url;
+        
         const isPublicPath = publicPaths.some(path => {
             if (path instanceof RegExp) {
-                return path.test(req.path);
+                return path.test(requestPath);
             }
-            return req.path === path || req.path.startsWith(path);
+            return requestPath === path || requestPath.startsWith(path);
         });
 
         if (isPublicPath) {

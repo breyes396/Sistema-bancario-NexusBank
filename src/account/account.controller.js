@@ -1584,3 +1584,157 @@ export const getMyAccountHistory = async (req, res) => {
         });
     }
 };
+
+export const getDashboardTransactionRanking = async (req, res) => {
+    try {
+        const actorUserId = req.user?.id;
+        const actorRole = req.user?.role;
+
+        if (!actorUserId) {
+            return res.status(401).json({
+                success: false,
+                message: 'Usuario no autenticado'
+            });
+        }
+
+        if (actorRole !== 'Admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Acceso denegado. Solo admins pueden ver este reporte'
+            });
+        }
+
+        // Parámetros de la query
+        const { type, order = 'DESC', limit = 20 } = req.query;
+
+        const limitNumber = Math.min(Math.max(parseInt(limit) || 20, 1), 100);
+        const validOrder = ['ASC', 'DESC'].includes(order?.toUpperCase()) ? order.toUpperCase() : 'DESC';
+
+        // Tipos válidos de transacciones
+        const validTypes = ['DEPOSITO', 'RETIRO', 'TRANSFERENCIA_ENVIADA', 'TRANSFERENCIA_RECIBIDA', 'COMPRA'];
+
+        // Validar tipo si se proporciona
+        if (type && !validTypes.includes(type.toUpperCase())) {
+            return res.status(400).json({
+                success: false,
+                message: `Tipo de transacción inválido. Válidos: ${validTypes.join(', ')}`
+            });
+        }
+
+        // Construir la query
+        let transactionQuery = {};
+        if (type) {
+            transactionQuery.type = type.toUpperCase();
+        }
+
+        // Obtener todas las transacciones con los filtros aplicados
+        const transactions = await Transaction.findAll({
+            where: transactionQuery,
+            attributes: ['accountId', 'type'],
+            raw: true
+        });
+
+        // Agrupar por accountId y contar
+        const movementsByAccount = {};
+        const transactionsByAccount = {};
+
+        transactions.forEach(trx => {
+            if (!movementsByAccount[trx.accountId]) {
+                movementsByAccount[trx.accountId] = 0;
+                transactionsByAccount[trx.accountId] = {};
+            }
+            movementsByAccount[trx.accountId]++;
+            transactionsByAccount[trx.accountId][trx.type] = 
+                (transactionsByAccount[trx.accountId][trx.type] || 0) + 1;
+        });
+
+        // Obtener información de las cuentas
+        const accountIds = Object.keys(movementsByAccount);
+        const accounts = await Account.findAll({
+            where: {
+                id: {
+                    [Op.in]: accountIds
+                }
+            },
+            attributes: ['id', 'accountNumber', 'accountType', 'accountBalance', 'userId', 'status'],
+            raw: true
+        });
+
+        // Obtener información de usuarios
+        const userIds = accounts.map(acc => acc.userId);
+        const users = await User.findAll({
+            where: {
+                id: {
+                    [Op.in]: userIds
+                }
+            },
+            attributes: ['id', 'email'],
+            raw: true
+        });
+
+        const userMap = Object.fromEntries(users.map(u => [u.id, u.email]));
+
+        // Combinar datos y crear ranking
+        const ranking = accounts.map(account => ({
+            accountId: account.id,
+            accountNumber: account.accountNumber,
+            accountType: account.accountType,
+            accountbalance: account.accountBalance,
+            accountStatus: account.status ? 'Activa' : 'Inactiva',
+            ownerEmail: userMap[account.userId] || 'N/A',
+            totalMovements: movementsByAccount[account.id],
+            movementsByType: transactionsByAccount[account.id]
+        }));
+
+        // Ordenar según parámetro
+        ranking.sort((a, b) => {
+            if (validOrder === 'DESC') {
+                return b.totalMovements - a.totalMovements;
+            } else {
+                return a.totalMovements - b.totalMovements;
+            }
+        });
+
+        // Limitar resultados
+        const limitedRanking = ranking.slice(0, limitNumber);
+
+        // Calcular estadísticas
+        const stats = {
+            totalAccounts: ranking.length,
+            totalMovements: ranking.reduce((sum, acc) => sum + acc.totalMovements, 0),
+            averageMovementsPerAccount: ranking.length > 0 
+                ? (ranking.reduce((sum, acc) => sum + acc.totalMovements, 0) / ranking.length).toFixed(2)
+                : 0,
+            topAccount: ranking.length > 0 ? {
+                accountNumber: ranking[0].accountNumber,
+                movements: ranking[0].totalMovements
+            } : null,
+            bottomAccount: ranking.length > 0 ? {
+                accountNumber: ranking[ranking.length - 1].accountNumber,
+                movements: ranking[ranking.length - 1].totalMovements
+            } : null
+        };
+
+        return res.status(200).json({
+            success: true,
+            message: 'Ranking de cuentas por movimientos obtenido exitosamente',
+            filters: {
+                type: type ? type.toUpperCase() : 'TODOS',
+                order: validOrder,
+                limit: limitNumber
+            },
+            data: {
+                stats,
+                ranking: limitedRanking
+            }
+        });
+
+    } catch (error) {
+        console.error('Error obteniendo ranking de transacciones:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Error en el servidor',
+            error: error.message
+        });
+    }
+};

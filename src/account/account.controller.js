@@ -20,6 +20,7 @@ import {
     sendTransferSentEmail,
     sendTransferReceivedEmail,
     sendDepositRevertedEmail,
+    sendTransferReversalEmail,
     sendSecurityChangeEmail
 } from '../../services/email.service.js';
 
@@ -1863,6 +1864,326 @@ export const revertDeposit = async (req, res) => {
 
     } catch (error) {
         console.error('Error revirtiendo depósito:', error);
+        return res.status(500).json({ 
+            success: false, 
+            message: 'Error en el servidor', 
+            error: error.message 
+        });
+    }
+};
+
+// Reversión de transferencias - dentro de 5 minutos, crea movimiento compensatorio
+export const revertTransfer = async (req, res) => {
+    try {
+        const actorUserId = req.user?.id;
+
+        if (!actorUserId) {
+            return res.status(401).json({ 
+                success: false, 
+                message: 'Usuario no autenticado' 
+            });
+        }
+
+        const { id } = req.params;
+        const reason = req.body?.reason || null;
+
+        // ANTES de la transacción: buscar la transferencia (consulta inicial)
+        let transfer = await Transaction.findOne({
+            where: {
+                id,
+                type: 'TRANSFERENCIA_ENVIADA'
+            }
+        });
+
+        if (!transfer) {
+            return res.status(404).json({
+                success: false,
+                message: 'Transferencia no encontrada'
+            });
+        }
+
+        // Validar que sea el dueño de la transferencia (quien la envió)
+        if (transfer.accountId) {
+            const sourceAccount = await Account.findByPk(transfer.accountId);
+            if (!sourceAccount || sourceAccount.userId !== actorUserId) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'No tienes permiso para revertir esta transferencia'
+                });
+            }
+        }
+
+        // Validar que esté completada
+        if (transfer.status !== 'COMPLETADA') {
+            await createTransactionAudit({
+                transactionId: transfer.id,
+                actorUserId,
+                action: 'REVERT_DENIED',
+                outcome: 'DENIED',
+                previousStatus: transfer.status,
+                reason: `Transferencia en estado ${transfer.status}, solo se pueden revertir transferencias completadas`,
+                ipAddress: req.ip,
+                userAgent: req.headers['user-agent']
+            });
+
+            return res.status(400).json({
+                success: false,
+                message: 'Solo se pueden revertir transferencias completadas'
+            });
+        }
+
+        // Validar que no esté ya revertida
+        if (transfer.isReverted) {
+            await createTransactionAudit({
+                transactionId: transfer.id,
+                actorUserId,
+                action: 'REVERT_DENIED',
+                outcome: 'DENIED',
+                previousStatus: transfer.status,
+                reason: 'Transferencia ya fue revertida previamente',
+                ipAddress: req.ip,
+                userAgent: req.headers['user-agent'],
+                metadata: {
+                    revertedAt: transfer.revertedAt,
+                    revertedBy: transfer.revertedBy
+                }
+            });
+
+            return res.status(400).json({
+                success: false,
+                message: 'Esta transferencia ya fue revertida previamente',
+                revertedAt: transfer.revertedAt,
+                revertedBy: transfer.revertedBy
+            });
+        }
+
+        // Calcular tiempo transcurrido
+        const now = new Date();
+        const transactionTime = new Date(transfer.updatedAt);
+        const timeElapsedMs = now - transactionTime;
+        const timeElapsedSeconds = Math.floor(timeElapsedMs / 1000);
+        const FIVE_MINUTES_MS = 5 * 60 * 1000; // 5 minutos
+
+        // Validar ventana de 5 minutos
+        if (timeElapsedMs > FIVE_MINUTES_MS) {
+            await createTransactionAudit({
+                transactionId: transfer.id,
+                actorUserId,
+                action: 'REVERT_DENIED',
+                outcome: 'DENIED',
+                previousStatus: transfer.status,
+                reason: `Ventana de reversión expirada. Han pasado ${timeElapsedSeconds} segundos (límite: 300)`,
+                timeElapsedSeconds,
+                ipAddress: req.ip,
+                userAgent: req.headers['user-agent']
+            });
+
+            return res.status(400).json({
+                success: false,
+                message: 'La ventana de reversión ha expirado. Solo se pueden revertir transferencias dentro de 5 minutos',
+                timeElapsedSeconds,
+                timeLimit: 300
+            });
+        }
+
+        // Inicia la transacción Sequelize
+        const dbTransaction = await sequelize.transaction();
+
+        try {
+            // Buscar la transferencia nuevamente con lock para transacción
+            transfer = await Transaction.findOne({
+                where: {
+                    id,
+                    type: 'TRANSFERENCIA_ENVIADA'
+                },
+                transaction: dbTransaction,
+                lock: dbTransaction.LOCK.UPDATE
+            });
+
+            if (!transfer) {
+                await dbTransaction.rollback();
+                return res.status(404).json({
+                    success: false,
+                    message: 'Transferencia no encontrada'
+                });
+            }
+
+            // Buscar las cuentas con lock
+            const sourceAccount = await Account.findByPk(transfer.accountId, {
+                transaction: dbTransaction,
+                lock: dbTransaction.LOCK.UPDATE
+            });
+
+            const destinationAccount = await Account.findByPk(transfer.relatedAccountId, {
+                transaction: dbTransaction,
+                lock: dbTransaction.LOCK.UPDATE
+            });
+
+            if (!sourceAccount) {
+                await dbTransaction.rollback();
+                return res.status(404).json({
+                    success: false,
+                    message: 'Cuenta origen no encontrada'
+                });
+            }
+
+            if (!destinationAccount) {
+                await dbTransaction.rollback();
+                return res.status(404).json({
+                    success: false,
+                    message: 'Cuenta destino no encontrada'
+                });
+            }
+
+            const transferAmount = getNumericAmount(transfer.amount);
+            const sourceBalance = getNumericAmount(sourceAccount.accountBalance);
+            const destBalance = getNumericAmount(destinationAccount.accountBalance);
+
+            // Validar que la cuenta destino tenga saldo para revertir
+            if (destBalance < transferAmount) {
+                await createTransactionAudit({
+                    transactionId: transfer.id,
+                    actorUserId,
+                    action: 'REVERT_DENIED',
+                    outcome: 'ERROR',
+                    previousStatus: transfer.status,
+                    revertedAmount: transferAmount,
+                    reason: `Saldo insuficiente en cuenta destino para revertir. Balance: Q${destBalance.toFixed(2)}, se requiere: Q${transferAmount.toFixed(2)}`,
+                    timeElapsedSeconds,
+                    ipAddress: req.ip,
+                    userAgent: req.headers['user-agent']
+                });
+
+                await dbTransaction.rollback();
+                return res.status(400).json({
+                    success: false,
+                    message: 'La cuenta destino no tiene saldo suficiente para revertir la transferencia',
+                    currentBalance: destBalance.toFixed(2),
+                    amountToRevert: transferAmount.toFixed(2)
+                });
+            }
+
+            // Revertir saldos: devolver dinero a origen, quitar de destino
+            sourceAccount.accountBalance = (sourceBalance + transferAmount).toFixed(2);
+            destinationAccount.accountBalance = (destBalance - transferAmount).toFixed(2);
+            
+            await sourceAccount.save({ transaction: dbTransaction });
+            await destinationAccount.save({ transaction: dbTransaction });
+
+            // Actualizar transacción original
+            transfer.status = 'REVERTIDA';
+            transfer.isReverted = true;
+            transfer.revertedAt = now;
+            transfer.revertedBy = actorUserId;
+            transfer.revertReason = reason || 'Reversión dentro de ventana de 5 minutos';
+            transfer.description = `${transfer.description} | REVERTIDA por ${actorUserId}: ${transfer.revertReason}`;
+            await transfer.save({ transaction: dbTransaction });
+
+            // Crear movimiento compensatorio (transacción inversa)
+            const compensationTransaction = await Transaction.create(
+                {
+                    accountId: sourceAccount.id,
+                    type: 'TRANSFERENCIA_RECIBIDA',
+                    amount: transferAmount.toFixed(2),
+                    status: 'COMPLETADA',
+                    description: `Movimiento compensatorio por reversión de transferencia ${transfer.id}`,
+                    balanceAfter: sourceAccount.accountBalance,
+                    relatedAccountId: destinationAccount.id,
+                    isReverted: false
+                },
+                { transaction: dbTransaction }
+            );
+
+            await Transaction.create(
+                {
+                    accountId: destinationAccount.id,
+                    type: 'TRANSFERENCIA_ENVIADA',
+                    amount: transferAmount.toFixed(2),
+                    status: 'COMPLETADA',
+                    description: `Movimiento compensatorio de salida por reversión de transferencia ${transfer.id}`,
+                    balanceAfter: destinationAccount.accountBalance,
+                    relatedAccountId: sourceAccount.id,
+                    isReverted: false
+                },
+                { transaction: dbTransaction }
+            );
+
+            // Registrar en auditoría
+            await createTransactionAudit({
+                transactionId: transfer.id,
+                actorUserId,
+                action: 'REVERT_SUCCESS',
+                outcome: 'SUCCESS',
+                previousStatus: 'COMPLETADA',
+                newStatus: 'REVERTIDA',
+                revertedAmount: transferAmount,
+                relatedTransactionId: compensationTransaction.id,
+                reason: transfer.revertReason,
+                timeElapsedSeconds,
+                ipAddress: req.ip,
+                userAgent: req.headers['user-agent'],
+                metadata: {
+                    sourceAccountId: sourceAccount.id,
+                    destinationAccountId: destinationAccount.id,
+                    sourceNewBalance: sourceAccount.accountBalance,
+                    destinationNewBalance: destinationAccount.accountBalance,
+                    compensationTransactionId: compensationTransaction.id
+                }
+            });
+
+            // Commit de la transacción
+            await dbTransaction.commit();
+
+            // Enviar emails a ambas partes
+            const sourceUser = await getUserEmailAndName(sourceAccount.userId);
+            const destUser = await getUserEmailAndName(destinationAccount.userId);
+
+            if (sourceUser) {
+                await sendEmailSafe(() => sendTransferReversalEmail(sourceUser.email, sourceUser.name, {
+                    accountNumber: sourceAccount.accountNumber,
+                    amount: transferAmount,
+                    recipient: destinationAccount.accountNumber,
+                    reason: transfer.revertReason,
+                    newBalance: sourceAccount.accountBalance,
+                    type: 'REFUNDED'
+                }));
+            }
+
+            if (destUser) {
+                await sendEmailSafe(() => sendTransferReversalEmail(destUser.email, destUser.name, {
+                    accountNumber: destinationAccount.accountNumber,
+                    amount: transferAmount,
+                    sender: sourceAccount.accountNumber,
+                    reason: transfer.revertReason,
+                    newBalance: destinationAccount.accountBalance,
+                    type: 'REVERSED'
+                }));
+            }
+
+            return res.status(200).json({
+                success: true,
+                message: 'Transferencia revertida exitosamente',
+                data: {
+                    originalTransactionId: transfer.id,
+                    compensationTransactionId: compensationTransaction.id,
+                    sourceAccountId: sourceAccount.id,
+                    destinationAccountId: destinationAccount.id,
+                    amountReverted: transferAmount.toFixed(2),
+                    sourceNewBalance: sourceAccount.accountBalance,
+                    destinationNewBalance: destinationAccount.accountBalance,
+                    revertedAt: transfer.revertedAt,
+                    revertedBy: actorUserId,
+                    timeElapsedSeconds
+                }
+            });
+
+        } catch (error) {
+            await dbTransaction.rollback();
+            throw error;
+        }
+
+    } catch (error) {
+        console.error('Error revirtiendo transferencia:', error);
         return res.status(500).json({ 
             success: false, 
             message: 'Error en el servidor', 

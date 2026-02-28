@@ -1,5 +1,5 @@
 import express from 'express';
-import { createAccount, listAccounts, updateAccountLimits, convertAccountBalance, createDepositRequest, approveDepositRequest, revertDeposit, createTransfer, getAccountLimitsAdmin, updateAccountLimitsAdmin, getAdminAccountDetails, getMyAccountHistory, getDashboardTransactionRanking, getUserSecurityStatus, getFailedAttempts, getFraudAlerts } from './account.controller.js';
+import { createAccount, listAccounts, updateAccountLimits, convertAccountBalance, createDepositRequest, approveDepositRequest, revertDeposit, createTransfer, revertTransfer, getAccountLimitsAdmin, updateAccountLimitsAdmin, getAdminAccountDetails, getMyAccountHistory, getDashboardTransactionRanking, getUserSecurityStatus, getFailedAttempts, getFraudAlerts } from './account.controller.js';
 import { verifyTokenAndGetUser, verifyRoles } from '../../middlewares/role-middleware.js';
 import { transferLimiter, depositLimiter, failedTransactionLimiter, withdrawalLimiter, globalTransactionLimiter } from '../../middlewares/rate-limiters.js';
 
@@ -53,6 +53,12 @@ router.post('/accounts/transfers',
   transferLimiter,
   verifyRoles(['Client']), 
   createTransfer
+);
+
+router.put('/accounts/transfers/:id/revert', 
+  verifyTokenAndGetUser, 
+  verifyRoles(['Client']), 
+  revertTransfer
 );
 
 // ====== ENDPOINTS DE SEGURIDAD Y ANTIFRAUDE ======

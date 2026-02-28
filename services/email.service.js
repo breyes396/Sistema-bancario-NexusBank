@@ -547,6 +547,108 @@ export const sendFailedAttemptEmail = async (email, name, attemptData = {}) => {
     return await sendEmail(email, `⚠️ Intento fallido: ${getOperationTypeInSpanish(type)}`, html);
 };
 
+export const sendTransferReversalEmail = async (email, name, reversalData = {}) => {
+    const { accountNumber, amount, reason, newBalance, type, recipient, sender } = reversalData;
+
+    const isRefund = type === 'REFUNDED';
+    const headerColor = isRefund ? '#10b981' : '#f59e0b'; // Verde para reembolso, Naranja para reversión
+    const headerBg = isRefund 
+        ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+        : 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+    const title = isRefund ? '✅ Dinero reembolsado' : '↩️ Transferencia revertida';
+    const description = isRefund 
+        ? 'Tu dinero ha sido reembolsado a tu cuenta.' 
+        : 'Una transferencia ha sido revertida desde tu cuenta.';
+
+    const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background: ${headerBg}; color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+                .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+                .info-box { background: #f0fdf4; border-left: 4px solid ${headerColor}; padding: 15px; margin: 20px 0; border-radius: 5px; }
+                .amount { font-size: 24px; font-weight: bold; color: ${headerColor}; }
+                .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+                .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e5e7eb; }
+                .detail-label { font-weight: bold; color: #666; }
+                .detail-value { color: #333; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>${title}</h1>
+                </div>
+                <div class="content">
+                    <h2>Hola ${name},</h2>
+                    <p>${description}</p>
+                    
+                    <div class="info-box">
+                        <p><strong>Monto:</strong> <span class="amount">Q${Number(amount).toFixed(2)}</span></p>
+                        <div class="detail-row">
+                            <span class="detail-label">Tu cuenta:</span>
+                            <span class="detail-value">${accountNumber}</span>
+                        </div>
+                        ${isRefund 
+                            ? `<div class="detail-row">
+                                <span class="detail-label">Remitente original:</span>
+                                <span class="detail-value">${recipient || 'Cuenta desconocida'}</span>
+                            </div>`
+                            : `<div class="detail-row">
+                                <span class="detail-label">Destinatario:</span>
+                                <span class="detail-value">${recipient || sender || 'Cuenta desconocida'}</span>
+                            </div>`
+                        }
+                        <div class="detail-row">
+                            <span class="detail-label">Razón:</span>
+                            <span class="detail-value">${reason || 'Reversión dentro de ventana de 5 minutos'}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Nuevo saldo:</span>
+                            <span class="detail-value"><strong>Q${Number(newBalance).toFixed(2)}</strong></span>
+                        </div>
+                        <div class="detail-row" style="border-bottom: none;">
+                            <span class="detail-label">Fecha y hora:</span>
+                            <span class="detail-value">${new Date().toLocaleString('es-ES')}</span>
+                        </div>
+                    </div>
+
+                    ${isRefund 
+                        ? `<h3>Detalles del reembolso:</h3>
+                            <p>El dinero fue reembolsado exitosamente a tu cuenta. Este cambio puede tardar algunos minutos en reflejarse completamente.</p>`
+                        : `<h3>Detalles de la reversión:</h3>
+                            <p>La transferencia fue revertida dentro de la ventana de 5 minutos permitida. El dinero se retiró de tu cuenta.</p>`
+                    }
+
+                    <h3>¿Preguntas?</h3>
+                    <p>Si tienes dudas sobre esta transacción o no reconoces este movimiento, contacta a nuestro equipo de soporte:</p>
+                    <ul>
+                        <li>Email: soporte@nexusbank.com</li>
+                        <li>Teléfono: +502 XXXX XXXX</li>
+                        <li>Chat en vivo: disponible de Lunes a Viernes, 8am - 6pm</li>
+                    </ul>
+
+                    <p style="color: #666; margin-top: 30px; font-size: 12px;">Esta es una notificación automática de tu cuenta. Por favor no respondas a este email.</p>
+                </div>
+                <div class="footer">
+                    <p>© ${new Date().getFullYear()} NexusBank. Todos los derechos reservados.</p>
+                    <p>¿Necesitas ayuda? Visita nuestro centro de soporte en support.nexusbank.com</p>
+                </div>
+            </div>
+        </body>
+        </html>
+    `;
+
+    const subject = isRefund 
+        ? `✅ Reembolso de Q${Number(amount).toFixed(2)} - NexusBank`
+        : `↩️ Reversión de transferencia - Q${Number(amount).toFixed(2)} - NexusBank`;
+
+    return await sendEmail(email, subject, html);
+};
+
 // Funciones auxiliares
 function getAlertTypeInSpanish(alertType) {
     const types = {

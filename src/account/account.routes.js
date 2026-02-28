@@ -1,0 +1,27 @@
+import express from 'express';
+import { createAccount, listAccounts, updateAccountLimits, convertAccountBalance, createDepositRequest, approveDepositRequest, createTransfer, getAccountLimitsAdmin, updateAccountLimitsAdmin, getAdminAccountDetails } from './account.controller.js';
+import { verifyTokenAndGetUser, verifyRoles } from '../../middlewares/role-middleware.js';
+
+const router = express.Router();
+
+router.get('/accounts', verifyTokenAndGetUser, verifyRoles(['Client', 'Employee', 'Admin']), listAccounts);
+
+router.post('/accounts', verifyTokenAndGetUser, verifyRoles(['Client']), createAccount);
+
+router.put('/accounts/:id/limits', verifyTokenAndGetUser, verifyRoles(['Employee', 'Admin']), updateAccountLimits);
+
+router.get('/accounts/:id/limits/admin', verifyTokenAndGetUser, verifyRoles(['Admin']), getAccountLimitsAdmin);
+
+router.put('/accounts/:id/limits/admin', verifyTokenAndGetUser, verifyRoles(['Admin']), updateAccountLimitsAdmin);
+
+router.get('/admin/accounts/:accountId/details', verifyTokenAndGetUser, verifyRoles(['Admin']), getAdminAccountDetails);
+
+router.get('/my-account/balance/convert', verifyTokenAndGetUser, verifyRoles(['Client']), convertAccountBalance);
+
+router.post('/accounts/deposit-requests', verifyTokenAndGetUser, verifyRoles(['Client']), createDepositRequest);
+
+router.put('/accounts/deposit-requests/:id/approve', verifyTokenAndGetUser, verifyRoles(['Employee', 'Admin']), approveDepositRequest);
+
+router.post('/accounts/transfers', verifyTokenAndGetUser, verifyRoles(['Client']), createTransfer);
+
+export default router;

@@ -1,14 +1,16 @@
 'use strict';
 
-import mongoose from 'mongoose';
-
 const ALLOWED_CATEGORIES = [
-    'CUENTAS',
-    'CREDITOS',
-    'INVERSIONES',
-    'SEGUROS',
-    'TRANSFERENCIAS',
-    'ASESORAMIENTO'
+    'TECNOLOGIA',
+    'ELECTRODOMESTICOS',
+    'VIAJES',
+    'ENTRETENIMIENTO',
+    'GASTRONOMIA',
+    'SALUD_Y_BELLEZA',
+    'MODA',
+    'HOGAR',
+    'EDUCACION',
+    'DEPORTES'
 ];
 
 const isNonEmptyString = (value) => typeof value === 'string' && value.trim().length > 0;
@@ -26,7 +28,11 @@ const parseNumber = (value) => {
     return null;
 };
 
-const validateObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
+const validateCatalogId = (id) => {
+    if (!id || typeof id !== 'string') return false;
+    const pattern = /^cat_[123456789ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz]{12}$/;
+    return pattern.test(id);
+};
 
 const respondValidationError = (res, errors) => {
     return res.status(400).json({
@@ -38,7 +44,7 @@ const respondValidationError = (res, errors) => {
 
 export const validateCreateProduct = (req, res, next) => {
     const errors = [];
-    const { name, description, price, category } = req.body;
+    const { name, description, price, pointsCost, category } = req.body;
 
     if (!isNonEmptyString(name)) {
         errors.push('El nombre es requerido');
@@ -51,6 +57,11 @@ export const validateCreateProduct = (req, res, next) => {
     const parsedPrice = parseNumber(price);
     if (parsedPrice === null || parsedPrice < 0) {
         errors.push('El precio debe ser un numero mayor o igual a 0');
+    }
+
+    const parsedPoints = parseNumber(pointsCost);
+    if (parsedPoints === null || parsedPoints < 0) {
+        errors.push('Los puntos requeridos deben ser un numero mayor o igual a 0');
     }
 
     if (!isNonEmptyString(category)) {
@@ -71,13 +82,14 @@ export const validateCreateProduct = (req, res, next) => {
     req.body.name = name.trim();
     req.body.description = description.trim();
     req.body.price = parsedPrice;
+    req.body.pointsCost = parsedPoints;
 
     return next();
 };
 
 export const validateUpdateProductRequest = (req, res, next) => {
     const errors = [];
-    const allowedFields = ['name', 'description', 'price', 'category'];
+    const allowedFields = ['name', 'description', 'price', 'pointsCost', 'category', 'stock', 'isActive'];
     const receivedFields = Object.keys(req.body || {});
 
     if (receivedFields.length === 0) {
@@ -114,6 +126,24 @@ export const validateUpdateProductRequest = (req, res, next) => {
         }
     }
 
+    if (Object.prototype.hasOwnProperty.call(req.body, 'pointsCost')) {
+        const parsedPoints = parseNumber(req.body.pointsCost);
+        if (parsedPoints === null || parsedPoints < 0) {
+            errors.push('Los puntos requeridos deben ser un numero mayor o igual a 0');
+        } else {
+            req.body.pointsCost = parsedPoints;
+        }
+    }
+
+    if (Object.prototype.hasOwnProperty.call(req.body, 'stock')) {
+        const parsedStock = parseNumber(req.body.stock);
+        if (parsedStock !== null && parsedStock < 0) {
+            errors.push('El stock debe ser un numero mayor o igual a 0 o null para ilimitado');
+        } else {
+            req.body.stock = parsedStock;
+        }
+    }
+
     if (Object.prototype.hasOwnProperty.call(req.body, 'category')) {
         if (!isNonEmptyString(req.body.category)) {
             errors.push('La categoria es requerida');
@@ -137,7 +167,7 @@ export const validateUpdateProductRequest = (req, res, next) => {
 export const validateGetProductById = (req, res, next) => {
     const { id } = req.params;
 
-    if (!validateObjectId(id)) {
+    if (!validateCatalogId(id)) {
         return respondValidationError(res, ['Id de producto invalido']);
     }
 
@@ -147,7 +177,7 @@ export const validateGetProductById = (req, res, next) => {
 export const validateProductStatusChange = (req, res, next) => {
     const { id } = req.params;
 
-    if (!validateObjectId(id)) {
+    if (!validateCatalogId(id)) {
         return respondValidationError(res, ['Id de producto invalido']);
     }
 

@@ -1,9 +1,36 @@
 'use strict';
 
 import mongoose from "mongoose";
+import { Sequelize } from 'sequelize';
+import dotenv from 'dotenv';
+dotenv.config();
+
+const sequelize = new Sequelize(
+    process.env.DB_NAME,
+    process.env.DB_USERNAME,
+    process.env.DB_PASSWORD,
+    {
+        host: process.env.DB_HOST,
+        port: process.env.DB_PORT,
+        dialect: 'postgres',
+        logging: process.env.DB_SQL_LOGGING === 'true' ? console.log : false,
+        pool: {
+            max: 5,
+            min: 0,
+            acquire: 30000,
+            idle: 10000
+        }
+    }
+);
+
+export default sequelize;
 
 export const dbConnection = async () => {
     try {
+        if (!process.env.URI_MONGO) {
+            console.warn('MongoDB URI not set (URI_MONGO). Skipping MongoDB connection.');
+            return false;
+        }
         mongoose.connection.on('error', () => {
             console.log('MongoDB | no se pudo conectar a mongoDB');
             mongoose.disconnect();
@@ -28,8 +55,10 @@ export const dbConnection = async () => {
             serverSelectionTimeoutMS: 5000,
             maxPoolSize: 10
         })
+        return true;
     } catch (error) {
         console.log(`Error al conectar la db: ${error}`);
+        return false;
     }
 }
 
@@ -47,4 +76,4 @@ const gracefulShutdown = async (signal) => {
 
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.on('SIGURS2', () => gracefulShutdown('SIGURS2'));
+process.on('SIGUSR2', () => gracefulShutdown('SIGUSR2'));

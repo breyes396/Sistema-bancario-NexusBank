@@ -83,7 +83,80 @@ GET http://localhost:3006/nexusBank/v1/health
 
 ---
 
-## 2) Login de Admin (rápido)
+## 📋 Cambios Recientes (Marzo 2026)
+
+### 🆕 1. Username Opcional en Registro
+
+El campo `username` es ahora **opcional** durante el registro. El sistema genera uno automáticamente si no lo proporcionas.
+
+**Cambios implementados:**
+- ✅ Campo `username` ahora es opcional en validaciones
+- ✅ Auto-generación de username a partir del nombre del cliente
+- ✅ Formato: `{Nombre}` + `{Sufijo numérico}` (Ej: `ClienteUno4562`)
+- ✅ Garantiza unicidad con hasta 10 intentos de regeneración
+- ✅ Compatible con registro anterior (username personalizado aún funciona)
+
+**Ubicación del cambio:**
+- `middlewares/auth-validations.js` - Validaciones más flexibles
+- `src/auth/auth.controller.js` - Función `generateUsername()` para auto-generación
+
+---
+
+### 🆕 2. Correos Profesionales para Congelación de Cuentas (T46)
+
+Se implementaron correos elegantes y profesionales cuando una cuenta es congelada o descongelada por administrador.
+
+**Características:**
+- 📧 **Correo de Congelación (❄️):**
+  - Gradiente naranja/ámbar (tonos de advertencia)
+  - Información clara sobre motivo y restricciones
+  - Datos de contacto destacados
+  - Traducción de razones al español
+  - Asunto: "❄️ IMPORTANTE: Tu cuenta NexusBank ha sido congelada"
+
+- 📧 **Correo de Descongelación (✅):**
+  - Gradiente verde (tonos de éxito)
+  - Mensaje positivo de reactivación
+  - Lista de servicios disponibles nuevamente
+  - Recomendaciones de seguridad
+  - Asunto: "✅ ¡Buenas noticias! Tu cuenta NexusBank ha sido reactivada"
+
+**Razones de congelamiento soportadas:**
+- `FRAUD_SUSPICION` → Sospecha de fraude
+- `SECURITY_REVIEW` → Revisión de seguridad
+- `COMPLIANCE_CHECK` → Verificación de cumplimiento normativo
+- `USER_REQUEST` → Solicitud del usuario
+- `ADMINISTRATIVE_ACTION` → Acción administrativa
+- `SUSPICIOUS_ACTIVITY` → Actividad sospechosa
+- `RISK_ASSESSMENT` → Evaluación de riesgo
+- `INVESTIGATION` → Investigación en curso
+- `OTHER` → Otras razones
+
+**Ubicación del cambio:**
+- `services/email.service.js` - Funciones `sendAccountFrozenEmail()` y `sendAccountUnfrozenEmail()`
+- `src/account/account.controller.js` - Integración en `freezeAccount()` y `unfreezeAccount()`
+
+**Documentación completa:**
+- Ver `EMAILS_CONGELACION_CUENTA.md` para detalles técnicos y ejemplos
+
+---
+
+### 📊 Resumen de Versión (v1.0.0 - Marzo 1, 2026)
+
+| Funcionalidad | Estado | Descripción |
+|---------|--------|-------------|
+| **T46: Congelación de Cuentas** | ✅ Completo | Admin puede congelar/descongelar cuentas con auditoría |
+| **Correos Profesionales** | ✅ Completo | Notificaciones bancarias elegantes para todas las operaciones |
+| **Username Flexible** | ✅ Completo | Registro sin username requerido, auto-generación disponible |
+| **T44: Seguridad Avanzada** | ✅ Completo | 8 rate limiters, bloqueo automático (3 intentos) |
+| **T43: Notificaciones Email** | ✅ Completo | 11 tipos de emails para eventos críticos |
+| **T30: Reversión de Transferencias** | ✅ Completo | Reversion en 5 minutos con compensación |
+| **Fraude Detection** | ✅ Completo | Detección automática con 4 patrones |
+| **Promociones Bancarias** | ✅ Completo | Catálogo, cupones, y aplicación de beneficios |
+
+---
+
+## 3) Login de Admin (rápido)
 
 El sistema crea un admin por defecto al arrancar:
 
@@ -106,13 +179,15 @@ Body:
 Guarda el `token`.
 
 
-## 3) Crear cliente (con Admin)
+## 4) Crear cliente (con Admin)
 
 ```http
 POST /auth/register
 Authorization: Se necesita el token del admin {{adminToken}}
 Content-Type: application/json
 ```
+
+**Opción A: Con username personalizado**
 
 ```json
 {
@@ -130,13 +205,38 @@ Content-Type: application/json
 }
 ```
 
-> Nota: el cliente debe verificar email para poder hacer login.
+**Opción B: Sin username (se genera automáticamente) ⭐ NUEVA**
+
+```json
+{
+  "email": "cliente1@nexusbank.com",
+  "password": "Cliente123!",
+  "name": "Cliente Uno",
+  "phoneNumber": "12345678",
+  "address": "Zona 1",
+  "jobName": "Analista",
+  "documentType": "DPI",
+  "documentNumber": "1234567890123",
+  "income": 15000,
+  "accountType": "ahorro"
+}
+```
+
+> **ℹ️ Cambios Recientes:**
+> - El campo `username` ahora es **opcional**
+> - Si **no lo envías**, el sistema genera uno automáticamente:
+>   - Ejemplo: "Cliente Uno" → `ClienteUno4562`
+>   - Se añade un sufijo numérico para garantizar unicidad
+> - Si **lo envías**, se valida que sea único y cumpla reglas:
+>   - 3-30 caracteres
+>   - Solo letras, números y guion bajo (_)
+> - El cliente debe verificar email para poder hacer login
 
 
-## 4) Verificar correo del cliente (Gmail)
+## 5) Verificar correo del cliente (Gmail)
 
 
-## 4.1 Reenviar verificación
+## 5.1 Reenviar verificación
 
 ```http
 POST /auth/resend-verification
@@ -149,7 +249,7 @@ Content-Type: application/json
 }
 ```
 
-## 4.2 Verificar con token
+## 5.2 Verificar con token
 
 Revisa Gmail (bandeja principal, Spam o Promociones), copia el token y envíalo aquí:
 
@@ -165,7 +265,7 @@ Content-Type: application/json
 ```
 
 
-## 5) Login cliente
+## 6) Login cliente
 
 ```http
 POST /auth/login
@@ -183,16 +283,40 @@ Guarda EL token DEL  `clientToken`.
 
 
 
-## 6) Endpoints útil
+## 6) Endpoints útiles
 
-## 5.1 Ver cuentas
+## 6.1 Ver cuentas
 
 ```http
 GET /accounts
 Authorization: Bearer {{clientToken}}
 ```
 
-## 5.2 Solicitar depósito
+## 6.2 Editar perfil propio (Cliente)
+
+```http
+PUT /profile/edit
+Authorization: Bearer {{clientToken}}
+Content-Type: application/json
+```
+
+```json
+{
+  "name": "Juan Pérez",
+  "username": "juan3nxd",
+  "address": "Zona 10, Ciudad de Guatemala",
+  "jobName": "Analista QA",
+  "income": 8500
+}
+```
+
+Reglas:
+- El usuario a editar se obtiene desde el token JWT (no se recibe id en URL).
+- Solo se actualizan: `name`, `fullName`, `username`, `address`, `jobName`, `income`.
+- El `username` solo se puede cambiar 1 vez cada 7 días.
+- Se ignoran intentos de cambiar DPI, password o id en este endpoint.
+
+## 6.3 Solicitar depósito
 
 ```http
 POST /accounts/deposit-requests
@@ -208,14 +332,31 @@ Content-Type: application/json
 }
 ```
 
-## 5.3 Aprobar depósito (Admin)
+## 6.4 Aprobar depósito (Admin)
 
 ```http
 PUT /accounts/deposit-requests/SE PONE AQUI EL ID DE LA CUENTA/approve
 Authorization: Bearer {{adminToken}}
 ```
 
-## 5.4 Transferencia
+## 6.5 Editar monto de solicitud de depósito (Employee/Admin)
+
+```http
+PUT /accounts/deposit-requests/SE PONE AQUI EL ID DE LA SOLICITUD/amount
+Authorization: Bearer {{employeeOrAdminToken}}
+Content-Type: application/json
+```
+
+```json
+{
+  "amount": 850,
+  "reason": "Corrección de monto ingresado"
+}
+```
+
+> Regla: solo se permite editar solicitudes en estado `PENDIENTE`.
+
+## 6.6 Transferencia
 
 ```http
 POST /accounts/transfers
@@ -233,18 +374,18 @@ Content-Type: application/json
 }
 ```
 
-## 5.5 Vista admin por cuenta
+## 6.7 Vista admin por cuenta
 
 ```http
 GET /admin/accounts/:accountId/details
 Authorization: Bearer {{adminToken}}
 ```
 
-## 6) Promociones Bancarias (Catálogo)
+## 7) Promociones Bancarias (Catálogo)
 
 El sistema tiene un catálogo de promociones exclusivas para clientes. Las promociones incluyen cashback, descuentos en transferencias, intereses por saldo mínimo, etc.
 
-### 6.1 Ver todas las promociones activas (Público - sin login)
+### 7.1 Ver todas las promociones activas (Público - sin login)
 
 ```http
 GET /catalog
@@ -285,7 +426,7 @@ Content-Type: application/json
 }
 ```
 
-### 6.2 Ver detalles de una promoción específica (Público)
+### 7.2 Ver detalles de una promoción específica (Público)
 
 ```http
 GET /catalog/cat_ABC123XYZ456
@@ -312,7 +453,7 @@ Content-Type: application/json
 }
 ```
 
-### 6.3 Crear nueva promoción (Admin solo)
+### 7.3 Crear nueva promoción (Admin solo)
 
 ```http
 POST /catalog/admin/create
@@ -378,7 +519,7 @@ Content-Type: application/json
 }
 ```
 
-### 6.4 Actualizar promoción (Admin solo)
+### 7.4 Actualizar promoción (Admin solo)
 
 ```http
 PUT /catalog/admin/cat_ABC123XYZ456
@@ -396,7 +537,7 @@ Content-Type: application/json
 }
 ```
 
-### 6.5 Cambiar estado de promoción (Admin solo)
+### 7.5 Cambiar estado de promoción (Admin solo)
 
 ```http
 PUT /catalog/admin/cat_ABC123XYZ456/status
@@ -418,7 +559,7 @@ Content-Type: application/json
 - `PAUSADA` - Pausada temporalmente
 - `EXPIRADA` - Fecha de fin pasó
 
-### 6.6 Ver todas las promociones (Admin)
+### 7.6 Ver todas las promociones (Admin)
 
 ```http
 GET /catalog/admin/all
@@ -431,7 +572,7 @@ GET /catalog/admin/all?status=ACTIVA&type=DEPOSITO_CASHBACK
 Authorization: Bearer {{adminToken}}
 ```
 
-### 6.7 Ver auditoría de cambios (Admin)
+### 7.7 Ver auditoría de cambios (Admin)
 
 ```http
 GET /catalog/admin/cat_ABC123XYZ456/audit
@@ -465,7 +606,7 @@ Authorization: Bearer {{adminToken}}
 }
 ```
 
-### 6.8 Eliminar/Desactivar promoción (Admin)
+### 7.8 Eliminar/Desactivar promoción (Admin)
 
 ```http
 DELETE /catalog/admin/cat_ABC123XYZ456
@@ -482,7 +623,7 @@ Content-Type: application/json
 
 ---
 
-## 7) Tipos de Promociones Disponibles
+## 8) Tipos de Promociones Disponibles
 
 | Tipo | Descripción |
 |------|-------------|
@@ -495,11 +636,11 @@ Content-Type: application/json
 
 ---
 
-## 8) Aplicar Cupones de Promoción en Operaciones
+## 9) Aplicar Cupones de Promoción en Operaciones
 
 Los clientes pueden aplicar cupones de promoción al realizar transferencias o depósitos. Si el cupón es válido y cumple las condiciones, se aplicará automáticamente el beneficio.
 
-### 8.1 Aplicar cupón en Transferencia
+### 9.1 Aplicar cupón en Transferencia
 
 **Endpoint:** `POST /nexusBank/v1/account/transfer`
 
@@ -561,7 +702,7 @@ Los clientes pueden aplicar cupones de promoción al realizar transferencias o d
 
 ---
 
-### 8.2 Aplicar cupón en Depósito (al aprobar)
+### 9.2 Aplicar cupón en Depósito (al aprobar)
 
 **Endpoint:** `PUT /nexusBank/v1/account/deposit/:id/approve`
 

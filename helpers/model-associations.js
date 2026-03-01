@@ -4,6 +4,9 @@ import { Role, UserRole } from '../src/auth/role.model.js';
 import { Account } from '../src/account/account.model.js';
 import { Transaction } from '../src/account/transaction.model.js';
 import { TransactionAudit } from '../src/account/transactionAudit.model.js';
+import { FailedTransaction } from '../src/account/failedTransaction.model.js';
+import { FraudAlert } from '../src/account/fraudAlert.model.js';
+import { AccountBlockHistory } from '../src/account/accountBlockHistory.model.js';
 
 export function initializeAssociations() {
     User.hasOne(UserProfile, { 
@@ -97,5 +100,68 @@ export function initializeAssociations() {
     TransactionAudit.belongsTo(Transaction, {
         foreignKey: 'transactionId',
         as: 'Transaction'
+    });
+
+    // Failed Transactions Associations (Security)
+    User.hasMany(FailedTransaction, {
+        foreignKey: 'userId',
+        as: 'FailedTransactions',
+        onDelete: 'CASCADE'
+    });
+    FailedTransaction.belongsTo(User, {
+        foreignKey: 'userId',
+        as: 'User'
+    });
+
+    Account.hasMany(FailedTransaction, {
+        foreignKey: 'accountId',
+        as: 'FailedTransactions',
+        onDelete: 'CASCADE'
+    });
+    FailedTransaction.belongsTo(Account, {
+        foreignKey: 'accountId',
+        as: 'Account'
+    });
+
+    // Fraud Alerts Associations (Advanced Security)
+    User.hasMany(FraudAlert, {
+        foreignKey: 'userId',
+        as: 'FraudAlerts',
+        onDelete: 'CASCADE'
+    });
+    FraudAlert.belongsTo(User, {
+        foreignKey: 'userId',
+        as: 'User'
+    });
+
+    Account.hasMany(FraudAlert, {
+        foreignKey: 'accountId',
+        as: 'FraudAlerts',
+        onDelete: 'CASCADE'
+    });
+    FraudAlert.belongsTo(Account, {
+        foreignKey: 'accountId',
+        as: 'Account'
+    });
+
+    // Account Block History Associations (T46)
+    Account.hasMany(AccountBlockHistory, {
+        foreignKey: 'accountId',
+        as: 'BlockHistory',
+        onDelete: 'CASCADE'
+    });
+    AccountBlockHistory.belongsTo(Account, {
+        foreignKey: 'accountId',
+        as: 'Account'
+    });
+
+    User.hasMany(AccountBlockHistory, {
+        foreignKey: 'performedBy',
+        as: 'PerformedBlockActions',
+        onDelete: 'CASCADE'
+    });
+    AccountBlockHistory.belongsTo(User, {
+        foreignKey: 'performedBy',
+        as: 'performer'
     });
 }

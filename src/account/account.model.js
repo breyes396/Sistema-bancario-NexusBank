@@ -23,6 +23,30 @@ export const Account = sequelize.define('Account', {
         allowNull: false,
         defaultValue: true
     },
+    accountStatus: {
+        type: DataTypes.ENUM(
+            'ACTIVE',
+            'FROZEN',
+            'SUSPENDED',
+            'UNDER_REVIEW',
+            'BLOCKED',
+            'CLOSED'
+        ),
+        allowNull: false,
+        defaultValue: 'ACTIVE'
+    },
+    frozenReason: {
+        type: DataTypes.TEXT,
+        allowNull: true
+    },
+    frozenAt: {
+        type: DataTypes.DATE,
+        allowNull: true
+    },
+    unfrozenAt: {
+        type: DataTypes.DATE,
+        allowNull: true
+    },
     accountBalance: {
         type: DataTypes.DECIMAL(12, 2),
         allowNull: false,

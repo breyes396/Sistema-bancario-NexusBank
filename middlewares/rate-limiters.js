@@ -1,4 +1,4 @@
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 
 export const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, 
@@ -56,7 +56,7 @@ export const transferLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => req.user?.id || req.ip, // Limita por usuario, no por IP
+  keyGenerator: (req) => req.user?.id || ipKeyGenerator(req), // Limita por usuario, no por IP
   skip: (req) => !req.user // Solo aplica si está autenticado
 });
 
@@ -70,7 +70,7 @@ export const depositLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => req.user?.id || req.ip,
+  keyGenerator: (req) => req.user?.id || ipKeyGenerator(req),
   skip: (req) => !req.user
 });
 
@@ -84,7 +84,7 @@ export const failedTransactionLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => req.user?.id || req.ip,
+  keyGenerator: (req) => req.user?.id || ipKeyGenerator(req),
   skip: (req) => !req.user,
   handler: (req, res) => {
     res.status(429).json({
@@ -105,7 +105,7 @@ export const withdrawalLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => req.user?.id || req.ip,
+  keyGenerator: (req) => req.user?.id || ipKeyGenerator(req),
   skip: (req) => !req.user
 });
 

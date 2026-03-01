@@ -7,12 +7,14 @@ import { Op } from 'sequelize';
 import { Transaction } from './transaction.model.js';
 import { AccountLimitAudit } from './accountLimitAudit.model.js';
 import { TransactionAudit } from './transactionAudit.model.js';
+import { AccountBlockHistory } from './accountBlockHistory.model.js';
 import { User, UserProfile } from '../user/user.model.js';
 import { validateAndApplyCoupon, incrementPromotionUsage } from '../catalog/catalog.controller.js';
 import Catalog from '../catalog/catalog.model.js';
 import { FailedTransaction } from './failedTransaction.model.js';
 import { FraudAlert } from './fraudAlert.model.js';
 import fraudDetectionService from '../../services/fraud-detection.service.js';
+import { applyExposureRulesByRole } from '../user/user.controller.js';
 import {
     sendAccountCreatedEmail,
     sendAccountRejectedEmail,
@@ -21,7 +23,9 @@ import {
     sendTransferReceivedEmail,
     sendDepositRevertedEmail,
     sendTransferReversalEmail,
-    sendSecurityChangeEmail
+    sendSecurityChangeEmail,
+    sendAccountFrozenEmail,
+    sendAccountUnfrozenEmail
 } from '../../services/email.service.js';
 
 const getNumericAmount = (value) => {
@@ -145,8 +149,48 @@ export const listAccounts = async (req, res) => {
             whereClause.userId = req.query.userId;
         }
 
-        const accounts = await Account.findAll({ where: whereClause });
-        return res.status(200).json({ success: true, data: accounts });
+        const accounts = await Account.findAll({ 
+            where: whereClause,
+            include: [{
+                model: User,
+                as: 'User',
+                attributes: ['id', 'email'],
+                include: [{
+                    model: UserProfile,
+                    as: 'UserProfile',
+                    attributes: ['Name', 'Username', 'DocumentNumber', 'PhoneNumber']
+                }]
+            }]
+        });
+
+        // Aplicar máscaras si el usuario es Admin o Employee viendo cuentas de otros
+        let accountsData = accounts;
+        if ((currentUserRole === 'Admin' || currentUserRole === 'Employee') && whereClause.userId !== currentUserId) {
+            accountsData = accounts.map(acc => {
+                const accJson = acc.toJSON();
+                const maskedUser = accJson.User 
+                    ? applyExposureRulesByRole(accJson.User, currentUserRole, currentUserId)
+                    : null;
+
+                return {
+                    ...accJson,
+                    User: maskedUser ? {
+                        id: maskedUser.id,
+                        email: maskedUser.email,
+                        profile: {
+                            name: maskedUser.UserProfile?.Name || maskedUser.UserProfile?.Username || 'N/A',
+                            documentNumber: maskedUser.UserProfile?.DocumentNumber,
+                            phoneNumber: maskedUser.UserProfile?.PhoneNumber
+                        }
+                    } : accJson.User
+                };
+            });
+        } else {
+            // Cliente viendo sus propias cuentas, devolver sin máscaras
+            accountsData = accounts.map(acc => acc.toJSON());
+        }
+
+        return res.status(200).json({ success: true, data: accountsData });
     } catch (error) {
         return res.status(500).json({ success: false, message: 'Error en el servidor', error: error.message });
     }
@@ -614,6 +658,8 @@ export const updateAccountLimitsAdmin = async (req, res) => {
 export const getAdminAccountDetails = async (req, res) => {
     try {
         const { accountId } = req.params;
+        const actorUserId = req.user?.id;
+        const actorRole = req.user?.role || 'Admin';
 
         const account = await Account.findByPk(accountId, {
             attributes: [
@@ -643,10 +689,15 @@ export const getAdminAccountDetails = async (req, res) => {
                 {
                     model: UserProfile,
                     as: 'UserProfile',
-                    attributes: ['Name', 'Username', 'DocumentType', 'DocumentNumber']
+                    attributes: ['Name', 'Username', 'DocumentType', 'DocumentNumber', 'PhoneNumber']
                 }
             ]
         });
+
+        // Aplicar máscaras a datos sensibles del usuario
+        const maskedUser = user 
+            ? applyExposureRulesByRole(user, actorRole, actorUserId)
+            : null;
 
         const recentMovements = await Transaction.findAll({
             where: { accountId: account.id },
@@ -660,7 +711,19 @@ export const getAdminAccountDetails = async (req, res) => {
             data: {
                 account,
                 availableBalance: Number(account.accountBalance || 0).toFixed(2),
-                user,
+                user: maskedUser ? {
+                    id: maskedUser.id,
+                    email: maskedUser.email,
+                    status: maskedUser.status,
+                    isVerified: maskedUser.isVerified,
+                    profile: {
+                        name: maskedUser.UserProfile?.Name || maskedUser.UserProfile?.Username || 'N/A',
+                        username: maskedUser.UserProfile?.Username,
+                        documentType: maskedUser.UserProfile?.DocumentType,
+                        documentNumber: maskedUser.UserProfile?.DocumentNumber,
+                        phoneNumber: maskedUser.UserProfile?.PhoneNumber
+                    }
+                } : user,
                 recentMovements
             }
         });
@@ -862,6 +925,16 @@ export const createDepositRequest = async (req, res) => {
             });
         }
 
+        // ====== VALIDACIÓN T46: Verificar si la cuenta está congelada ======
+        if (destinationAccount.accountStatus === 'FROZEN' || destinationAccount.accountStatus === 'SUSPENDED' || destinationAccount.accountStatus === 'BLOCKED') {
+            return res.status(423).json({
+                success: false,
+                message: `La cuenta destino está ${destinationAccount.accountStatus.toLowerCase()} y no puede recibir depósitos`,
+                status: destinationAccount.accountStatus,
+                reason: destinationAccount.frozenReason
+            });
+        }
+
         const pendingRequest = await Transaction.findOne({
             where: {
                 accountId: destinationAccount.id,
@@ -892,6 +965,68 @@ export const createDepositRequest = async (req, res) => {
             success: true,
             message: 'Solicitud de deposito registrada y pendiente de aprobacion',
             data: requestRecord
+        });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'Error en el servidor', error: error.message });
+    }
+};
+
+export const updateDepositRequestAmount = async (req, res) => {
+    try {
+        const actorUserId = req.user?.id;
+
+        if (!actorUserId) {
+            return res.status(401).json({ success: false, message: 'Usuario no autenticado' });
+        }
+
+        const { id } = req.params;
+        const { amount, reason } = req.body;
+
+        const numericAmount = getNumericAmount(amount);
+        if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Monto invalido'
+            });
+        }
+
+        const depositRequest = await Transaction.findOne({
+            where: {
+                id,
+                type: 'DEPOSITO'
+            }
+        });
+
+        if (!depositRequest) {
+            return res.status(404).json({
+                success: false,
+                message: 'Solicitud de deposito no encontrada'
+            });
+        }
+
+        if (depositRequest.status !== 'PENDIENTE') {
+            return res.status(400).json({
+                success: false,
+                message: 'Solo se puede editar el monto de solicitudes en estado PENDIENTE'
+            });
+        }
+
+        const previousAmount = getNumericAmount(depositRequest.amount);
+
+        depositRequest.amount = numericAmount.toFixed(2);
+        depositRequest.description = `${depositRequest.description || 'Solicitud de deposito'} | Monto ajustado de Q${previousAmount.toFixed(2)} a Q${numericAmount.toFixed(2)} por ${actorUserId}${reason ? ` (Motivo: ${reason})` : ''}`;
+        await depositRequest.save();
+
+        return res.status(200).json({
+            success: true,
+            message: 'Monto de la solicitud de deposito actualizado exitosamente',
+            data: {
+                transactionId: depositRequest.id,
+                previousAmount: previousAmount.toFixed(2),
+                newAmount: depositRequest.amount,
+                status: depositRequest.status,
+                updatedBy: actorUserId
+            }
         });
     } catch (error) {
         return res.status(500).json({ success: false, message: 'Error en el servidor', error: error.message });
@@ -1265,6 +1400,28 @@ export const createTransfer = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: 'Ambas cuentas deben estar activas para realizar la transferencia'
+            });
+        }
+
+        // ====== VALIDACIÓN T46: Verificar si las cuentas están congeladas ======
+        if (sourceAccount.accountStatus === 'FROZEN' || sourceAccount.accountStatus === 'SUSPENDED' || sourceAccount.accountStatus === 'BLOCKED') {
+            await dbTransaction.rollback();
+            await notifyTransferRejected(sourceAccount.userId, `Transferencia rechazada: tu cuenta está ${sourceAccount.accountStatus}. ${sourceAccount.frozenReason || 'Por favor contacta con soporte.'}`);
+            return res.status(423).json({
+                success: false,
+                message: `Tu cuenta está ${sourceAccount.accountStatus.toLowerCase()}`,
+                reason: sourceAccount.frozenReason,
+                status: sourceAccount.accountStatus
+            });
+        }
+
+        if (destinationAccount.accountStatus === 'FROZEN' || destinationAccount.accountStatus === 'SUSPENDED' || destinationAccount.accountStatus === 'BLOCKED') {
+            await dbTransaction.rollback();
+            await notifyTransferRejected(sourceAccount.userId, 'Transferencia rechazada: la cuenta destino no está disponible para recibir transferencias');
+            return res.status(423).json({
+                success: false,
+                message: 'La cuenta destino no está disponible para recibir transferencias',
+                status: destinationAccount.accountStatus
             });
         }
 
@@ -2419,6 +2576,324 @@ export const getMyAccountHistory = async (req, res) => {
     }
 };
 
+export const getMyTransactions = async (req, res) => {
+    return getMyAccountHistory(req, res);
+};
+
+export const getAdminTransactions = async (req, res) => {
+    try {
+        const actorUserId = req.user?.id;
+
+        if (!actorUserId) {
+            return res.status(401).json({
+                success: false,
+                message: 'Usuario no autenticado'
+            });
+        }
+
+        const {
+            accountId,
+            userId,
+            type,
+            status,
+            startDate,
+            endDate,
+            page = 1,
+            limit = 20
+        } = req.query;
+
+        const parsedPage = Math.max(parseInt(page, 10) || 1, 1);
+        const parsedLimit = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100);
+        const offset = (parsedPage - 1) * parsedLimit;
+
+        const transactionWhere = {};
+
+        if (accountId) {
+            transactionWhere.accountId = String(accountId).trim();
+        }
+
+        if (type) {
+            transactionWhere.type = String(type).trim().toUpperCase();
+        }
+
+        if (status) {
+            transactionWhere.status = String(status).trim().toUpperCase();
+        }
+
+        if (startDate || endDate) {
+            const dateWhere = {};
+
+            if (startDate) {
+                const parsedStartDate = new Date(startDate);
+                if (Number.isNaN(parsedStartDate.getTime())) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'startDate inválida'
+                    });
+                }
+                dateWhere[Op.gte] = parsedStartDate;
+            }
+
+            if (endDate) {
+                const parsedEndDate = new Date(endDate);
+                if (Number.isNaN(parsedEndDate.getTime())) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'endDate inválida'
+                    });
+                }
+                dateWhere[Op.lte] = parsedEndDate;
+            }
+
+            transactionWhere.createdAt = dateWhere;
+        }
+
+        let targetAccountIds = null;
+
+        if (userId) {
+            const accountsByUser = await Account.findAll({
+                where: { userId: String(userId).trim() },
+                attributes: ['id'],
+                raw: true
+            });
+
+            targetAccountIds = accountsByUser.map((account) => account.id);
+
+            if (targetAccountIds.length === 0) {
+                return res.status(200).json({
+                    success: true,
+                    message: 'No se encontraron cuentas para el usuario indicado',
+                    data: [],
+                    pagination: {
+                        page: parsedPage,
+                        limit: parsedLimit,
+                        totalRecords: 0,
+                        totalPages: 0
+                    }
+                });
+            }
+
+            if (transactionWhere.accountId && !targetAccountIds.includes(transactionWhere.accountId)) {
+                return res.status(200).json({
+                    success: true,
+                    message: 'La cuenta no pertenece al usuario indicado',
+                    data: [],
+                    pagination: {
+                        page: parsedPage,
+                        limit: parsedLimit,
+                        totalRecords: 0,
+                        totalPages: 0
+                    }
+                });
+            }
+
+            if (!transactionWhere.accountId) {
+                transactionWhere.accountId = { [Op.in]: targetAccountIds };
+            }
+        }
+
+        const { count, rows } = await Transaction.findAndCountAll({
+            where: transactionWhere,
+            attributes: [
+                'id',
+                'accountId',
+                'type',
+                'amount',
+                'description',
+                'balanceAfter',
+                'relatedAccountId',
+                'status',
+                'isReverted',
+                'revertedAt',
+                'appliedCouponId',
+                'createdAt',
+                'updatedAt'
+            ],
+            order: [['createdAt', 'DESC']],
+            offset,
+            limit: parsedLimit
+        });
+
+        // Obtener información de cuentas y usuarios con datos enmascarados
+        const accountIds = [...new Set(rows.map(t => t.accountId))];
+        const accountsWithUsers = await Account.findAll({
+            where: { id: { [Op.in]: accountIds } },
+            attributes: ['id', 'accountNumber', 'accountType', 'userId'],
+            include: [{
+                model: User,
+                as: 'User',
+                attributes: ['id', 'email'],
+                include: [{
+                    model: UserProfile,
+                    as: 'UserProfile',
+                    attributes: ['Name', 'Username', 'DocumentNumber', 'PhoneNumber']
+                }]
+            }]
+        });
+
+        // Crear mapa de cuentas con usuarios enmascarados
+        const accountMap = {};
+        accountsWithUsers.forEach(acc => {
+            const maskedUser = acc.User 
+                ? applyExposureRulesByRole(acc.User, 'Admin', actorUserId)
+                : null;
+
+            accountMap[acc.id] = {
+                accountNumber: acc.accountNumber,
+                accountType: acc.accountType,
+                owner: maskedUser ? {
+                    id: maskedUser.id,
+                    email: maskedUser.email,
+                    name: maskedUser.UserProfile?.Name || maskedUser.UserProfile?.Username || 'N/A',
+                    documentNumber: maskedUser.UserProfile?.DocumentNumber,
+                    phoneNumber: maskedUser.UserProfile?.PhoneNumber
+                } : null
+            };
+        });
+
+        // Enriquecer transacciones con información enmascarada
+        const enrichedTransactions = rows.map(trx => ({
+            ...trx.toJSON(),
+            accountInfo: accountMap[trx.accountId] || null
+        }));
+
+        return res.status(200).json({
+            success: true,
+            message: 'Transacciones globales obtenidas exitosamente',
+            data: enrichedTransactions,
+            pagination: {
+                page: parsedPage,
+                limit: parsedLimit,
+                totalRecords: count,
+                totalPages: Math.ceil(count / parsedLimit)
+            }
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: 'Error en el servidor',
+            error: error.message
+        });
+    }
+};
+
+export const getEmployeeAccountTransactions = async (req, res) => {
+    try {
+        const actorUserId = req.user?.id;
+
+        if (!actorUserId) {
+            return res.status(401).json({
+                success: false,
+                message: 'Usuario no autenticado'
+            });
+        }
+
+        const { accountId } = req.params;
+        const { page = 1, limit = 20, type, status } = req.query;
+
+        if (!accountId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Id de cuenta requerido'
+            });
+        }
+
+        const account = await Account.findByPk(String(accountId).trim(), {
+            attributes: ['id', 'accountNumber', 'accountType', 'status', 'userId']
+        });
+
+        if (!account) {
+            return res.status(404).json({
+                success: false,
+                message: 'Cuenta no encontrada'
+            });
+        }
+
+        const parsedPage = Math.max(parseInt(page, 10) || 1, 1);
+        const parsedLimit = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100);
+        const offset = (parsedPage - 1) * parsedLimit;
+
+        const where = { accountId: account.id };
+
+        if (type) {
+            where.type = String(type).trim().toUpperCase();
+        }
+
+        if (status) {
+            where.status = String(status).trim().toUpperCase();
+        }
+
+        const { count, rows } = await Transaction.findAndCountAll({
+            where,
+            attributes: [
+                'id',
+                'accountId',
+                'type',
+                'amount',
+                'description',
+                'balanceAfter',
+                'relatedAccountId',
+                'status',
+                'isReverted',
+                'revertedAt',
+                'createdAt'
+            ],
+            order: [['createdAt', 'DESC']],
+            offset,
+            limit: parsedLimit
+        });
+
+        // Obtener información del propietario de la cuenta con datos enmascarados
+        const accountOwner = await User.findByPk(account.userId, {
+            attributes: ['id', 'email'],
+            include: [{
+                model: UserProfile,
+                as: 'UserProfile',
+                attributes: ['Name', 'Username', 'DocumentNumber', 'PhoneNumber']
+            }]
+        });
+
+        const maskedOwner = accountOwner 
+            ? applyExposureRulesByRole(accountOwner, 'Employee', actorUserId)
+            : null;
+
+        const accountWithMaskedOwner = {
+            id: account.id,
+            accountNumber: account.accountNumber,
+            accountType: account.accountType,
+            status: account.status,
+            owner: maskedOwner ? {
+                id: maskedOwner.id,
+                email: maskedOwner.email || 'N/A',
+                name: maskedOwner.UserProfile?.Name || maskedOwner.UserProfile?.Username || 'N/A',
+                documentNumber: maskedOwner.UserProfile?.DocumentNumber,
+                phoneNumber: maskedOwner.UserProfile?.PhoneNumber
+            } : null
+        };
+
+        return res.status(200).json({
+            success: true,
+            message: 'Transacciones de cuenta obtenidas exitosamente',
+            data: {
+                account: accountWithMaskedOwner,
+                transactions: rows
+            },
+            pagination: {
+                page: parsedPage,
+                limit: parsedLimit,
+                totalRecords: count,
+                totalPages: Math.ceil(count / parsedLimit)
+            }
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: 'Error en el servidor',
+            error: error.message
+        });
+    }
+};
+
 export const getDashboardTransactionRanking = async (req, res) => {
     try {
         const actorUserId = req.user?.id;
@@ -2565,6 +3040,316 @@ export const getDashboardTransactionRanking = async (req, res) => {
 
     } catch (error) {
         console.error('Error obteniendo ranking de transacciones:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Error en el servidor',
+            error: error.message
+        });
+    }
+};
+
+// ====== ENDPOINTS DE BLOQUEO/DESBLOQUEO DE CUENTAS (T46) ======
+
+/**
+ * Congelar una cuenta (Admin only)
+ * POST /admin/accounts/:id/freeze
+ */
+export const freezeAccount = async (req, res) => {
+    try {
+        const actorUserId = req.user?.id;
+        const actorRole = req.user?.role;
+        const { id: accountId } = req.params;
+        const { reason, reasonDetails, unblockScheduledFor } = req.body || {};
+
+        if (!actorUserId) {
+            return res.status(401).json({ success: false, message: 'Usuario no autenticado' });
+        }
+
+        if (actorRole !== 'Admin') {
+            return res.status(403).json({ success: false, message: 'Acceso denegado. Se requiere rol de Admin' });
+        }
+
+        // Validar razón
+        const validReasons = [
+            'FRAUD_SUSPICION',
+            'SECURITY_REVIEW',
+            'COMPLIANCE_CHECK',
+            'USER_REQUEST',
+            'ADMINISTRATIVE_ACTION',
+            'SUSPICIOUS_ACTIVITY',
+            'RISK_ASSESSMENT',
+            'INVESTIGATION',
+            'OTHER'
+        ];
+
+        if (!reason || !validReasons.includes(reason)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Razón inválida',
+                validReasons
+            });
+        }
+
+        const account = await Account.findByPk(accountId);
+
+        if (!account) {
+            return res.status(404).json({ success: false, message: 'Cuenta no encontrada' });
+        }
+
+        // Verificar si ya está congelada
+        if (account.accountStatus === 'FROZEN') {
+            return res.status(400).json({
+                success: false,
+                message: 'La cuenta ya está congelada',
+                currentStatus: account.accountStatus
+            });
+        }
+
+        // Verificar si está cerrada
+        if (account.accountStatus === 'CLOSED') {
+            return res.status(400).json({
+                success: false,
+                message: 'No se puede congelar una cuenta cerrada',
+                currentStatus: account.accountStatus
+            });
+        }
+
+        const previousStatus = account.accountStatus;
+
+        // Actualizar cuenta
+        await account.update({
+            accountStatus: 'FROZEN',
+            status: false,
+            frozenReason: reasonDetails || reason,
+            frozenAt: new Date(),
+            lastAdminChangeBy: actorUserId,
+            lastAdminChangeAt: new Date(),
+            lastAdminChangeType: 'FREEZE',
+            lastAdminChangeReason: reasonDetails || reason
+        });
+
+        // Registrar en historial
+        const ipAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip;
+        const userAgent = req.headers['user-agent'];
+
+        await AccountBlockHistory.create({
+            accountId,
+            action: 'FREEZE',
+            previousStatus,
+            newStatus: 'FROZEN',
+            reason,
+            reasonDetails: reasonDetails || null,
+            performedBy: actorUserId,
+            performedByRole: actorRole,
+            unblockScheduledFor: unblockScheduledFor || null,
+            ipAddress,
+            userAgent
+        });
+
+        // Notificar al dueño de la cuenta con email específico de congelación
+        const accountOwner = await getUserEmailAndName(account.userId);
+        if (accountOwner) {
+            await sendEmailSafe(() => sendAccountFrozenEmail(
+                accountOwner.email,
+                accountOwner.name,
+                {
+                    accountNumber: account.accountNumber,
+                    reason,
+                    reasonDetails,
+                    frozenAt: account.frozenAt,
+                    performedByName: 'Equipo de Administración NexusBank'
+                }
+            ));
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'Cuenta congelada exitosamente',
+            data: {
+                accountId: account.id,
+                accountNumber: account.accountNumber,
+                previousStatus,
+                currentStatus: account.accountStatus,
+                frozenAt: account.frozenAt,
+                reason,
+                reasonDetails: reasonDetails || null,
+                performedBy: actorUserId
+            }
+        });
+    } catch (error) {
+        console.error('Error congelando cuenta:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Error en el servidor',
+            error: error.message
+        });
+    }
+};
+
+/**
+ * Descongelar/Rehabilitar una cuenta (Admin only)
+ * POST /admin/accounts/:id/unfreeze
+ */
+export const unfreezeAccount = async (req, res) => {
+    try {
+        const actorUserId = req.user?.id;
+        const actorRole = req.user?.role;
+        const { id: accountId } = req.params;
+        const { reason, reasonDetails } = req.body || {};
+
+        if (!actorUserId) {
+            return res.status(401).json({ success: false, message: 'Usuario no autenticado' });
+        }
+
+        if (actorRole !== 'Admin') {
+            return res.status(403).json({ success: false, message: 'Acceso denegado. Se requiere rol de Admin' });
+        }
+
+        const account = await Account.findByPk(accountId);
+
+        if (!account) {
+            return res.status(404).json({ success: false, message: 'Cuenta no encontrada' });
+        }
+
+        // Verificar si está congelada
+        if (account.accountStatus !== 'FROZEN' && account.accountStatus !== 'SUSPENDED') {
+            return res.status(400).json({
+                success: false,
+                message: 'La cuenta no está congelada o suspendida',
+                currentStatus: account.accountStatus
+            });
+        }
+
+        const previousStatus = account.accountStatus;
+
+        // Actualizar cuenta
+        await account.update({
+            accountStatus: 'ACTIVE',
+            status: true,
+            frozenReason: null,
+            unfrozenAt: new Date(),
+            lastAdminChangeBy: actorUserId,
+            lastAdminChangeAt: new Date(),
+            lastAdminChangeType: 'UNFREEZE',
+            lastAdminChangeReason: reasonDetails || reason || 'Cuenta rehabilitada'
+        });
+
+        // Registrar en historial
+        const ipAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip;
+        const userAgent = req.headers['user-agent'];
+
+        await AccountBlockHistory.create({
+            accountId,
+            action: 'UNFREEZE',
+            previousStatus,
+            newStatus: 'ACTIVE',
+            reason: reason || 'RESOLVED',
+            reasonDetails: reasonDetails || 'Revisión completada - cuenta rehabilitada',
+            performedBy: actorUserId,
+            performedByRole: actorRole,
+            ipAddress,
+            userAgent
+        });
+
+        // Notificar al dueño de la cuenta con email específico de descongelación
+        const accountOwner = await getUserEmailAndName(account.userId);
+        if (accountOwner) {
+            await sendEmailSafe(() => sendAccountUnfrozenEmail(
+                accountOwner.email,
+                accountOwner.name,
+                {
+                    accountNumber: account.accountNumber,
+                    previousReason: account.frozenReason,
+                    unfrozenAt: account.unfrozenAt,
+                    performedByName: 'Equipo de Administración NexusBank'
+                }
+            ));
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'Cuenta descongelada exitosamente',
+            data: {
+                accountId: account.id,
+                accountNumber: account.accountNumber,
+                previousStatus,
+                currentStatus: account.accountStatus,
+                unfrozenAt: account.unfrozenAt,
+                reason: reasonDetails || reason || 'Cuenta rehabilitada',
+                performedBy: actorUserId
+            }
+        });
+    } catch (error) {
+        console.error('Error descongelando cuenta:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Error en el servidor',
+            error: error.message
+        });
+    }
+};
+
+/**
+ * Obtener historial de bloqueos de una cuenta (Admin only)
+ * GET /admin/accounts/:id/block-history
+ */
+export const getAccountBlockHistory = async (req, res) => {
+    try {
+        const actorUserId = req.user?.id;
+        const actorRole = req.user?.role;
+        const { id: accountId } = req.params;
+
+        if (!actorUserId) {
+            return res.status(401).json({ success: false, message: 'Usuario no autenticado' });
+        }
+
+        if (actorRole !== 'Admin') {
+            return res.status(403).json({ success: false, message: 'Acceso denegado. Se requiere rol de Admin' });
+        }
+
+        const account = await Account.findByPk(accountId);
+
+        if (!account) {
+            return res.status(404).json({ success: false, message: 'Cuenta no encontrada' });
+        }
+
+        const history = await AccountBlockHistory.findAll({
+            where: { accountId },
+            order: [['createdAt', 'DESC']],
+            include: [
+                {
+                    model: User,
+                    as: 'performer',
+                    attributes: ['id', 'email'],
+                    required: false
+                }
+            ]
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: 'Historial de bloqueos obtenido exitosamente',
+            data: {
+                accountId,
+                accountNumber: account.accountNumber,
+                currentStatus: account.accountStatus,
+                history: history.map(h => ({
+                    id: h.id,
+                    action: h.action,
+                    previousStatus: h.previousStatus,
+                    newStatus: h.newStatus,
+                    reason: h.reason,
+                    reasonDetails: h.reasonDetails,
+                    performedBy: h.performedBy,
+                    performedByEmail: h.performer?.email || null,
+                    performedByRole: h.performedByRole,
+                    unblockScheduledFor: h.unblockScheduledFor,
+                    createdAt: h.createdAt
+                }))
+            }
+        });
+    } catch (error) {
+        console.error('Error obteniendo historial de bloqueos:', error);
         return res.status(500).json({
             success: false,
             message: 'Error en el servidor',

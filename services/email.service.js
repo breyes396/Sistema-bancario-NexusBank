@@ -672,3 +672,465 @@ function getOperationTypeInSpanish(type) {
     };
     return types[type] || type;
 }
+
+/**
+ * Enviar correo de cuenta congelada por administrador
+ */
+export const sendAccountFrozenEmail = async (email, name, freezeData = {}) => {
+    const { accountNumber, reason, reasonDetails, frozenAt, performedByName } = freezeData;
+    const frozenTime = frozenAt ? new Date(frozenAt).toLocaleString('es-ES') : new Date().toLocaleString('es-ES');
+
+    // Traducir razones al español
+    const reasonsInSpanish = {
+        'FRAUD_SUSPICION': 'Sospecha de fraude',
+        'SECURITY_REVIEW': 'Revisión de seguridad',
+        'COMPLIANCE_CHECK': 'Verificación de cumplimiento normativo',
+        'USER_REQUEST': 'Solicitud del usuario',
+        'ADMINISTRATIVE_ACTION': 'Acción administrativa',
+        'SUSPICIOUS_ACTIVITY': 'Actividad sospechosa',
+        'RISK_ASSESSMENT': 'Evaluación de riesgo',
+        'INVESTIGATION': 'Investigación en curso',
+        'OTHER': 'Otras razones'
+    };
+
+    const reasonText = reasonsInSpanish[reason] || reason;
+
+    const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+                .container { max-width: 600px; margin: 0 auto; background: #ffffff; }
+                .header { 
+                    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); 
+                    color: white; 
+                    padding: 40px 30px; 
+                    text-align: center; 
+                    border-radius: 0; 
+                }
+                .header h1 { margin: 0; font-size: 28px; font-weight: 600; }
+                .header p { margin: 10px 0 0 0; font-size: 14px; opacity: 0.95; }
+                .content { 
+                    padding: 40px 30px; 
+                    background: #ffffff; 
+                }
+                .alert-box { 
+                    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+                    border-left: 5px solid #f59e0b; 
+                    padding: 20px; 
+                    margin: 25px 0; 
+                    border-radius: 8px;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }
+                .alert-box strong { 
+                    display: block; 
+                    font-size: 18px; 
+                    color: #92400e; 
+                    margin-bottom: 10px; 
+                }
+                .alert-box p { 
+                    margin: 5px 0; 
+                    color: #78350f; 
+                }
+                .info-section { 
+                    background: #f8fafc; 
+                    border: 1px solid #e2e8f0; 
+                    padding: 20px; 
+                    margin: 25px 0; 
+                    border-radius: 8px; 
+                }
+                .info-section h3 { 
+                    margin: 0 0 15px 0; 
+                    color: #1e293b; 
+                    font-size: 18px; 
+                    border-bottom: 2px solid #f59e0b;
+                    padding-bottom: 8px;
+                }
+                .info-item { 
+                    display: flex; 
+                    padding: 8px 0; 
+                    border-bottom: 1px solid #e2e8f0; 
+                }
+                .info-item:last-child { border-bottom: none; }
+                .info-label { 
+                    font-weight: 600; 
+                    color: #475569; 
+                    min-width: 140px; 
+                }
+                .info-value { 
+                    color: #1e293b; 
+                    flex: 1; 
+                }
+                .action-box { 
+                    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+                    border: 1px solid #3b82f6; 
+                    padding: 20px; 
+                    margin: 25px 0; 
+                    border-radius: 8px; 
+                }
+                .action-box h3 { 
+                    margin: 0 0 12px 0; 
+                    color: #1e40af; 
+                    font-size: 18px; 
+                }
+                .action-box ul { 
+                    margin: 10px 0; 
+                    padding-left: 20px; 
+                }
+                .action-box li { 
+                    margin: 8px 0; 
+                    color: #1e3a8a; 
+                }
+                .warning-text { 
+                    background: #fee; 
+                    border-left: 4px solid #dc2626; 
+                    padding: 15px; 
+                    margin: 20px 0; 
+                    border-radius: 4px;
+                    color: #991b1b;
+                    font-weight: 500;
+                }
+                .contact-section { 
+                    background: #f1f5f9; 
+                    padding: 20px; 
+                    margin: 25px 0; 
+                    border-radius: 8px;
+                    text-align: center;
+                }
+                .contact-section h3 { 
+                    margin: 0 0 15px 0; 
+                    color: #1e293b; 
+                }
+                .contact-item { 
+                    margin: 10px 0; 
+                    font-size: 15px; 
+                }
+                .contact-item strong { 
+                    color: #f59e0b; 
+                }
+                .footer { 
+                    background: #1e293b; 
+                    color: #94a3b8; 
+                    text-align: center; 
+                    padding: 25px; 
+                    font-size: 13px; 
+                }
+                .footer p { margin: 5px 0; }
+                .footer strong { color: #f59e0b; }
+                .timestamp { 
+                    color: #64748b; 
+                    font-size: 13px; 
+                    font-style: italic; 
+                    margin-top: 20px; 
+                    padding-top: 15px; 
+                    border-top: 1px solid #e2e8f0;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>❄️ CUENTA CONGELADA</h1>
+                    <p>Acción administrativa sobre tu cuenta</p>
+                </div>
+                <div class="content">
+                    <h2 style="color: #1e293b; margin-top: 0;">Estimado/a ${name},</h2>
+                    
+                    <div class="alert-box">
+                        <strong>⚠️ Tu cuenta ha sido temporalmente congelada</strong>
+                        <p>Tu cuenta bancaria ha sido suspendida temporalmente por nuestro equipo administrativo y no podrás realizar transacciones hasta que sea descongelada.</p>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h3>📋 Información del Congelamiento</h3>
+                        <div class="info-item">
+                            <span class="info-label">Cuenta:</span>
+                            <span class="info-value">${accountNumber || 'N/A'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Motivo:</span>
+                            <span class="info-value">${reasonText}</span>
+                        </div>
+                        ${reasonDetails ? `
+                        <div class="info-item">
+                            <span class="info-label">Detalles:</span>
+                            <span class="info-value">${reasonDetails}</span>
+                        </div>
+                        ` : ''}
+                        <div class="info-item">
+                            <span class="info-label">Fecha de congelamiento:</span>
+                            <span class="info-value">${frozenTime}</span>
+                        </div>
+                        ${performedByName ? `
+                        <div class="info-item">
+                            <span class="info-label">Gestionado por:</span>
+                            <span class="info-value">${performedByName}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+
+                    <div class="action-box">
+                        <h3>🔍 ¿Qué significa esto?</h3>
+                        <p>Mientras tu cuenta esté congelada:</p>
+                        <ul>
+                            <li><strong>No podrás</strong> realizar transferencias</li>
+                            <li><strong>No podrás</strong> hacer depósitos</li>
+                            <li><strong>No podrás</strong> retirar fondos</li>
+                            <li><strong>Sí podrás</strong> consultar tu saldo</li>
+                            <li><strong>Sí podrás</strong> ver el historial de transacciones</li>
+                        </ul>
+                    </div>
+
+                    <div class="warning-text">
+                        <strong>⏰ Acción Requerida:</strong> Por favor contacta a nuestro equipo de soporte para resolver esta situación y reactivar tu cuenta.
+                    </div>
+
+                    <div class="contact-section">
+                        <h3>💬 Contáctanos</h3>
+                        <div class="contact-item">
+                            <strong>📧 Email:</strong> soporte@nexusbank.com
+                        </div>
+                        <div class="contact-item">
+                            <strong>📞 Teléfono:</strong> +502 2345-6789
+                        </div>
+                        <div class="contact-item">
+                            <strong>🕐 Horario:</strong> Lunes a Viernes, 8:00 AM - 6:00 PM
+                        </div>
+                    </div>
+
+                    <p style="color: #64748b; font-size: 14px;">
+                        Nuestro equipo está comprometido con la seguridad de tu cuenta. Trabajaremos contigo para resolver esta situación lo antes posible.
+                    </p>
+
+                    <div class="timestamp">
+                        Notificación generada automáticamente el ${frozenTime}
+                    </div>
+                </div>
+                <div class="footer">
+                    <p><strong>NexusBank</strong> - Tu socio financiero de confianza</p>
+                    <p>© ${new Date().getFullYear()} NexusBank. Todos los derechos reservados.</p>
+                    <p style="margin-top: 10px; font-size: 12px;">Este es un correo automático, por favor no responder a esta dirección.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+    `;
+
+    return await sendEmail(email, '❄️ IMPORTANTE: Tu cuenta NexusBank ha sido congelada', html);
+};
+
+/**
+ * Enviar correo de cuenta descongelada
+ */
+export const sendAccountUnfrozenEmail = async (email, name, unfreezeData = {}) => {
+    const { accountNumber, previousReason, unfrozenAt, performedByName } = unfreezeData;
+    const unfrozenTime = unfrozenAt ? new Date(unfrozenAt).toLocaleString('es-ES') : new Date().toLocaleString('es-ES');
+
+    const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+                .container { max-width: 600px; margin: 0 auto; background: #ffffff; }
+                .header { 
+                    background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
+                    color: white; 
+                    padding: 40px 30px; 
+                    text-align: center; 
+                    border-radius: 0; 
+                }
+                .header h1 { margin: 0; font-size: 28px; font-weight: 600; }
+                .header p { margin: 10px 0 0 0; font-size: 14px; opacity: 0.95; }
+                .content { 
+                    padding: 40px 30px; 
+                    background: #ffffff; 
+                }
+                .success-box { 
+                    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+                    border-left: 5px solid #10b981; 
+                    padding: 20px; 
+                    margin: 25px 0; 
+                    border-radius: 8px;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }
+                .success-box strong { 
+                    display: block; 
+                    font-size: 18px; 
+                    color: #065f46; 
+                    margin-bottom: 10px; 
+                }
+                .success-box p { 
+                    margin: 5px 0; 
+                    color: #047857; 
+                }
+                .info-section { 
+                    background: #f8fafc; 
+                    border: 1px solid #e2e8f0; 
+                    padding: 20px; 
+                    margin: 25px 0; 
+                    border-radius: 8px; 
+                }
+                .info-section h3 { 
+                    margin: 0 0 15px 0; 
+                    color: #1e293b; 
+                    font-size: 18px; 
+                    border-bottom: 2px solid #10b981;
+                    padding-bottom: 8px;
+                }
+                .info-item { 
+                    display: flex; 
+                    padding: 8px 0; 
+                    border-bottom: 1px solid #e2e8f0; 
+                }
+                .info-item:last-child { border-bottom: none; }
+                .info-label { 
+                    font-weight: 600; 
+                    color: #475569; 
+                    min-width: 140px; 
+                }
+                .info-value { 
+                    color: #1e293b; 
+                    flex: 1; 
+                }
+                .features-box { 
+                    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+                    border: 1px solid #3b82f6; 
+                    padding: 20px; 
+                    margin: 25px 0; 
+                    border-radius: 8px; 
+                }
+                .features-box h3 { 
+                    margin: 0 0 12px 0; 
+                    color: #1e40af; 
+                    font-size: 18px; 
+                }
+                .features-box ul { 
+                    margin: 10px 0; 
+                    padding-left: 20px; 
+                }
+                .features-box li { 
+                    margin: 8px 0; 
+                    color: #1e3a8a; 
+                }
+                .tips-section { 
+                    background: #fef3c7; 
+                    border-left: 4px solid #f59e0b; 
+                    padding: 15px; 
+                    margin: 20px 0; 
+                    border-radius: 4px;
+                }
+                .tips-section h4 { 
+                    margin: 0 0 10px 0; 
+                    color: #92400e; 
+                }
+                .tips-section ul { 
+                    margin: 5px 0; 
+                    padding-left: 20px; 
+                }
+                .tips-section li { 
+                    margin: 5px 0; 
+                    color: #78350f; 
+                }
+                .footer { 
+                    background: #1e293b; 
+                    color: #94a3b8; 
+                    text-align: center; 
+                    padding: 25px; 
+                    font-size: 13px; 
+                }
+                .footer p { margin: 5px 0; }
+                .footer strong { color: #10b981; }
+                .timestamp { 
+                    color: #64748b; 
+                    font-size: 13px; 
+                    font-style: italic; 
+                    margin-top: 20px; 
+                    padding-top: 15px; 
+                    border-top: 1px solid #e2e8f0;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>✅ CUENTA REACTIVADA</h1>
+                    <p>Tu cuenta ha sido descongelada exitosamente</p>
+                </div>
+                <div class="content">
+                    <h2 style="color: #1e293b; margin-top: 0;">¡Excelentes noticias, ${name}!</h2>
+                    
+                    <div class="success-box">
+                        <strong>🎉 Tu cuenta ha sido descongelada</strong>
+                        <p>Tu cuenta bancaria ha sido reactivada y ahora puedes volver a realizar todas tus transacciones con normalidad.</p>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h3>📋 Información de la Reactivación</h3>
+                        <div class="info-item">
+                            <span class="info-label">Cuenta:</span>
+                            <span class="info-value">${accountNumber || 'N/A'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Estado actual:</span>
+                            <span class="info-value" style="color: #10b981; font-weight: 600;">ACTIVA</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Fecha de reactivación:</span>
+                            <span class="info-value">${unfrozenTime}</span>
+                        </div>
+                        ${performedByName ? `
+                        <div class="info-item">
+                            <span class="info-label">Gestionado por:</span>
+                            <span class="info-value">${performedByName}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+
+                    <div class="features-box">
+                        <h3>✨ Servicios Disponibles</h3>
+                        <p>Ahora puedes volver a usar todos nuestros servicios:</p>
+                        <ul>
+                            <li><strong>✓</strong> Realizar transferencias a otras cuentas</li>
+                            <li><strong>✓</strong> Hacer depósitos en tu cuenta</li>
+                            <li><strong>✓</strong> Retirar fondos cuando lo necesites</li>
+                            <li><strong>✓</strong> Consultar tu saldo y movimientos</li>
+                            <li><strong>✓</strong> Gestionar tus favoritos y beneficiarios</li>
+                        </ul>
+                    </div>
+
+                    <div class="tips-section">
+                        <h4>💡 Recomendaciones de Seguridad</h4>
+                        <ul>
+                            <li>Asegúrate de mantener tu contraseña segura</li>
+                            <li>Revisa regularmente tus transacciones</li>
+                            <li>Reporta cualquier actividad sospechosa inmediatamente</li>
+                            <li>Mantén actualizada tu información de contacto</li>
+                        </ul>
+                    </div>
+
+                    <p style="color: #1e293b; font-size: 15px; margin-top: 25px;">
+                        Gracias por tu paciencia durante este proceso. En NexusBank, la seguridad de tu cuenta es nuestra prioridad.
+                    </p>
+
+                    <p style="color: #64748b; font-size: 14px; margin-top: 15px;">
+                        Si tienes alguna pregunta o necesitas asistencia, no dudes en contactarnos en <strong style="color: #10b981;">soporte@nexusbank.com</strong> o al <strong style="color: #10b981;">+502 2345-6789</strong>.
+                    </p>
+
+                    <div class="timestamp">
+                        Notificación generada automáticamente el ${unfrozenTime}
+                    </div>
+                </div>
+                <div class="footer">
+                    <p><strong>NexusBank</strong> - Tu socio financiero de confianza</p>
+                    <p>© ${new Date().getFullYear()} NexusBank. Todos los derechos reservados.</p>
+                    <p style="margin-top: 10px; font-size: 12px;">Este es un correo automático, por favor no responder a esta dirección.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+    `;
+
+    return await sendEmail(email, '✅ ¡Buenas noticias! Tu cuenta NexusBank ha sido reactivada', html);
+};

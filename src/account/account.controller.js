@@ -369,7 +369,12 @@ export const convertAccountBalance = async (req, res) => {
         }
 
         if (!targetCurrency) {
-            return res.status(400).json({ success: false, message: 'Moneda destino requerida' });
+            const suggestedCurrencies = ['USD', 'EUR', 'GBP', 'MXN', 'ARS'];
+            return res.status(400).json({
+                success: false,
+                message: 'Moneda destino requerida',
+                suggestedCurrencies
+            });
         }
 
         if (!/^[A-Z]{3}$/.test(targetCurrency)) {

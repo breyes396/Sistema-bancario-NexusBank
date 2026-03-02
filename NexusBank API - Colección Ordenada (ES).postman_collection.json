@@ -1,0 +1,2079 @@
+{
+  "info": {
+    "_postman_id": "f2d8afd5-5537-4e0b-8a42-6d2cae372525",
+    "name": "NexusBank API - Colección Ordenada (ES)",
+    "description": "Colección limpia y entendible de NexusBank. Sin endpoints duplicados, organizada por módulos operativos reales. Reglas vigentes: límite diario por cuenta origen Q10,000; límite diario por cuenta destino específica (par origen→destino) Q2,000; depósitos y transferencias no tienen tope de saldo máximo en cuenta destino.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "48186863"
+  },
+  "item": [
+    {
+      "name": "01. Salud",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02. Autenticación",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@nexusbank.com\",\n  \"password\": \"ADMINB\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Registro de usuario (Admin/Employee)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cliente Nuevo\",\n  \"email\": \"bpineda-2024427@kinal.edu.gt\",\n  \"password\": \"dadsadQA@2\",\n  \"phoneNumber\": \"23456789\",\n  \"income\": 5000,\n  \"documentType\": \"CC\",\n  \"documentNumber\": \"1234567891011\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verificar correo (POST)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"TOKEN_VERIFICACION\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/verify-email",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "verify-email"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verificar correo (GET)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/verify-email?token=TOKEN_VERIFICACION",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "verify-email"
+              ],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "TOKEN_VERIFICACION"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reenviar verificación",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"cliente.nuevo@nexusbank.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/resend-verification",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "resend-verification"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Olvidé contraseña",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"cliente.nuevo@nexusbank.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/forgot-password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "forgot-password"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Resetear contraseña",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"TOKEN_RESET\",\n  \"newPassword\": \"NuevaClave123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/reset-password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "reset-password"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login Cliente",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "  {\r\n    \"email\": \"bpineda-2024427@kinal.edu.gt\",\r\n  \"password\": \"dadsadQA@2\"\r\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "03. Mi Cuenta",
+      "item": [
+        {
+          "name": "Mi perfil",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_cliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Editar mi perfil",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_cliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+50255556666\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/profile/edit",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "profile",
+                "edit"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Convertir saldo",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_cliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/my-account/balance/convert?toCurrency=USD",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "my-account",
+                "balance",
+                "convert"
+              ],
+              "query": [
+                {
+                  "key": "toCurrency",
+                  "value": "USD"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Historial de mi cuenta",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_cliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/my-account/history",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "my-account",
+                "history"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "04. Usuarios (Admin)",
+      "item": [
+        {
+          "name": "Listar usuarios",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Detalle cliente (Admin)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/admin/client/{{user_id}}/detail",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "admin",
+                "client",
+                "{{user_id}}",
+                "detail"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Usuario por ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/{{user_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "{{user_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar usuario",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cliente Actualizado\",\n  \"phone\": \"99999999\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/{{user_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "{{user_id}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "05. Cuentas",
+      "item": [
+        {
+          "name": "Listar cuentas",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_cliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/accounts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "accounts"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Crear cuenta",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_cliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountType\": \"AHORRO\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/accounts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "accounts"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar límites (Employee/Admin)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dailyTransferLimit\": 10000\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/accounts/{{account_id}}/limits",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "accounts",
+                "{{account_id}}",
+                "limits"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ver límites admin",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/accounts/{{account_id}}/limits/admin",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "accounts",
+                "{{account_id}}",
+                "limits",
+                "admin"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar límites admin",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monthlyTransferLimit\": 50000\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/accounts/{{account_id}}/limits/admin",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "accounts",
+                "{{account_id}}",
+                "limits",
+                "admin"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "06. Depósitos",
+      "item": [
+        {
+          "name": "Crear solicitud de depósito",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_cliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountNumber\": \"1000000001\",\n  \"amount\": 1500,\n  \"description\": \"Depósito por ventanilla\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/accounts/deposit-requests",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "accounts",
+                "deposit-requests"
+              ]
+            },
+            "description": "Regla actual: la cuenta destino puede recibir depósitos sin límite máximo de saldo acumulado."
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar monto de depósito",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 2000\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/accounts/deposit-requests/{{deposit_request_id}}/amount",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "accounts",
+                "deposit-requests",
+                "{{deposit_request_id}}",
+                "amount"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Aprobar depósito",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Aprobado por caja\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/accounts/deposit-requests/{{deposit_request_id}}/approve",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "accounts",
+                "deposit-requests",
+                "{{deposit_request_id}}",
+                "approve"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Revertir depósito",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Error operativo\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/accounts/deposit-requests/{{deposit_request_id}}/revert",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "accounts",
+                "deposit-requests",
+                "{{deposit_request_id}}",
+                "revert"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "07. Transferencias",
+      "item": [
+        {
+          "name": "Crear transferencia",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_cliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceAccountNumber\": \"1000000001\",\n  \"destinationAccountNumber\": \"1000000002\",\n  \"recipientType\": \"TERCERO\",\n  \"amount\": 1500,\n  \"description\": \"Transferencia de prueba\",\n  \"couponId\": \"{{promotion_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/accounts/transfers",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "accounts",
+                "transfers"
+              ]
+            },
+            "description": "Reglas actuales: máximo Q10,000 diarios por cuenta origen y máximo Q2,000 diarios hacia una misma cuenta destino (origen→destino)."
+          },
+          "response": []
+        },
+        {
+          "name": "Revertir transferencia",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_cliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Reversión dentro de ventana permitida\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/accounts/transfers/{{transfer_id}}/revert",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "accounts",
+                "transfers",
+                "{{transfer_id}}",
+                "revert"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "08. Transacciones",
+      "item": [
+        {
+          "name": "Mis transacciones (Cliente)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_cliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/client/transactions?type=TRANSFERENCIA_ENVIADA&limit=10&page=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "client",
+                "transactions"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "TRANSFERENCIA_ENVIADA"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Transacciones globales (Admin)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/transactions?limit=20&page=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "transactions"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Transacciones por cuenta (Employee)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/employee/accounts/{{account_id}}/transactions?limit=20&page=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employee",
+                "accounts",
+                "{{account_id}}",
+                "transactions"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ranking de transacciones (Admin)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/dashboard/transaction-ranking?type=TRANSFERENCIA_ENVIADA&order=DESC&limit=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "dashboard",
+                "transaction-ranking"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "TRANSFERENCIA_ENVIADA"
+                },
+                {
+                  "key": "order",
+                  "value": "DESC"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "09. Favoritos",
+      "item": [
+        {
+          "name": "Crear favorito",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_cliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountNumber\": \"001-9115890794-1\",\n  \"accountType\": \"ahorro\",\n  \"alias\": \"Mamá\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/favorites",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "favorites"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar favoritos",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_cliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/favorites",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "favorites"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Favorito por ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_cliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/favorites/{{favorite_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "favorites",
+                "{{favorite_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar favorito",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_cliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"alias\": \"Mamá Rosa\",\n  \"accountType\": \"corriente\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/favorites/{{favorite_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "favorites",
+                "{{favorite_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar favorito",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_cliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/favorites/{{favorite_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "favorites",
+                "{{favorite_id}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "10. Promociones (Público)",
+      "item": [
+        {
+          "name": "Listar promociones activas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/catalog",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "catalog"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Promoción por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/catalog/{{promotion_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "catalog",
+                "{{promotion_id}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "11. Promociones (Admin)",
+      "item": [
+        {
+          "name": "Listar todas las promociones",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/catalog/admin/all?status=ACTIVA&type=DEPOSITO_CASHBACK",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "catalog",
+                "admin",
+                "all"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "ACTIVA"
+                },
+                {
+                  "key": "type",
+                  "value": "DEPOSITO_CASHBACK"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Auditoría global promociones",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/catalog/admin/audit/all?limit=20&offset=0",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "catalog",
+                "admin",
+                "audit",
+                "all"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Depositos",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"21% Bonificación en Depósitos Mayores a Q5,000\",\n  \"description\": \"Recibe cashback en depósitos mayores a Q5,000\",\n  \"promotionType\": \"DEPOSITO_CASHBACK\",\n  \"minDepositAmount\": 5000,\n  \"cashbackPercentage\": 21,\n  \"startDate\": \"2026-03-01\",\n  \"endDate\": \"2026-08-31\",\n  \"isExclusive\": false,\n  \"notes\": \"Promoción de prueba\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/catalog/admin/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "catalog",
+                "admin",
+                "create"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar promoción",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cashbackPercentage\": 25,\n  \"maxUsesPerClient\": 10,\n  \"reason\": \"Aumento de beneficio\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/catalog/admin/{{promotion_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "catalog",
+                "admin",
+                "{{promotion_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cambiar estado de promoción",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newStatus\": \"ACTIVA\",\n  \"reason\": \"Validación completada\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/catalog/admin/{{promotion_id}}/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "catalog",
+                "admin",
+                "{{promotion_id}}",
+                "status"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Auditoría por promoción",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/catalog/admin/{{promotion_id}}/audit",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "catalog",
+                "admin",
+                "{{promotion_id}}",
+                "audit"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar (desactivar) promoción",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Fin de campaña\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/catalog/admin/{{promotion_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "catalog",
+                "admin",
+                "{{promotion_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Transferencia a tercero",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"20% Descuento en Transferencias a Terceros\",\r\n  \"description\": \"Descuento en comisión para transferencias a terceros\",\r\n  \"promotionType\": \"TRANSFERENCIA_DESCUENTO\",\r\n  \"minTransferAmount\": 200,\r\n  \"maxTransferAmount\": 5000,\r\n  \"discountPercentage\": 20,\r\n  \"startDate\": \"2026-03-01\",\r\n  \"endDate\": \"2026-05-31\",\r\n  \"isExclusive\": false,\r\n  \"notes\": \"Promo transferencias terceros\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/catalog/admin/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "catalog",
+                "admin",
+                "create"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Trasferencia propia",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"Bono Q25 por Transferencia Propia\",\r\n  \"description\": \"Bonificación fija en transferencias entre cuentas propias\",\r\n  \"promotionType\": \"TRANSFERENCIA_PROPIA_BONUS\",\r\n  \"minTransferAmount\": 500,\r\n  \"cashbackAmount\": 25,\r\n  \"startDate\": \"2026-03-01\",\r\n  \"endDate\": \"2026-07-31\",\r\n  \"isExclusive\": false,\r\n  \"notes\": \"Bono fijo por transferencia propia\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/catalog/admin/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "catalog",
+                "admin",
+                "create"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Frecuentes",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"12% Cashback por Transacciones Frecuentes\",\r\n  \"description\": \"Beneficio al alcanzar mínimo de transacciones consecutivas\",\r\n  \"promotionType\": \"TRANSACCIONES_FRECUENTES\",\r\n  \"minConsecutiveTransactions\": 5,\r\n  \"cashbackPercentage\": 12,\r\n  \"startDate\": \"2026-03-01\",\r\n  \"endDate\": \"2026-08-31\",\r\n  \"isExclusive\": false,\r\n  \"notes\": \"Fidelización por frecuencia\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/catalog/admin/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "catalog",
+                "admin",
+                "create"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mantener Saldo",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"Reward por Mantener Saldo Mínimo\",\r\n  \"description\": \"Bonificación por mantener saldo promedio alto\",\r\n  \"promotionType\": \"SALDO_MINIMO_REWARD\",\r\n  \"minAccountBalance\": 10000,\r\n  \"bonusPoints\": 300,\r\n  \"startDate\": \"2026-03-01\",\r\n  \"endDate\": \"2026-12-31\",\r\n  \"isExclusive\": true,\r\n  \"notes\": \"Cliente con saldo premium\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/catalog/admin/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "catalog",
+                "admin",
+                "create"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cuentas nuevas",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Bienvenida: Bono por Apertura de Cuenta\",\n  \"description\": \"Bono único para cuentas nuevas\",\n  \"promotionType\": \"APERTURA_CUENTA_BONUS\",\n  \"bonusPoints\": 500,\n  \"cashbackAmount\": 50,\n  \"startDate\": \"2026-03-01\",\n  \"endDate\": \"2026-09-30\",\n  \"isExclusive\": false,\n  \"notes\": \"Promo onboarding\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/catalog/admin/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "catalog",
+                "admin",
+                "create"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "12. Seguridad y Fraude (Cliente)",
+      "item": [
+        {
+          "name": "Estado de seguridad",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_cliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/security/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "security",
+                "status"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Intentos fallidos",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_cliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/security/failed-attempts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "security",
+                "failed-attempts"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Alertas de fraude",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_cliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/security/fraud-alerts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "security",
+                "fraud-alerts"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "13. Administración de Cuentas (Admin)",
+      "item": [
+        {
+          "name": "Detalle de cuenta",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/accounts/{{account_id}}/details",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "accounts",
+                "{{account_id}}",
+                "details"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Congelar cuenta",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"SECURITY_REVIEW\",\n  \"notes\": \"Revisión por actividad inusual\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/accounts/{{account_id}}/freeze",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "accounts",
+                "{{account_id}}",
+                "freeze"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Descongelar cuenta",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Caso resuelto\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/accounts/{{account_id}}/unfreeze",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "accounts",
+                "{{account_id}}",
+                "unfreeze"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Historial de bloqueos",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/accounts/{{account_id}}/block-history",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "accounts",
+                "{{account_id}}",
+                "block-history"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3006/nexusBank/v1",
+      "type": "string"
+    },
+    {
+      "key": "token_admin",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "token_cliente",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "usr_demo123",
+      "type": "string"
+    },
+    {
+      "key": "account_id",
+      "value": "acc_demo123",
+      "type": "string"
+    },
+    {
+      "key": "promotion_id",
+      "value": "cat_demo123",
+      "type": "string"
+    },
+    {
+      "key": "favorite_id",
+      "value": "fav_demo123",
+      "type": "string"
+    },
+    {
+      "key": "deposit_request_id",
+      "value": "dep_demo123",
+      "type": "string"
+    },
+    {
+      "key": "transfer_id",
+      "value": "trf_demo123",
+      "type": "string"
+    },
+    {
+      "key": "limite_diario_origen",
+      "value": "10000",
+      "type": "string"
+    },
+    {
+      "key": "limite_diario_destino_especifico",
+      "value": "2000",
+      "type": "string"
+    }
+  ]
+}

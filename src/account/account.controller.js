@@ -83,9 +83,9 @@ const MAX_DAILY_TRANSFER_BY_SOURCE = Number.isFinite(config.transfers?.maxDailyA
     ? config.transfers.maxDailyAmountBySource
     : 10000;
 
-const MAX_DAILY_TRANSFER_BY_DESTINATION = Number.isFinite(config.transfers?.maxDailyAmountByDestination) && config.transfers.maxDailyAmountByDestination > 0
+const MAX_DAILY_TRANSFER_BY_DESTINATION_PAIR = Number.isFinite(config.transfers?.maxDailyAmountByDestination) && config.transfers.maxDailyAmountByDestination > 0
     ? config.transfers.maxDailyAmountByDestination
-    : 10000;
+    : 2000;
 
 const getDayRange = () => {
     const start = new Date();
@@ -1103,40 +1103,12 @@ export const approveDepositRequest = async (req, res) => {
             });
         }
 
-        const destinationProfile = await UserProfile.findOne({
-            where: { UserId: destinationAccount.userId },
-            transaction: dbTransaction,
-            lock: dbTransaction.LOCK.UPDATE
-        });
-
-        if (!destinationProfile) {
-            depositRequest.status = 'FALLIDA';
-            depositRequest.description = `${depositRequest.description || ''} | Rechazada: perfil del titular no encontrado`;
-            await depositRequest.save({ transaction: dbTransaction });
-            await dbTransaction.commit();
-
-            const destinationOwner = await getUserEmailAndName(destinationAccount.userId);
-            if (destinationOwner) {
-                await sendEmailSafe(() => sendAccountRejectedEmail(
-                    destinationOwner.email,
-                    destinationOwner.name,
-                    'Solicitud de depósito rechazada: perfil del titular no encontrado'
-                ));
-            }
-
-            return res.status(400).json({
-                success: false,
-                message: 'No se encontro el perfil del titular para validar limite de ingresos. Solicitud rechazada'
-            });
-        }
-
         const accountBalance = getNumericAmount(destinationAccount.accountBalance);
         const requestAmount = getNumericAmount(depositRequest.amount);
-        const incomeLimit = getNumericAmount(destinationProfile.Income);
 
-        if (!Number.isFinite(accountBalance) || !Number.isFinite(requestAmount) || !Number.isFinite(incomeLimit)) {
+        if (!Number.isFinite(accountBalance) || !Number.isFinite(requestAmount)) {
             depositRequest.status = 'FALLIDA';
-            depositRequest.description = `${depositRequest.description || ''} | Rechazada: datos invalidos para validar limite`;
+            depositRequest.description = `${depositRequest.description || ''} | Rechazada: datos invalidos para aprobar deposito`;
             await depositRequest.save({ transaction: dbTransaction });
             await dbTransaction.commit();
 
@@ -1145,43 +1117,17 @@ export const approveDepositRequest = async (req, res) => {
                 await sendEmailSafe(() => sendAccountRejectedEmail(
                     destinationOwner.email,
                     destinationOwner.name,
-                    'Solicitud de depósito rechazada: datos inválidos para validar el límite de ingresos'
+                    'Solicitud de depósito rechazada: datos inválidos para aprobar el depósito'
                 ));
             }
 
             return res.status(400).json({
                 success: false,
-                message: 'No fue posible validar el limite de ingresos. Solicitud rechazada'
+                message: 'No fue posible procesar el deposito por datos invalidos. Solicitud rechazada'
             });
         }
 
         const resultingBalance = accountBalance + requestAmount;
-        if (resultingBalance > incomeLimit) {
-            depositRequest.status = 'FALLIDA';
-            depositRequest.description = `${depositRequest.description || ''} | Rechazada por limite de ingresos (${incomeLimit.toFixed(2)})`;
-            await depositRequest.save({ transaction: dbTransaction });
-            await dbTransaction.commit();
-
-            const destinationOwner = await getUserEmailAndName(destinationAccount.userId);
-            if (destinationOwner) {
-                await sendEmailSafe(() => sendAccountRejectedEmail(
-                    destinationOwner.email,
-                    destinationOwner.name,
-                    `Solicitud de depósito rechazada por límite de ingresos (Q${incomeLimit.toFixed(2)})`
-                ));
-            }
-
-            return res.status(400).json({
-                success: false,
-                message: 'Deposito rechazado: supera el limite de ingresos de la cuenta destinataria',
-                data: {
-                    incomeLimit: incomeLimit.toFixed(2),
-                    currentBalance: accountBalance.toFixed(2),
-                    requestedAmount: requestAmount.toFixed(2),
-                    resultingBalance: resultingBalance.toFixed(2)
-                }
-            });
-        }
 
         // Validar y aplicar cupón de promoción si se proporcionó
         let appliedPromotion = null;
@@ -1493,58 +1439,6 @@ export const createTransfer = async (req, res) => {
             });
         }
 
-        // ====== VALIDACIÓN: Bloqueo de 24h entre transferencias a la misma cuenta ======
-        const last24HoursStart = new Date(Date.now() - 24 * 60 * 60 * 1000);
-        const recentTransferToSameDest = await Transaction.findOne({
-            where: {
-                accountId: sourceAccount.id,
-                relatedAccountId: destinationAccount.id,
-                type: 'TRANSFERENCIA_ENVIADA',
-                status: 'COMPLETADA',
-                createdAt: {
-                    [Op.gte]: last24HoursStart
-                }
-            },
-            order: [['createdAt', 'DESC']]
-        });
-
-        if (recentTransferToSameDest) {
-            await dbTransaction.rollback();
-            const timeSinceTransfer = Date.now() - new Date(recentTransferToSameDest.createdAt).getTime();
-            const minutesRemaining = Math.ceil((24 * 60 * 60 * 1000 - timeSinceTransfer) / 60000);
-            const hoursRemaining = Math.ceil(minutesRemaining / 60);
-
-            await fraudDetectionService.recordFailedTransaction(req, currentUserId, {
-                type: 'TRANSFER',
-                accountId: sourceAccount.id,
-                amount: numericAmount,
-                reason: 'Bloqueo por transferencia dentro de 24h a misma cuenta',
-                metadata: {
-                    destinationAccountId: destinationAccount.id,
-                    previousTransferId: recentTransferToSameDest.id,
-                    hoursRemaining: hoursRemaining,
-                    minutesRemaining: minutesRemaining
-                }
-            });
-
-            await notifyTransferRejected(
-                sourceAccount.userId,
-                `Transferencia bloqueada: Ya realizaste una transferencia a esta cuenta en las últimas 24 horas. Intenta en ${hoursRemaining} horas.`
-            );
-
-            return res.status(400).json({
-                success: false,
-                message: 'Transferencia bloqueada: No puedes transferir a la misma cuenta nuevamente hasta completar las 24 horas desde la última transferencia',
-                data: {
-                    destinationAccountNumber: destinationAccount.accountNumber,
-                    lastTransferAt: recentTransferToSameDest.createdAt,
-                    hoursRemaining: hoursRemaining,
-                    minutesRemaining: minutesRemaining,
-                    blockedUntil: new Date(new Date(recentTransferToSameDest.createdAt).getTime() + 24 * 60 * 60 * 1000)
-                }
-            });
-        }
-
         const { start, end } = getDayRange();
 
         const sourceTransferredTodayRaw = await Transaction.sum('amount', {
@@ -1559,20 +1453,7 @@ export const createTransfer = async (req, res) => {
             transaction: dbTransaction
         });
 
-        const destinationReceivedTodayRaw = await Transaction.sum('amount', {
-            where: {
-                accountId: destinationAccount.id,
-                type: 'TRANSFERENCIA_RECIBIDA',
-                status: 'COMPLETADA',
-                createdAt: {
-                    [Op.between]: [start, end]
-                }
-            },
-            transaction: dbTransaction
-        });
-
         const sourceTransferredToday = getNumericAmount(sourceTransferredTodayRaw || 0);
-        const destinationReceivedToday = getNumericAmount(destinationReceivedTodayRaw || 0);
 
         // ====== VALIDACIÓN: Límite de Q2,000 acumulativo específico por destino al día ======
         const sourceToDestinationTodayRaw = await Transaction.sum('amount', {
@@ -1588,11 +1469,10 @@ export const createTransfer = async (req, res) => {
             transaction: dbTransaction
         });
 
-        const MAX_TRANSFER_BY_DESTINATION_PAIR = 2000;
         const sourceToDestinationToday = getNumericAmount(sourceToDestinationTodayRaw || 0);
         const sourceToDestinationAfterTransfer = sourceToDestinationToday + numericAmount;
 
-        if (sourceToDestinationAfterTransfer > MAX_TRANSFER_BY_DESTINATION_PAIR) {
+        if (sourceToDestinationAfterTransfer > MAX_DAILY_TRANSFER_BY_DESTINATION_PAIR) {
             await dbTransaction.rollback();
 
             await fraudDetectionService.recordFailedTransaction(req, currentUserId, {
@@ -1604,23 +1484,23 @@ export const createTransfer = async (req, res) => {
                     destinationAccountId: destinationAccount.id,
                     transferredToDestinationToday: sourceToDestinationToday,
                     requestedAmount: numericAmount,
-                    dailyLimit: MAX_TRANSFER_BY_DESTINATION_PAIR
+                    dailyLimit: MAX_DAILY_TRANSFER_BY_DESTINATION_PAIR
                 }
             });
 
-            const availableToThisDestination = MAX_TRANSFER_BY_DESTINATION_PAIR - sourceToDestinationToday;
+            const availableToThisDestination = MAX_DAILY_TRANSFER_BY_DESTINATION_PAIR - sourceToDestinationToday;
             await notifyTransferRejected(
                 sourceAccount.userId,
-                `Transferencia rechazada: ya has transferido Q${sourceToDestinationToday.toFixed(2)} a esta cuenta hoy. El límite diario a esta cuenta es Q${MAX_TRANSFER_BY_DESTINATION_PAIR}`
+                `Transferencia rechazada: ya has transferido Q${sourceToDestinationToday.toFixed(2)} a esta cuenta hoy. El límite diario a esta cuenta es Q${MAX_DAILY_TRANSFER_BY_DESTINATION_PAIR}`
             );
 
             return res.status(400).json({
                 success: false,
-                message: `Transferencia rechazada: límite diario de Q${MAX_TRANSFER_BY_DESTINATION_PAIR} a esta cuenta ha sido alcanzado`,
+                message: `Transferencia rechazada: límite diario de Q${MAX_DAILY_TRANSFER_BY_DESTINATION_PAIR} a esta cuenta ha sido alcanzado`,
                 data: {
                     destinationAccountNumber: destinationAccount.accountNumber,
                     transferredToDestinationToday: sourceToDestinationToday.toFixed(2),
-                    dailyLimit: MAX_TRANSFER_BY_DESTINATION_PAIR.toFixed(2),
+                    dailyLimit: MAX_DAILY_TRANSFER_BY_DESTINATION_PAIR.toFixed(2),
                     remainingAvailable: availableToThisDestination.toFixed(2),
                     requestedAmount: numericAmount.toFixed(2)
                 }
@@ -1641,24 +1521,6 @@ export const createTransfer = async (req, res) => {
                     transferredToday: sourceTransferredToday.toFixed(2),
                     requestedAmount: numericAmount.toFixed(2),
                     projectedTotal: sourceAfterThisTransfer.toFixed(2)
-                }
-            });
-        }
-
-        const destinationAfterThisTransfer = destinationReceivedToday + numericAmount;
-        if (destinationAfterThisTransfer > MAX_DAILY_TRANSFER_BY_DESTINATION) {
-            await dbTransaction.rollback();
-            await notifyTransferRejected(
-                sourceAccount.userId,
-                `Transferencia rechazada: la cuenta destino supera el límite diario de recepción de Q${MAX_DAILY_TRANSFER_BY_DESTINATION}`
-            );
-            return res.status(400).json({
-                success: false,
-                message: `Transferencia rechazada: la cuenta destino supera el limite diario de recepcion de Q${MAX_DAILY_TRANSFER_BY_DESTINATION}`,
-                data: {
-                    receivedToday: destinationReceivedToday.toFixed(2),
-                    requestedAmount: numericAmount.toFixed(2),
-                    projectedTotal: destinationAfterThisTransfer.toFixed(2)
                 }
             });
         }

@@ -1,41 +1,60 @@
-'use strict';
-
 import bcrypt from 'bcryptjs';
-import Client from '../src/Client/client.model.js';
+import { User, UserProfile } from '../src/user/user.model.js';
+import { UserEmail } from '../src/auth/userEmail.model.js';
+import { Role, UserRole } from '../src/auth/role.model.js';
 
-export const createDefaultAdmin = async () => {
-    try {
-        const adminExists = await Client.findOne({ role: 'Admin' });
+export async function createDefaultAdmin() {
+  const adminEmail = 'adminb@nexusbank.com';
+  const adminUsername = 'ADMINB';
+  const adminPassword = 'ADMINB';
 
-        if (adminExists) {
-            console.log('✓ Usuario Admin ya existe en la base de datos');
-            return adminExists;
-        }
+  const [adminRole] = await Role.findOrCreate({
+    where: { name: 'Administrador' },
+    defaults: { description: 'Usuario con privilegios totales' }
+  });
 
-        const defaultAdmin = {
-            name: 'Admin NexusBank',
-            email: 'admin@nexusbank.com',
-            password: 'Admin123',
-            phone: '+573001234567',
-            role: 'Admin',
-            income: 0,
-            documentType: 'CC',
-            documentNumber: '1234567890',
-            isActive: true
-        };
+  await Role.findOrCreate({
+    where: { name: 'Cliente' },
+    defaults: { description: 'Usuario cliente del banco' }
+  });
 
-        const salt = await bcrypt.genSalt(10);
-        defaultAdmin.password = await bcrypt.hash(defaultAdmin.password, salt);
+  await Role.findOrCreate({
+    where: { name: 'Empleado' },
+    defaults: { description: 'Usuario trabajador del banco' }
+  });
 
-        const adminCreated = await Client.create(defaultAdmin);
-
-        console.log('✓ Usuario Admin creado exitosamente');
-        console.log(`   Email: ${adminCreated.email}`);
-        console.log(`   Contraseña inicial: Admin123 (cambiarla al primer acceso)`);
-
-        return adminCreated;
-    } catch (error) {
-        console.error('Error al crear el usuario Admin:', error.message);
-        return null;
-    }
-};
+  let user = await User.findOne({ where: { email: adminEmail } });
+  if (!user) {
+    const hash = await bcrypt.hash(adminPassword, 10);
+    user = await User.create({
+      email: adminEmail,
+      password: hash,
+      status: true,
+      isVerified: true
+    });
+    await UserRole.create({
+      UserId: user.id,
+      RoleId: adminRole.id
+    });
+    await UserEmail.create({
+      userId: user.id,
+      email: adminEmail,
+      verified: true
+    });
+    await UserProfile.create({
+      Name: 'Administrador Banco',
+      Username: adminUsername,
+      PhoneNumber: '55555555',
+      Address: 'Oficina Central',
+      JobName: 'Administrador',
+      DocumentType: 'DPI',
+      DocumentNumber: '0000000000000',
+      Income: 10000,
+      Status: true,
+      UserId: user.id
+    });
+    console.log('Administrador creado: ADMINB/ADMINB');
+  } else {
+    console.log('Administrador ya existe.');
+  }
+}

@@ -1,4 +1,4 @@
-'use strict';
+import jwt from 'jsonwebtoken';
 
 export const validateBearerToken = (req, res, next) => {
     try {
@@ -11,7 +11,7 @@ export const validateBearerToken = (req, res, next) => {
             });
         }
 
-        const tokenParts = authHeader.split(' ');
+        const tokenParts = authHeader.split(' '); 
         if (tokenParts.length !== 2 || tokenParts[0] !== 'Bearer') {
             return res.status(401).json({
                 success: false,
@@ -28,9 +28,19 @@ export const validateBearerToken = (req, res, next) => {
             });
         }
 
-        req.token = token;
+        jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+            if (err) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Token no válido'
+                });
+            }
 
-        next();
+            req.token = token;
+            req.user = (decoded && decoded.user) ? decoded.user : decoded;
+
+            next();
+        });
     } catch (error) {
         console.error('Error en validación de token:', error);
         return res.status(401).json({
@@ -42,11 +52,13 @@ export const validateBearerToken = (req, res, next) => {
 
 export const validateBearerTokenSelective = (publicPaths = []) => {
     return (req, res, next) => {
+        const requestPath = req.originalUrl || req.url;
+        
         const isPublicPath = publicPaths.some(path => {
             if (path instanceof RegExp) {
-                return path.test(req.path);
+                return path.test(requestPath);
             }
-            return req.path === path || req.path.startsWith(path);
+            return requestPath === path || requestPath.startsWith(path);
         });
 
         if (isPublicPath) {

@@ -52,6 +52,10 @@ export const generateAccountLimitAuditId = () => {
   return `ala_${generateShortUUID()}`;
 };
 
+export const generateFavoriteId = () => {
+  return `fav_${generateShortUUID()}`;
+};
+
 export const isValidUserId = (id) => {
   if (!id || typeof id !== 'string') return false;
   const pattern = /^usr_[123456789ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz]{12}$/;

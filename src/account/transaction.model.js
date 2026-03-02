@@ -47,10 +47,36 @@ const Transaction = sequelize.define(
       field: 'related_account_id'
     },
     status: {
-      type: DataTypes.ENUM('COMPLETADA', 'PENDIENTE', 'FALLIDA'),
+      type: DataTypes.ENUM('COMPLETADA', 'PENDIENTE', 'FALLIDA', 'REVERTIDA'),
       allowNull: false,
       defaultValue: 'COMPLETADA',
       field: 'status'
+    },
+    isReverted: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'is_reverted'
+    },
+    revertedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'reverted_at'
+    },
+    revertedBy: {
+      type: DataTypes.STRING(16),
+      allowNull: true,
+      field: 'reverted_by'
+    },
+    revertReason: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      field: 'revert_reason'
+    },
+    appliedCouponId: {
+      type: DataTypes.STRING(16),
+      allowNull: true,
+      field: 'applied_coupon_id'
     }
   },
   {

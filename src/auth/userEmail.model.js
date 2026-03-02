@@ -24,4 +24,6 @@ export const UserEmail = sequelize.define('UserEmail', {
 }, {
   tableName: 'user_emails',
   timestamps: true
+
 });
+

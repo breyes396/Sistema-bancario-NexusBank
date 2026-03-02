@@ -82,6 +82,11 @@ export const UserProfile = sequelize.define('UserProfile', {
         allowNull: false,
         field: 'income'
     },
+    UsernameUpdatedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        field: 'usernameUpdatedAt'
+    },
     Status: {
         type: DataTypes.BOOLEAN,
         defaultValue: true,

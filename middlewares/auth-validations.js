@@ -48,9 +48,8 @@ export const validateRegister = [
     .isLength({ min: 2, max: 50 })
     .withMessage('Nombre debe tener entre 2 y 50 caracteres'),
   body('username')
+    .optional()
     .trim()
-    .notEmpty()
-    .withMessage('Username es requerido')
     .isLength({ min: 3, max: 30 })
     .withMessage('Username debe tener entre 3 y 30 caracteres')
     .matches(/^[a-zA-Z0-9_]+$/)

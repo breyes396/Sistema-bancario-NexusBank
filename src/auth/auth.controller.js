@@ -115,6 +115,19 @@ export const login = async (req, res) => {
   }
 };
 
+// Función auxiliar para generar username automáticamente
+const generateUsername = (name) => {
+  // Limpiar el nombre: remover espacios, caracteres especiales, y limitar longitud
+  const cleanName = name
+    .replace(/[^a-zA-Z0-9]/g, '')
+    .substring(0, 20);
+  
+  // Generar sufijo numérico de 4 dígitos
+  const suffix = Math.floor(1000 + Math.random() * 9000);
+  
+  return `${cleanName}${suffix}`;
+};
+
 export const register = async (req, res) => {
   const {
     email,
@@ -148,13 +161,37 @@ export const register = async (req, res) => {
       return res.status(409).json({ msg: 'El correo ya esta registrado' });
     }
 
-    const profileConflict = await UserProfile.findOne({
-      where: { Username: username }
-    });
+    // Generar username automáticamente si no se proporciona
+    let finalUsername = username;
+    if (!finalUsername) {
+      let attempts = 0;
+      let isUnique = false;
+      
+      while (!isUnique && attempts < 10) {
+        finalUsername = generateUsername(profileName);
+        const conflict = await UserProfile.findOne({
+          where: { Username: finalUsername }
+        });
+        isUnique = !conflict;
+        attempts++;
+      }
+      
+      if (!isUnique) {
+        await transaction.rollback();
+        return res.status(500).json({ 
+          msg: 'No se pudo generar un username único. Por favor proporciona uno manualmente.' 
+        });
+      }
+    } else {
+      // Si el usuario proporcionó username, verificar que no exista
+      const profileConflict = await UserProfile.findOne({
+        where: { Username: finalUsername }
+      });
 
-    if (profileConflict) {
-      await transaction.rollback();
-      return res.status(409).json({ msg: 'El username ya esta en uso' });
+      if (profileConflict) {
+        await transaction.rollback();
+        return res.status(409).json({ msg: 'El username ya esta en uso' });
+      }
     }
 
     if (documentNumber) {
@@ -177,7 +214,7 @@ export const register = async (req, res) => {
 
     await UserProfile.create({
       Name: profileName,
-      Username: username,
+      Username: finalUsername,
       PhoneNumber: phoneNumber,
       Address: address || 'N/A',
       JobName: jobName || 'N/A',
@@ -444,3 +481,6 @@ export const getProfile = async (req, res) => {
     res.status(500).json({ msg: 'Error en el servidor', error: err.message });
   }
 };
+
+
+

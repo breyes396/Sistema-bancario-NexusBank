@@ -1,91 +1,97 @@
 'use strict';
 
-import { DataTypes } from 'sequelize';
-import sequelize from '../../configs/db.js';
-import { generateCatalogId } from '../../helpers/uuid-generator.js';
+import mongoose from 'mongoose';
 
-const Catalog = sequelize.define(
-  'Catalog',
+/**
+ * MODELO CATALOG - PROMOCIONES BANCARIAS (MONGODB)
+ * 
+ * Almacena promociones, ofertas y servicios exclusivos del banco
+ */
+
+const catalogSchema = new mongoose.Schema(
   {
-    id: {
-      type: DataTypes.STRING(16),
-      primaryKey: true,
-      defaultValue: () => generateCatalogId()
+    _id: {
+      type: String,
+      default: () => {
+        const chars = '123456789ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz';
+        let id = 'cat_';
+        for (let i = 0; i < 12; i++) {
+          id += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return id;
+      }
     },
+
     name: {
-      type: DataTypes.STRING(100),
-      allowNull: false,
-      field: 'name'
+      type: String,
+      required: true,
+      maxlength: 100,
+      trim: true
     },
+
     description: {
-      type: DataTypes.TEXT,
-      allowNull: false,
-      field: 'description'
+      type: String,
+      default: null,
+      trim: true
     },
-    price: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
-      defaultValue: 0,
-      field: 'price',
-      comment: 'Precio en moneda (Q) para referencia'
+
+    promotionType: {
+      type: String,
+      enum: [
+        'DEPOSITO_CASHBACK',
+        'TRANSFERENCIA_DESCUENTO',
+        'TRANSFERENCIA_PROPIA_BONUS',
+        'TRANSACCIONES_FRECUENTES',
+        'SALDO_MINIMO_REWARD',
+        'APERTURA_CUENTA_BONUS'
+      ],
+      required: true
     },
-    pointsCost: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 0,
-      field: 'points_cost',
-      comment: 'Puntos necesarios para canjear este premio'
+
+    minDepositAmount: { type: Number, default: null },
+    maxDepositAmount: { type: Number, default: null },
+    minTransferAmount: { type: Number, default: null },
+    maxTransferAmount: { type: Number, default: null },
+    minConsecutiveTransactions: { type: Number, default: null },
+    minAccountBalance: { type: Number, default: null },
+
+    discountPercentage: { type: Number, default: null },
+    cashbackPercentage: { type: Number, default: null },
+    cashbackAmount: { type: Number, default: null },
+    bonusPoints: { type: Number, default: null },
+
+    maxUsesPerClient: { type: Number, default: null },
+    maxUsesTotalPromotion: { type: Number, default: null },
+    usesCountTotal: { type: Number, default: 0 },
+
+    startDate: { type: Date, default: null },
+    endDate: { type: Date, default: null },
+    daysOfWeekApplicable: { type: [Number], default: null },
+
+    status: {
+      type: String,
+      enum: ['ACTIVA', 'INACTIVA', 'PAUSADA', 'EXPIRADA'],
+      default: 'ACTIVA'
     },
-    category: {
-      type: DataTypes.ENUM(
-        'TECNOLOGIA',
-        'ELECTRODOMESTICOS',
-        'VIAJES',
-        'ENTRETENIMIENTO',
-        'GASTRONOMIA',
-        'SALUD_Y_BELLEZA',
-        'MODA',
-        'HOGAR',
-        'EDUCACION',
-        'DEPORTES'
-      ),
-      allowNull: false,
-      defaultValue: 'TECNOLOGIA',
-      field: 'category'
-    },
-    isActive: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-      defaultValue: true,
-      field: 'is_active'
-    },
-    imageUrl: {
-      type: DataTypes.STRING(500),
-      allowNull: true,
-      field: 'image_url'
-    },
-    stock: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      defaultValue: null,
-      field: 'stock',
-      comment: 'Cantidad disponible. NULL = ilimitado'
-    }
+
+    isExclusive: { type: Boolean, default: false },
+
+    createdBy: { type: String, default: null },
+    updatedBy: { type: String, default: null },
+    notes: { type: String, default: null }
   },
   {
-    sequelize,
-    tableName: 'catalogs',
+    _id: true,
     timestamps: true,
-    underscored: true,
-    indexes: [
-      {
-        fields: ['category']
-      },
-      {
-        fields: ['is_active']
-      }
-    ]
+    collection: 'catalogs'
   }
 );
 
-export { Catalog };
+catalogSchema.index({ status: 1 });
+catalogSchema.index({ promotionType: 1 });
+catalogSchema.index({ createdAt: -1 });
+catalogSchema.index({ name: 'text' });
+
+export const Catalog = mongoose.models.Catalog || mongoose.model('Catalog', catalogSchema);
+
+export default Catalog;

@@ -13,7 +13,13 @@ import authRoutes from '../src/auth/auth.routes.js';
 import accountRoutes from '../src/account/account.routes.js';
 import userRoutes from '../src/user/user.routes.js';
 import catalogRoutes from '../src/catalog/catalog.routes.js';
+import favoriteRoutes from '../src/favorite/favorite.routes.js';
 import { createDefaultAdmin } from '../helpers/create-default-admin.js';
+
+import { editOwnProfile } from '../src/user/user.controller.js';
+import { verifyTokenAndGetUser, verifyRoles } from '../middlewares/role-middleware.js';
+import { validateEditOwnProfile } from '../middlewares/profile-validations.js';
+
 
 const BASE_PATH = '/nexusBank/v1';
 
@@ -47,9 +53,11 @@ const routes = (app) => {
 
     app.use(`${BASE_PATH}/auth`, authRoutes);
     app.use(`${BASE_PATH}`, accountRoutes);
+    app.put(`${BASE_PATH}/profile/edit`, verifyTokenAndGetUser, verifyRoles(['Client']), validateEditOwnProfile, editOwnProfile);
     app.use(`${BASE_PATH}/user`, userRoutes);
     app.use(`${BASE_PATH}/users`, userRoutes);
     app.use(`${BASE_PATH}/catalog`, catalogRoutes);
+    app.use(`${BASE_PATH}`, favoriteRoutes);
     app.use((req, res) =>{
         res.status(404).json({
             success: false,

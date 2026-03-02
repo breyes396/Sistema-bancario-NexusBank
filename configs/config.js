@@ -5,7 +5,7 @@ export default {
   transfers: {
     maxAmount: Number(process.env.MAX_TRANSFER_AMOUNT || 2000),
     maxDailyAmountBySource: Number(process.env.MAX_DAILY_TRANSFER_BY_SOURCE || 10000),
-    maxDailyAmountByDestination: Number(process.env.MAX_DAILY_TRANSFER_BY_DESTINATION || 10000)
+    maxDailyAmountByDestination: Number(process.env.MAX_DAILY_TRANSFER_BY_DESTINATION || 2000)
   },
   fx: {
     apiBaseUrl: process.env.FX_API_BASE_URL || 'https://api.fastforex.io',

@@ -193,6 +193,18 @@ const applyExposureRulesByRole = (userData, accessorRole, accessorUserId = null)
   return applyAdminExposureRules(userData);
 };
 
+const normalizeRoleToDbName = (roleValue) => {
+  if (!roleValue) return null;
+
+  const normalized = String(roleValue).trim().toLowerCase();
+
+  if (normalized === 'admin' || normalized === 'administrador') return 'Administrador';
+  if (normalized === 'employee' || normalized === 'empleado') return 'Empleado';
+  if (normalized === 'client' || normalized === 'cliente') return 'Cliente';
+
+  return null;
+};
+
 export const getAllUsers = async (req, res) => {
   try {
     const users = await User.findAll({
@@ -483,6 +495,7 @@ export const updateUser = async (req, res) => {
     const { id } = req.params;
     const {
       name,
+      role,
       username,
       phoneNumber,
       address,
@@ -498,6 +511,24 @@ export const updateUser = async (req, res) => {
         success: false,
         msg: 'No tienes permiso para actualizar este usuario'
       });
+    }
+
+    let normalizedRoleToUpdate = null;
+    if (role !== undefined) {
+      if (req.user.role !== 'Admin') {
+        return res.status(403).json({
+          success: false,
+          msg: 'Solo un administrador puede cambiar el rol'
+        });
+      }
+
+      normalizedRoleToUpdate = normalizeRoleToDbName(role);
+      if (!normalizedRoleToUpdate) {
+        return res.status(400).json({
+          success: false,
+          msg: 'Rol invalido. Valores permitidos: Admin, Employee, Client'
+        });
+      }
     }
     
     if (documentNumber !== undefined || DocumentNumber !== undefined) {
@@ -515,13 +546,35 @@ export const updateUser = async (req, res) => {
     }
     
     const user = await User.findByPk(id, {
-      include: [UserProfile]
+      include: [
+        { model: UserProfile, as: 'UserProfile' },
+        {
+          model: UserRole,
+          as: 'UserRoles',
+          include: [
+            {
+              model: Role,
+              as: 'Role',
+              attributes: ['name']
+            }
+          ]
+        }
+      ]
     });
     
     if (!user) {
       return res.status(404).json({
         success: false,
         msg: 'Usuario no encontrado'
+      });
+    }
+
+    // Proteger usuarios Admin: solo ellos mismos pueden modificarse
+    const targetUserRole = user.UserRoles?.[0]?.Role?.name;
+    if (targetUserRole === 'Administrador' && req.user.id !== id) {
+      return res.status(403).json({
+        success: false,
+        msg: 'Un administrador solo puede ser modificado por si mismo'
       });
     }
     
@@ -547,9 +600,32 @@ export const updateUser = async (req, res) => {
     if (Object.keys(updateData).length > 0) {
       await user.UserProfile.update(updateData);
     }
+
+    if (normalizedRoleToUpdate) {
+      const targetRole = await Role.findOne({ where: { name: normalizedRoleToUpdate } });
+
+      if (!targetRole) {
+        return res.status(404).json({
+          success: false,
+          msg: `Rol no encontrado en base de datos: ${normalizedRoleToUpdate}`
+        });
+      }
+
+      const userRole = await UserRole.findOne({ where: { UserId: id } });
+
+      if (userRole) {
+        userRole.RoleId = targetRole.id;
+        await userRole.save();
+      } else {
+        await UserRole.create({
+          UserId: id,
+          RoleId: targetRole.id
+        });
+      }
+    }
     
     await user.reload({
-      include: [UserProfile]
+      include: [{ model: UserProfile, as: 'UserProfile' }]
     });
     
     const isAdminRequester = req.user?.role === 'Admin';
@@ -571,7 +647,8 @@ export const updateUser = async (req, res) => {
       data: {
         id: responseUser.id,
         email: responseUser.email,
-        profile: responseUser.profile
+        profile: responseUser.profile,
+        role: normalizedRoleToUpdate || undefined
       }
     });
   } catch (err) {
@@ -605,7 +682,7 @@ export const editOwnProfile = async (req, res) => {
     } = req.body;
 
     const user = await User.findByPk(userId, {
-      include: [UserProfile]
+      include: [{ model: UserProfile, as: 'UserProfile' }]
     });
 
     if (!user || !user.UserProfile) {
@@ -695,7 +772,7 @@ export const editOwnProfile = async (req, res) => {
 
     await user.UserProfile.update(updateData);
 
-    await user.reload({ include: [UserProfile] });
+    await user.reload({ include: [{ model: UserProfile, as: 'UserProfile' }] });
 
     return res.status(200).json({
       success: true,

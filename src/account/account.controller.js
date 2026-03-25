@@ -205,48 +205,49 @@ export const createAccount = async (req, res) => {
             return res.status(401).json({ success: false, message: 'Usuario no autenticado' });
         }
 
+        if (currentUserRole !== 'Admin') {
+            return res.status(403).json({ 
+                success: false, 
+                message: 'Solo administradores pueden crear cuentas' 
+            });
+        }
+
         const {
             accountType,
-            userId,
+            idCliente,
             perTransactionLimit,
             dailyTransactionLimit
         } = req.body;
-        const finalAccountType = accountType || 'ahorro';
-        
-        let targetUserId;
-        
-        const isAdminOrEmployee = currentUserRole === 'Admin' || currentUserRole === 'Employee';
 
-        if (currentUserRole === 'Client') {
-            targetUserId = currentUserId;
-        } else if (isAdminOrEmployee) {
-            targetUserId = userId || currentUserId;
-        } else {
-            targetUserId = currentUserId;
+        if (!idCliente) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'El campo idCliente es requerido' 
+            });
         }
+
+        const targetUserId = idCliente;
         
-        const accountNumber = await generateAccountNumber(finalAccountType);
+        const accountNumber = await generateAccountNumber(accountType);
 
         const accountPayload = {
             accountNumber,
             userId: targetUserId,
-            accountType: finalAccountType,
+            accountType,
             status: true,
             accountBalance: 0
         };
 
-        if (isAdminOrEmployee) {
-            if (perTransactionLimit !== undefined) {
-                accountPayload.perTransactionLimit = perTransactionLimit;
-            }
-            if (dailyTransactionLimit !== undefined) {
-                accountPayload.dailyTransactionLimit = dailyTransactionLimit;
-            }
-            accountPayload.lastAdminChangeBy = currentUserId;
-            accountPayload.lastAdminChangeAt = new Date();
-            accountPayload.lastAdminChangeType = 'CREATE';
-            accountPayload.lastAdminChangeReason = 'Creacion de cuenta';
+        if (perTransactionLimit !== undefined) {
+            accountPayload.perTransactionLimit = perTransactionLimit;
         }
+        if (dailyTransactionLimit !== undefined) {
+            accountPayload.dailyTransactionLimit = dailyTransactionLimit;
+        }
+        accountPayload.lastAdminChangeBy = currentUserId;
+        accountPayload.lastAdminChangeAt = new Date();
+        accountPayload.lastAdminChangeType = 'CREATE';
+        accountPayload.lastAdminChangeReason = 'Creacion de cuenta';
 
         const account = await Account.create(accountPayload);
 

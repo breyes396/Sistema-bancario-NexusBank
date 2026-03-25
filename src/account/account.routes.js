@@ -3,13 +3,14 @@ import { createAccount, listAccounts, updateAccountLimits, convertAccountBalance
 import { verifyTokenAndGetUser, verifyRoles } from '../../middlewares/role-middleware.js';
 import { transferLimiter, depositLimiter, failedTransactionLimiter, withdrawalLimiter, globalTransactionLimiter } from '../../middlewares/rate-limiters.js';
 import { validateClientTransactionsQuery, validateAdminTransactionsQuery, validateEmployeeAccountTransactions } from '../../middlewares/transaction-validations.js';
+import { validateAccountType } from '../../middlewares/account-validators.js';
 
 
 const router = express.Router();
 
 router.get('/accounts', verifyTokenAndGetUser, verifyRoles(['Client', 'Employee', 'Admin']), listAccounts);
 
-router.post('/accounts', verifyTokenAndGetUser, verifyRoles(['Client']), createAccount);
+router.post('/accounts', verifyTokenAndGetUser, verifyRoles(['Admin']), validateAccountType, createAccount);
 
 router.put('/accounts/:id/limits', verifyTokenAndGetUser, verifyRoles(['Employee', 'Admin']), updateAccountLimits);
 

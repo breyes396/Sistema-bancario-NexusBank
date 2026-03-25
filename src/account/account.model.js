@@ -16,7 +16,6 @@ export const Account = sequelize.define('Account', {
     accountType: {
         type: DataTypes.STRING,
         allowNull: false,
-        defaultValue: 'ahorro'
     },
     status: {
         type: DataTypes.BOOLEAN,

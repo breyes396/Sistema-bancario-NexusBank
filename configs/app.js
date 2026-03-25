@@ -53,7 +53,7 @@ const routes = (app) => {
 
     app.use(`${BASE_PATH}/auth`, authRoutes);
     app.use(`${BASE_PATH}`, accountRoutes);
-    app.put(`${BASE_PATH}/profile/edit`, verifyTokenAndGetUser, verifyRoles(['Client']), validateEditOwnProfile, editOwnProfile);
+    app.put(`${BASE_PATH}/profile/edit`, verifyTokenAndGetUser, validateEditOwnProfile, editOwnProfile);
     app.use(`${BASE_PATH}/user`, userRoutes);
     app.use(`${BASE_PATH}/users`, userRoutes);
     app.use(`${BASE_PATH}/catalog`, catalogRoutes);

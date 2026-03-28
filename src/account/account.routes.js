@@ -41,18 +41,9 @@ router.get('/admin/transactions', verifyTokenAndGetUser, verifyRoles(['Admin']),
 
 router.get('/employee/accounts/:accountId/transactions', verifyTokenAndGetUser, verifyRoles(['Employee']), validateEmployeeAccountTransactions, getEmployeeAccountTransactions);
 
-router.post('/accounts/deposit-requests', verifyTokenAndGetUser, verifyRoles(['Client']), createDepositRequest);
-
 router.put('/accounts/deposit-requests/:id/amount', verifyTokenAndGetUser, verifyRoles(['Employee', 'Admin']), updateDepositRequestAmount);
 
 router.put('/accounts/deposit-requests/:id/approve', verifyTokenAndGetUser, verifyRoles(['Employee', 'Admin']), approveDepositRequest);
-
-
-router.put('/accounts/deposit-requests/:id/approve', 
-  verifyTokenAndGetUser, 
-  verifyRoles(['Employee', 'Admin']), 
-  approveDepositRequest
-);
 
 router.put('/accounts/deposit-requests/:id/revert', 
   verifyTokenAndGetUser, 

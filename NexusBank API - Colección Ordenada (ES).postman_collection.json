@@ -1,6 +1,6 @@
 {
   "info": {
-    "_postman_id": "f2d8afd5-5537-4e0b-8a42-6d2cae372525",
+    "_postman_id": "d35aa28c-9af3-4999-a96c-808057b86379",
     "name": "NexusBank API - Colección Ordenada (ES)",
     "description": "Colección limpia y entendible de NexusBank. Sin endpoints duplicados, organizada por módulos operativos reales. Reglas vigentes: límite diario por cuenta origen Q10,000; límite diario por cuenta destino específica (par origen→destino) Q2,000; depósitos y transferencias no tienen tope de saldo máximo en cuenta destino.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
@@ -33,7 +33,7 @@
       "name": "02. Autenticación",
       "item": [
         {
-          "name": "Login",
+          "name": "1. Login",
           "request": {
             "method": "POST",
             "header": [
@@ -45,7 +45,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"admin@nexusbank.com\",\n  \"password\": \"ADMINB\"\n}"
+              "raw": "{\n  \"email\": \"adminb@nexusbank.com\",\n  \"password\": \"ADMINB\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/login",
@@ -61,14 +61,14 @@
           "response": []
         },
         {
-          "name": "Registro de usuario (Admin/Employee)",
+          "name": "2.Registro de usuario (Admin/Employee)",
           "request": {
             "auth": {
               "type": "bearer",
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_admin}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl93Y2lTTjk0RDhiOHUiLCJlbWFpbCI6ImFkbWluYkBuZXh1c2JhbmsuY29tIiwicm9sZSI6IkFkbWluIiwiaWF0IjoxNzcyODUzOTU3LCJleHAiOjE3NzI4NTU3NTd9.1jFzT8D_G8mHS9mWMC8oB_JA9IQDSZxKaiqq1KLpriw",
                   "type": "string"
                 }
               ]
@@ -83,7 +83,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Cliente Nuevo\",\n  \"email\": \"bpineda-2024427@kinal.edu.gt\",\n  \"password\": \"dadsadQA@2\",\n  \"phoneNumber\": \"23456789\",\n  \"income\": 5000,\n  \"documentType\": \"CC\",\n  \"documentNumber\": \"1234567891011\"\n}"
+              "raw": "{\n  \"name\": \"Billy Adrian Reyes Lopez\",\n  \"email\": \"breyes-2024396@kinal.edu.gt\",\n  \"password\": \"reyes0922@K\",\n  \"phoneNumber\": \"89451402\",\n  \"income\": 6000,\n  \"documentType\": \"DPI\",\n  \"documentNumber\": \"0147852369357\",\n  \"username\": \"BR98\",\n  \"address\": \"15 Calle 2-33, Zona 5, Ciudad de Guatemala, Guatemala\",\n  \"jobName\": \"Ingeniero de Software\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/register",
@@ -99,7 +99,7 @@
           "response": []
         },
         {
-          "name": "Verificar correo (POST)",
+          "name": "4. Verificar correo",
           "request": {
             "method": "POST",
             "header": [
@@ -111,7 +111,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"token\": \"TOKEN_VERIFICACION\"\n}"
+              "raw": "{\n  \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ1c3JfZXk4d1J5aEVSU3lYIiwidHlwZSI6ImVtYWlsLXZlcmlmeSIsImlhdCI6MTc3MjY1NTY5OSwiZXhwIjoxNzcyNzQyMDk5fQ.cRWI85ebbrlwaurcc6mh3IrVNId19Lvnmh8v_MGVJ4U\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/verify-email",
@@ -127,31 +127,7 @@
           "response": []
         },
         {
-          "name": "Verificar correo (GET)",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/auth/verify-email?token=TOKEN_VERIFICACION",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "auth",
-                "verify-email"
-              ],
-              "query": [
-                {
-                  "key": "token",
-                  "value": "TOKEN_VERIFICACION"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Reenviar verificación",
+          "name": "5. Reenviar verificación",
           "request": {
             "method": "POST",
             "header": [
@@ -179,7 +155,7 @@
           "response": []
         },
         {
-          "name": "Olvidé contraseña",
+          "name": "6. Olvidé contraseña",
           "request": {
             "method": "POST",
             "header": [
@@ -191,7 +167,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"cliente.nuevo@nexusbank.com\"\n}"
+              "raw": "{\n  \"email\": \"breyes-2024396@kinal.edu.gt\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/forgot-password",
@@ -207,7 +183,7 @@
           "response": []
         },
         {
-          "name": "Resetear contraseña",
+          "name": "7. Resetear contraseña",
           "request": {
             "method": "POST",
             "header": [
@@ -219,7 +195,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"token\": \"TOKEN_RESET\",\n  \"newPassword\": \"NuevaClave123\"\n}"
+              "raw": "{\n  \"token\": \"3A3CWdSWmMwxt9e1HhzlDnDOYL4Zfeh-xClNqbF3YDg\",\n  \"newPassword\": \"Billy12@\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/reset-password",
@@ -235,13 +211,23 @@
           "response": []
         },
         {
-          "name": "Login Cliente",
+          "name": "8. Login Cliente",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl8zVk5oZUJYQUEyUXciLCJlbWFpbCI6ImFkbWluYkBuZXh1c2JhbmsuY29tIiwicm9sZSI6IkFkbWluIiwiaWF0IjoxNzcyNTczNzMyLCJleHAiOjE3NzI1NzU1MzJ9.xmH4z9QOR1y8uofD-89-0ylKroGvZq24kV8a02hoTPY",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "POST",
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "  {\r\n    \"email\": \"bpineda-2024427@kinal.edu.gt\",\r\n  \"password\": \"dadsadQA@2\"\r\n  }",
+              "raw": "  {\r\n    \"email\": \"breyes-2024396@kinal.edu.gt\",\r\n  \"password\": \"Billy12@\"\r\n  }",
               "options": {
                 "raw": {
                   "language": "json"
@@ -267,14 +253,14 @@
       "name": "03. Mi Cuenta",
       "item": [
         {
-          "name": "Mi perfil",
+          "name": "1. Mi perfil",
           "request": {
             "auth": {
               "type": "bearer",
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_cliente}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl9nSnhKWnBHWEdpM1IiLCJlbWFpbCI6ImJwaW5lZGEtMjAyNDQyN0BraW5hbC5lZHUuZ3QiLCJyb2xlIjoiQ2xpZW50IiwiaWF0IjoxNzcyNjU0ODg2LCJleHAiOjE3NzI2NTY2ODZ9.Q4Z916GkTGgzgDKP96KrUWhb97GMva5B_JWzmPRRd8w",
                   "type": "string"
                 }
               ]
@@ -295,7 +281,7 @@
           "response": []
         },
         {
-          "name": "Editar mi perfil",
+          "name": "2. Editar mi perfil",
           "request": {
             "auth": {
               "type": "bearer",
@@ -317,65 +303,30 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phone\": \"+50255556666\"\n}"
+              "raw": "{\n  \"name\": \"Nuevo Nombre\",\n  \"address\": \"Nueva Dirección\",\n  \"jobName\": \"Nuevo Trabajo\",\n  \"income\": 1\n}"
             },
             "url": {
-              "raw": "{{base_url}}/profile/edit",
+              "raw": "{{base_url}}/user/usr_ey8wRyhERSyX",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
-                "profile",
-                "edit"
+                "user",
+                "usr_ey8wRyhERSyX"
               ]
             }
           },
           "response": []
         },
         {
-          "name": "Convertir saldo",
+          "name": "3. Historial de mi cuenta",
           "request": {
             "auth": {
               "type": "bearer",
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_cliente}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/my-account/balance/convert?toCurrency=USD",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "my-account",
-                "balance",
-                "convert"
-              ],
-              "query": [
-                {
-                  "key": "toCurrency",
-                  "value": "USD"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Historial de mi cuenta",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token_cliente}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl9nSnhKWnBHWEdpM1IiLCJlbWFpbCI6ImJwaW5lZGEtMjAyNDQyN0BraW5hbC5lZHUuZ3QiLCJyb2xlIjoiQ2xpZW50IiwiaWF0IjoxNzcyNjU2OTYxLCJleHAiOjE3NzI2NTg3NjF9.NqMT7dp5D3kgUnoOzvet7_yWB31q7Lc0sz7-HjdcbbA",
                   "type": "string"
                 }
               ]
@@ -401,14 +352,14 @@
       "name": "04. Usuarios (Admin)",
       "item": [
         {
-          "name": "Listar usuarios",
+          "name": "1. Listar usuarios",
           "request": {
             "auth": {
               "type": "bearer",
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_admin}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl93Y2lTTjk0RDhiOHUiLCJlbWFpbCI6ImFkbWluYkBuZXh1c2JhbmsuY29tIiwicm9sZSI6IkFkbWluIiwiaWF0IjoxNzcyODUzOTU3LCJleHAiOjE3NzI4NTU3NTd9.1jFzT8D_G8mHS9mWMC8oB_JA9IQDSZxKaiqq1KLpriw",
                   "type": "string"
                 }
               ]
@@ -428,7 +379,10 @@
           "response": []
         },
         {
-          "name": "Detalle cliente (Admin)",
+          "name": "2. Detalle cliente (Admin)",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
           "request": {
             "auth": {
               "type": "bearer",
@@ -442,8 +396,17 @@
             },
             "method": "GET",
             "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "url": {
-              "raw": "{{base_url}}/users/admin/client/{{user_id}}/detail",
+              "raw": "{{base_url}}/users/admin/client/usr_dBe6rxAx4xy7/detail",
               "host": [
                 "{{base_url}}"
               ],
@@ -451,7 +414,7 @@
                 "users",
                 "admin",
                 "client",
-                "{{user_id}}",
+                "usr_dBe6rxAx4xy7",
                 "detail"
               ]
             }
@@ -459,14 +422,14 @@
           "response": []
         },
         {
-          "name": "Usuario por ID",
+          "name": "3. Usuario por ID",
           "request": {
             "auth": {
               "type": "bearer",
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_admin}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl9EQzRnRDVXQnN3eVIiLCJlbWFpbCI6ImFkbWluYkBuZXh1c2JhbmsuY29tIiwicm9sZSI6IkFkbWluIiwiaWF0IjoxNzcyNjUzODk1LCJleHAiOjE3NzI2NTU2OTV9.d_--OHc67Ri91yp0CK6XdPHljDY6ZJ0daYYKc8SjXY8",
                   "type": "string"
                 }
               ]
@@ -474,20 +437,20 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/users/{{user_id}}",
+              "raw": "{{base_url}}/users/usr_dBe6rxAx4xy7",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "users",
-                "{{user_id}}"
+                "usr_dBe6rxAx4xy7"
               ]
             }
           },
           "response": []
         },
         {
-          "name": "Actualizar usuario",
+          "name": "4. Actualizar usuario",
           "request": {
             "auth": {
               "type": "bearer",
@@ -509,16 +472,20 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Cliente Actualizado\",\n  \"phone\": \"99999999\"\n}"
+              "raw": "{\n  \"name\": \"Cliente\",\n  \"phone\": \"234567823\",\n  \"role\": \"Client\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/users/{{user_id}}",
+              "raw": "http://localhost:3006/nexusBank/v1/user/usr_ey8wRyhERSyX",
+              "protocol": "http",
               "host": [
-                "{{base_url}}"
+                "localhost"
               ],
+              "port": "3006",
               "path": [
-                "users",
-                "{{user_id}}"
+                "nexusBank",
+                "v1",
+                "user",
+                "usr_ey8wRyhERSyX"
               ]
             }
           },
@@ -530,14 +497,14 @@
       "name": "05. Cuentas",
       "item": [
         {
-          "name": "Listar cuentas",
+          "name": "1. Listar cuentas",
           "request": {
             "auth": {
               "type": "bearer",
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_cliente}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl9leTh3UnloRVJTeVgiLCJlbWFpbCI6ImJyZXllcy0yMDI0Mzk2QGtpbmFsLmVkdS5ndCIsInJvbGUiOiJDbGllbnQiLCJpYXQiOjE3NzI4NTQ3NjksImV4cCI6MTc3Mjg1NjU2OX0.ySSTYDg410ThGvGoniIC2bpznoSnrMrLBGF44EjmhLA",
                   "type": "string"
                 }
               ]
@@ -557,14 +524,14 @@
           "response": []
         },
         {
-          "name": "Crear cuenta",
+          "name": "2. Crear cuenta",
           "request": {
             "auth": {
               "type": "bearer",
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_cliente}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl93Y2lTTjk0RDhiOHUiLCJlbWFpbCI6ImFkbWluYkBuZXh1c2JhbmsuY29tIiwicm9sZSI6IkFkbWluIiwiaWF0IjoxNzcyODU1MDc4LCJleHAiOjE3NzI4NTY4Nzh9.OXjzsU5TotaUEWZCBz9WS1sJ0MEqcFX5qh5VV2YtUMQ",
                   "type": "string"
                 }
               ]
@@ -579,7 +546,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"accountType\": \"AHORRO\"\n}"
+              "raw": "{\n  \"idCliente\": \"usr_ey8wRyhERSyX\",\n  \"accountType\": \"corriente\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/accounts",
@@ -588,115 +555,6 @@
               ],
               "path": [
                 "accounts"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Actualizar límites (Employee/Admin)",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token_admin}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"dailyTransferLimit\": 10000\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/accounts/{{account_id}}/limits",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "accounts",
-                "{{account_id}}",
-                "limits"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Ver límites admin",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token_admin}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/accounts/{{account_id}}/limits/admin",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "accounts",
-                "{{account_id}}",
-                "limits",
-                "admin"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Actualizar límites admin",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token_admin}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"monthlyTransferLimit\": 50000\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/accounts/{{account_id}}/limits/admin",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "accounts",
-                "{{account_id}}",
-                "limits",
-                "admin"
               ]
             }
           },
@@ -715,7 +573,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_cliente}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl9leTh3UnloRVJTeVgiLCJlbWFpbCI6ImJyZXllcy0yMDI0Mzk2QGtpbmFsLmVkdS5ndCIsInJvbGUiOiJDbGllbnQiLCJpYXQiOjE3NzI4NTUzMTQsImV4cCI6MTc3Mjg1NzExNH0.ezzF-us93Vm3TXD7rcUGvEh-ceExLfswWSR_yPbdm1s",
                   "type": "string"
                 }
               ]
@@ -730,7 +588,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"accountNumber\": \"1000000001\",\n  \"amount\": 1500,\n  \"description\": \"Depósito por ventanilla\"\n}"
+              "raw": "{\n  \"destinationAccountNumber\": \"001-5576154748-1\",\n  \"amount\": 2000,\n  \"description\": \"Depósito por ventanilla\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/accounts/deposit-requests",
@@ -754,7 +612,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_admin}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl93Y2lTTjk0RDhiOHUiLCJlbWFpbCI6ImFkbWluYkBuZXh1c2JhbmsuY29tIiwicm9sZSI6IkFkbWluIiwiaWF0IjoxNzcyNjU5MDUyLCJleHAiOjE3NzI2NjA4NTJ9.TThdiGLiNcZpSQXcwlOUn2VIcNm3sv-PpKv0FsHymDA",
                   "type": "string"
                 }
               ]
@@ -769,17 +627,17 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"amount\": 2000\n}"
+              "raw": "{\n   \"amount\": 20000\n}"
             },
             "url": {
-              "raw": "{{base_url}}/accounts/deposit-requests/{{deposit_request_id}}/amount",
+              "raw": "{{base_url}}/accounts/deposit-requests/trx_YHqHpuGAUjvv/amount",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "accounts",
                 "deposit-requests",
-                "{{deposit_request_id}}",
+                "trx_YHqHpuGAUjvv",
                 "amount"
               ]
             }
@@ -794,7 +652,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_admin}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl93Y2lTTjk0RDhiOHUiLCJlbWFpbCI6ImFkbWluYkBuZXh1c2JhbmsuY29tIiwicm9sZSI6IkFkbWluIiwiaWF0IjoxNzcyODU1MDc4LCJleHAiOjE3NzI4NTY4Nzh9.OXjzsU5TotaUEWZCBz9WS1sJ0MEqcFX5qh5VV2YtUMQ",
                   "type": "string"
                 }
               ]
@@ -812,15 +670,54 @@
               "raw": "{\n  \"notes\": \"Aprobado por caja\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/accounts/deposit-requests/{{deposit_request_id}}/approve",
+              "raw": "{{base_url}}/accounts/deposit-requests/trx_BmavBTrfWsKa/approve",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "accounts",
                 "deposit-requests",
-                "{{deposit_request_id}}",
+                "trx_BmavBTrfWsKa",
                 "approve"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Convertir saldo",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl9leTh3UnloRVJTeVgiLCJlbWFpbCI6ImJyZXllcy0yMDI0Mzk2QGtpbmFsLmVkdS5ndCIsInJvbGUiOiJDbGllbnQiLCJpYXQiOjE3NzI4NTUzMTQsImV4cCI6MTc3Mjg1NzExNH0.ezzF-us93Vm3TXD7rcUGvEh-ceExLfswWSR_yPbdm1s",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/my-account/balance/convert?accountId=acc_JNugkpyWV6Km&targetCurrency=MXN",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "my-account",
+                "balance",
+                "convert"
+              ],
+              "query": [
+                {
+                  "key": "accountId",
+                  "value": "acc_JNugkpyWV6Km"
+                },
+                {
+                  "key": "targetCurrency",
+                  "value": "MXN"
+                }
               ]
             }
           },
@@ -834,7 +731,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_admin}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl93Y2lTTjk0RDhiOHUiLCJlbWFpbCI6ImFkbWluYkBuZXh1c2JhbmsuY29tIiwicm9sZSI6IkFkbWluIiwiaWF0IjoxNzcyNjU5MDUyLCJleHAiOjE3NzI2NjA4NTJ9.TThdiGLiNcZpSQXcwlOUn2VIcNm3sv-PpKv0FsHymDA",
                   "type": "string"
                 }
               ]
@@ -852,14 +749,14 @@
               "raw": "{\n  \"reason\": \"Error operativo\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/accounts/deposit-requests/{{deposit_request_id}}/revert",
+              "raw": "{{base_url}}/accounts/deposit-requests/trx_YHqHpuGAUjvv/revert",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "accounts",
                 "deposit-requests",
-                "{{deposit_request_id}}",
+                "trx_YHqHpuGAUjvv",
                 "revert"
               ]
             }
@@ -879,7 +776,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_cliente}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl9leTh3UnloRVJTeVgiLCJlbWFpbCI6ImJyZXllcy0yMDI0Mzk2QGtpbmFsLmVkdS5ndCIsInJvbGUiOiJDbGllbnQiLCJpYXQiOjE3NzI4NTQ3NjksImV4cCI6MTc3Mjg1NjU2OX0.ySSTYDg410ThGvGoniIC2bpznoSnrMrLBGF44EjmhLA",
                   "type": "string"
                 }
               ]
@@ -894,7 +791,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sourceAccountNumber\": \"1000000001\",\n  \"destinationAccountNumber\": \"1000000002\",\n  \"recipientType\": \"TERCERO\",\n  \"amount\": 1500,\n  \"description\": \"Transferencia de prueba\",\n  \"couponId\": \"{{promotion_id}}\"\n}"
+              "raw": "{\n  \"sourceAccountNumber\": \"001-5576154748-1\",\n  \"destinationAccountNumber\": \"002-9088688588-1\",\n  \"recipientType\": \"PROPIA\",\n  \"amount\": 2000,\n  \"description\": \"Transferencia entre cuentas propias\"\n  //\"couponId\": \"{{promotion_id}}\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/accounts/transfers",
@@ -918,7 +815,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_cliente}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl9nSnhKWnBHWEdpM1IiLCJlbWFpbCI6ImJwaW5lZGEtMjAyNDQyN0BraW5hbC5lZHUuZ3QiLCJyb2xlIjoiQ2xpZW50IiwiaWF0IjoxNzcyNjU5MTU5LCJleHAiOjE3NzI2NjA5NTl9.yO7e-yrqZIE5zoOfUOsuXOnZE8ELv7NrPwidYmsNquw",
                   "type": "string"
                 }
               ]
@@ -933,17 +830,17 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"reason\": \"Reversión dentro de ventana permitida\"\n}"
+              "raw": "{\n  \"reason\": \"Reversión por error de cuenta\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/accounts/transfers/{{transfer_id}}/revert",
+              "raw": "{{base_url}}/accounts/transfers/trx_VFVJU7CSptf1/revert",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "accounts",
                 "transfers",
-                "{{transfer_id}}",
+                "trx_VFVJU7CSptf1",
                 "revert"
               ]
             }
@@ -963,7 +860,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_cliente}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl9leTh3UnloRVJTeVgiLCJlbWFpbCI6ImJyZXllcy0yMDI0Mzk2QGtpbmFsLmVkdS5ndCIsInJvbGUiOiJDbGllbnQiLCJpYXQiOjE3NzI4NTQ0MzYsImV4cCI6MTc3Mjg1NjIzNn0.gLo2TeP2FIxgWQwV58R6ULTC2D6spDeY4Loab1DZBUE",
                   "type": "string"
                 }
               ]
@@ -971,7 +868,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/client/transactions?type=TRANSFERENCIA_ENVIADA&limit=10&page=1",
+              "raw": "{{base_url}}/client/transactions?type=TRANSFERENCIA_ENVIADA&limit=5&page=1",
               "host": [
                 "{{base_url}}"
               ],
@@ -986,7 +883,7 @@
                 },
                 {
                   "key": "limit",
-                  "value": "10"
+                  "value": "5"
                 },
                 {
                   "key": "page",
@@ -1005,7 +902,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_admin}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl93Y2lTTjk0RDhiOHUiLCJlbWFpbCI6ImFkbWluYkBuZXh1c2JhbmsuY29tIiwicm9sZSI6IkFkbWluIiwiaWF0IjoxNzcyNjU5MDUyLCJleHAiOjE3NzI2NjA4NTJ9.TThdiGLiNcZpSQXcwlOUn2VIcNm3sv-PpKv0FsHymDA",
                   "type": "string"
                 }
               ]
@@ -1013,7 +910,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/admin/transactions?limit=20&page=1",
+              "raw": "{{base_url}}/admin/transactions?userId=usr_gJxJZpGXGi3R&limit=5",
               "host": [
                 "{{base_url}}"
               ],
@@ -1023,52 +920,12 @@
               ],
               "query": [
                 {
-                  "key": "limit",
-                  "value": "20"
+                  "key": "userId",
+                  "value": "usr_gJxJZpGXGi3R"
                 },
                 {
-                  "key": "page",
-                  "value": "1"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Transacciones por cuenta (Employee)",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token_admin}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/employee/accounts/{{account_id}}/transactions?limit=20&page=1",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "employee",
-                "accounts",
-                "{{account_id}}",
-                "transactions"
-              ],
-              "query": [
-                {
                   "key": "limit",
-                  "value": "20"
-                },
-                {
-                  "key": "page",
-                  "value": "1"
+                  "value": "5"
                 }
               ]
             }
@@ -1083,7 +940,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_admin}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl93Y2lTTjk0RDhiOHUiLCJlbWFpbCI6ImFkbWluYkBuZXh1c2JhbmsuY29tIiwicm9sZSI6IkFkbWluIiwiaWF0IjoxNzcyNjU5MDUyLCJleHAiOjE3NzI2NjA4NTJ9.TThdiGLiNcZpSQXcwlOUn2VIcNm3sv-PpKv0FsHymDA",
                   "type": "string"
                 }
               ]
@@ -1091,7 +948,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/dashboard/transaction-ranking?type=TRANSFERENCIA_ENVIADA&order=DESC&limit=10",
+              "raw": "{{base_url}}/dashboard/transaction-ranking?type=TRANSFERENCIA_ENVIADA&order=DESC&limit=5",
               "host": [
                 "{{base_url}}"
               ],
@@ -1110,7 +967,7 @@
                 },
                 {
                   "key": "limit",
-                  "value": "10"
+                  "value": "5"
                 }
               ]
             }
@@ -1130,7 +987,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_cliente}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl9leTh3UnloRVJTeVgiLCJlbWFpbCI6ImJyZXllcy0yMDI0Mzk2QGtpbmFsLmVkdS5ndCIsInJvbGUiOiJDbGllbnQiLCJpYXQiOjE3NzI2NjA3MTUsImV4cCI6MTc3MjY2MjUxNX0.cMFfcjH-Ngi6mFNuH19yppGM7cALSFgq64DaRVt54wo",
                   "type": "string"
                 }
               ]
@@ -1145,7 +1002,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"accountNumber\": \"001-9115890794-1\",\n  \"accountType\": \"ahorro\",\n  \"alias\": \"Mamá\"\n}"
+              "raw": "{\n  \"accountNumber\": \"002-7567133727-0\",\n  \"accountType\": \"corriente\",\n  \"alias\": \"Kevin\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/favorites",
@@ -1167,7 +1024,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_cliente}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl9leTh3UnloRVJTeVgiLCJlbWFpbCI6ImJyZXllcy0yMDI0Mzk2QGtpbmFsLmVkdS5ndCIsInJvbGUiOiJDbGllbnQiLCJpYXQiOjE3NzI2NjA4NzEsImV4cCI6MTc3MjY2MjY3MX0.4QpCwkMCqZ4Gh6yjmr7aGjoF4B9NOVEnLWSN8mhF5DI",
                   "type": "string"
                 }
               ]
@@ -1194,7 +1051,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_cliente}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl9leTh3UnloRVJTeVgiLCJlbWFpbCI6ImJyZXllcy0yMDI0Mzk2QGtpbmFsLmVkdS5ndCIsInJvbGUiOiJDbGllbnQiLCJpYXQiOjE3NzI2NjA4NzEsImV4cCI6MTc3MjY2MjY3MX0.4QpCwkMCqZ4Gh6yjmr7aGjoF4B9NOVEnLWSN8mhF5DI",
                   "type": "string"
                 }
               ]
@@ -1202,13 +1059,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/favorites/{{favorite_id}}",
+              "raw": "{{base_url}}/favorites/fav_zqQspv7paaNE",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "favorites",
-                "{{favorite_id}}"
+                "fav_zqQspv7paaNE"
               ]
             }
           },
@@ -1222,7 +1079,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_cliente}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl9leTh3UnloRVJTeVgiLCJlbWFpbCI6ImJyZXllcy0yMDI0Mzk2QGtpbmFsLmVkdS5ndCIsInJvbGUiOiJDbGllbnQiLCJpYXQiOjE3NzI2NjA4NzEsImV4cCI6MTc3MjY2MjY3MX0.4QpCwkMCqZ4Gh6yjmr7aGjoF4B9NOVEnLWSN8mhF5DI",
                   "type": "string"
                 }
               ]
@@ -1237,16 +1094,16 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"alias\": \"Mamá Rosa\",\n  \"accountType\": \"corriente\",\n  \"isActive\": true\n}"
+              "raw": "{\n  \"alias\": \"kevin ritter\",\n  \"accountType\": \"corriente\",\n  \"isActive\": true\n}"
             },
             "url": {
-              "raw": "{{base_url}}/favorites/{{favorite_id}}",
+              "raw": "{{base_url}}/favorites/fav_zqQspv7paaNE",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "favorites",
-                "{{favorite_id}}"
+                "fav_zqQspv7paaNE"
               ]
             }
           },
@@ -1260,7 +1117,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_cliente}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl9leTh3UnloRVJTeVgiLCJlbWFpbCI6ImJyZXllcy0yMDI0Mzk2QGtpbmFsLmVkdS5ndCIsInJvbGUiOiJDbGllbnQiLCJpYXQiOjE3NzI2NjA4NzEsImV4cCI6MTc3MjY2MjY3MX0.4QpCwkMCqZ4Gh6yjmr7aGjoF4B9NOVEnLWSN8mhF5DI",
                   "type": "string"
                 }
               ]
@@ -1268,13 +1125,13 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/favorites/{{favorite_id}}",
+              "raw": "{{base_url}}/favorites/fav_zqQspv7paaNE",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "favorites",
-                "{{favorite_id}}"
+                "fav_zqQspv7paaNE"
               ]
             }
           },
@@ -1283,47 +1140,7 @@
       ]
     },
     {
-      "name": "10. Promociones (Público)",
-      "item": [
-        {
-          "name": "Listar promociones activas",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/catalog",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "catalog"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Promoción por ID",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/catalog/{{promotion_id}}",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "catalog",
-                "{{promotion_id}}"
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "11. Promociones (Admin)",
+      "name": "10. Promociones (Admin)",
       "item": [
         {
           "name": "Listar todas las promociones",
@@ -1333,7 +1150,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_admin}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl9leTh3UnloRVJTeVgiLCJlbWFpbCI6ImJyZXllcy0yMDI0Mzk2QGtpbmFsLmVkdS5ndCIsInJvbGUiOiJBZG1pbiIsImlhdCI6MTc3Mjg1NDEyOSwiZXhwIjoxNzcyODU1OTI5fQ.AwFuuBkcrbeBN5KOgO0Z5HIoyKz1KRxCAQ-0r2fb6Ms",
                   "type": "string"
                 }
               ]
@@ -1372,7 +1189,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_admin}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl93Y2lTTjk0RDhiOHUiLCJlbWFpbCI6ImFkbWluYkBuZXh1c2JhbmsuY29tIiwicm9sZSI6IkFkbWluIiwiaWF0IjoxNzcyNjYxMjYwLCJleHAiOjE3NzI2NjMwNjB9.8xEmpLh2PZWGEMr_C7vynMdkICqgB_80MrwCvD76Bx8",
                   "type": "string"
                 }
               ]
@@ -1412,7 +1229,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_admin}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl93Y2lTTjk0RDhiOHUiLCJlbWFpbCI6ImFkbWluYkBuZXh1c2JhbmsuY29tIiwicm9sZSI6IkFkbWluIiwiaWF0IjoxNzcyNjYzMjUxLCJleHAiOjE3NzI2NjUwNTF9.tDLO8JlKjjit2CmxQsMBxSDjJLojsWyM3zLdHkC67Z4",
                   "type": "string"
                 }
               ]
@@ -1427,7 +1244,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"21% Bonificación en Depósitos Mayores a Q5,000\",\n  \"description\": \"Recibe cashback en depósitos mayores a Q5,000\",\n  \"promotionType\": \"DEPOSITO_CASHBACK\",\n  \"minDepositAmount\": 5000,\n  \"cashbackPercentage\": 21,\n  \"startDate\": \"2026-03-01\",\n  \"endDate\": \"2026-08-31\",\n  \"isExclusive\": false,\n  \"notes\": \"Promoción de prueba\"\n}"
+              "raw": "{\n  \"name\": \"25% Bonificación en Depósitos Mayores a Q8,000\",\n  \"description\": \"Recibe cashback en depósitos mayores a Q8,000\",\n  \"promotionType\": \"DEPOSITO_CASHBACK\",\n  \"minDepositAmount\": 8000,\n  \"cashbackPercentage\": 10,\n  \"startDate\": \"2026-03-01\",\n  \"endDate\": \"2026-08-31\",\n  \"isExclusive\": false,\n  \"notes\": \"Promoción en depositos mayores a Q8,000\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/catalog/admin/create",
@@ -1451,7 +1268,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_admin}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl93Y2lTTjk0RDhiOHUiLCJlbWFpbCI6ImFkbWluYkBuZXh1c2JhbmsuY29tIiwicm9sZSI6IkFkbWluIiwiaWF0IjoxNzcyNjYxMjYwLCJleHAiOjE3NzI2NjMwNjB9.8xEmpLh2PZWGEMr_C7vynMdkICqgB_80MrwCvD76Bx8",
                   "type": "string"
                 }
               ]
@@ -1490,7 +1307,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_admin}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl93Y2lTTjk0RDhiOHUiLCJlbWFpbCI6ImFkbWluYkBuZXh1c2JhbmsuY29tIiwicm9sZSI6IkFkbWluIiwiaWF0IjoxNzcyNjYxMjYwLCJleHAiOjE3NzI2NjMwNjB9.8xEmpLh2PZWGEMr_C7vynMdkICqgB_80MrwCvD76Bx8",
                   "type": "string"
                 }
               ]
@@ -1505,17 +1322,17 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"newStatus\": \"ACTIVA\",\n  \"reason\": \"Validación completada\"\n}"
+              "raw": "{\n  \"newStatus\": \"INACTIVA\",\n  \"reason\": \"Validación completada\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/catalog/admin/{{promotion_id}}/status",
+              "raw": "{{base_url}}/catalog/admin/cat_5GYrjmbnwtvJ/status",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "catalog",
                 "admin",
-                "{{promotion_id}}",
+                "cat_5GYrjmbnwtvJ",
                 "status"
               ]
             }
@@ -1599,7 +1416,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_admin}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl93Y2lTTjk0RDhiOHUiLCJlbWFpbCI6ImFkbWluYkBuZXh1c2JhbmsuY29tIiwicm9sZSI6IkFkbWluIiwiaWF0IjoxNzcyNjYzNTIwLCJleHAiOjE3NzI2NjUzMjB9.KylNfMkHhlDo-D7k_ukO2lnBNanvYAgSHtLuBXT25ic",
                   "type": "string"
                 }
               ]
@@ -1608,45 +1425,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"name\": \"20% Descuento en Transferencias a Terceros\",\r\n  \"description\": \"Descuento en comisión para transferencias a terceros\",\r\n  \"promotionType\": \"TRANSFERENCIA_DESCUENTO\",\r\n  \"minTransferAmount\": 200,\r\n  \"maxTransferAmount\": 5000,\r\n  \"discountPercentage\": 20,\r\n  \"startDate\": \"2026-03-01\",\r\n  \"endDate\": \"2026-05-31\",\r\n  \"isExclusive\": false,\r\n  \"notes\": \"Promo transferencias terceros\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{base_url}}/catalog/admin/create",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "catalog",
-                "admin",
-                "create"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Trasferencia propia",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token_admin}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n  \"name\": \"Bono Q25 por Transferencia Propia\",\r\n  \"description\": \"Bonificación fija en transferencias entre cuentas propias\",\r\n  \"promotionType\": \"TRANSFERENCIA_PROPIA_BONUS\",\r\n  \"minTransferAmount\": 500,\r\n  \"cashbackAmount\": 25,\r\n  \"startDate\": \"2026-03-01\",\r\n  \"endDate\": \"2026-07-31\",\r\n  \"isExclusive\": false,\r\n  \"notes\": \"Bono fijo por transferencia propia\"\r\n}",
+              "raw": "{\r\n  \"name\": \"5% Descuento en Transferencias a Terceros\",\r\n  \"description\": \"Descuento en comisión para transferencias a terceros\",\r\n  \"promotionType\": \"TRANSFERENCIA_DESCUENTO\",\r\n  \"minTransferAmount\": 100,\r\n  \"maxTransferAmount\": 1000,\r\n  \"discountPercentage\": 5,\r\n  \"startDate\": \"2026-03-01\",\r\n  \"endDate\": \"2026-05-31\",\r\n  \"isExclusive\": false,\r\n  \"notes\": \"Promo transferencias terceros de 5%\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1675,7 +1454,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_admin}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl93Y2lTTjk0RDhiOHUiLCJlbWFpbCI6ImFkbWluYkBuZXh1c2JhbmsuY29tIiwicm9sZSI6IkFkbWluIiwiaWF0IjoxNzcyNjYzNTIwLCJleHAiOjE3NzI2NjUzMjB9.KylNfMkHhlDo-D7k_ukO2lnBNanvYAgSHtLuBXT25ic",
                   "type": "string"
                 }
               ]
@@ -1713,7 +1492,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_admin}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl93Y2lTTjk0RDhiOHUiLCJlbWFpbCI6ImFkbWluYkBuZXh1c2JhbmsuY29tIiwicm9sZSI6IkFkbWluIiwiaWF0IjoxNzcyNjYzNTIwLCJleHAiOjE3NzI2NjUzMjB9.KylNfMkHhlDo-D7k_ukO2lnBNanvYAgSHtLuBXT25ic",
                   "type": "string"
                 }
               ]
@@ -1742,41 +1521,42 @@
             }
           },
           "response": []
+        }
+      ]
+    },
+    {
+      "name": "11. Promociones (Público)",
+      "item": [
+        {
+          "name": "Listar promociones activas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/catalog",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "catalog"
+              ]
+            }
+          },
+          "response": []
         },
         {
-          "name": "Cuentas nuevas",
+          "name": "Promoción por ID",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token_admin}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Bienvenida: Bono por Apertura de Cuenta\",\n  \"description\": \"Bono único para cuentas nuevas\",\n  \"promotionType\": \"APERTURA_CUENTA_BONUS\",\n  \"bonusPoints\": 500,\n  \"cashbackAmount\": 50,\n  \"startDate\": \"2026-03-01\",\n  \"endDate\": \"2026-09-30\",\n  \"isExclusive\": false,\n  \"notes\": \"Promo onboarding\"\n}"
-            },
+            "method": "GET",
+            "header": [],
             "url": {
-              "raw": "{{base_url}}/catalog/admin/create",
+              "raw": "{{base_url}}/catalog/cat_5S93K2KhG3Rc",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "catalog",
-                "admin",
-                "create"
+                "cat_5S93K2KhG3Rc"
               ]
             }
           },
@@ -1795,7 +1575,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_cliente}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl9leTh3UnloRVJTeVgiLCJlbWFpbCI6ImJyZXllcy0yMDI0Mzk2QGtpbmFsLmVkdS5ndCIsInJvbGUiOiJDbGllbnQiLCJpYXQiOjE3NzI2NjIyMzYsImV4cCI6MTc3MjY2NDAzNn0.-q8T6HgOos4ofmyoaq_7Mp9am0vmSa3TwEphqQOHB8g",
                   "type": "string"
                 }
               ]
@@ -1823,7 +1603,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_cliente}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl9leTh3UnloRVJTeVgiLCJlbWFpbCI6ImJyZXllcy0yMDI0Mzk2QGtpbmFsLmVkdS5ndCIsInJvbGUiOiJDbGllbnQiLCJpYXQiOjE3NzI2NjIyMzYsImV4cCI6MTc3MjY2NDAzNn0.-q8T6HgOos4ofmyoaq_7Mp9am0vmSa3TwEphqQOHB8g",
                   "type": "string"
                 }
               ]
@@ -1851,7 +1631,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_cliente}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl9leTh3UnloRVJTeVgiLCJlbWFpbCI6ImJyZXllcy0yMDI0Mzk2QGtpbmFsLmVkdS5ndCIsInJvbGUiOiJDbGllbnQiLCJpYXQiOjE3NzI2NjIyMzYsImV4cCI6MTc3MjY2NDAzNn0.-q8T6HgOos4ofmyoaq_7Mp9am0vmSa3TwEphqQOHB8g",
                   "type": "string"
                 }
               ]
@@ -1884,7 +1664,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_admin}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl93Y2lTTjk0RDhiOHUiLCJlbWFpbCI6ImFkbWluYkBuZXh1c2JhbmsuY29tIiwicm9sZSI6IkFkbWluIiwiaWF0IjoxNzcyNjYyMzIxLCJleHAiOjE3NzI2NjQxMjF9.jw1YMMKbOEF3wrsPrHlTCy5LbSbwNEzkROtqobljfQo",
                   "type": "string"
                 }
               ]
@@ -1892,14 +1672,14 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/admin/accounts/{{account_id}}/details",
+              "raw": "{{base_url}}/admin/accounts/acc_TNcNDNE81xZ2/details",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "admin",
                 "accounts",
-                "{{account_id}}",
+                "acc_TNcNDNE81xZ2",
                 "details"
               ]
             }
@@ -1914,7 +1694,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{token_admin}}",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl93Y2lTTjk0RDhiOHUiLCJlbWFpbCI6ImFkbWluYkBuZXh1c2JhbmsuY29tIiwicm9sZSI6IkFkbWluIiwiaWF0IjoxNzcyNjYyMzIxLCJleHAiOjE3NzI2NjQxMjF9.jw1YMMKbOEF3wrsPrHlTCy5LbSbwNEzkROtqobljfQo",
                   "type": "string"
                 }
               ]
@@ -1932,14 +1712,14 @@
               "raw": "{\n  \"reason\": \"SECURITY_REVIEW\",\n  \"notes\": \"Revisión por actividad inusual\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/admin/accounts/{{account_id}}/freeze",
+              "raw": "{{base_url}}/admin/accounts/acc_TNcNDNE81xZ2/freeze",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "admin",
                 "accounts",
-                "{{account_id}}",
+                "acc_TNcNDNE81xZ2",
                 "freeze"
               ]
             }

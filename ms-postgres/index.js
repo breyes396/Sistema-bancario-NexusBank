@@ -17,7 +17,6 @@ const start = async () => {
     const syncOptions = process.env.DB_FORCE_SYNC === 'true' ? { force: true } : { alter: true };
     await sequelize.sync(syncOptions);
 
-    // Keep optional Mongo connection enabled for cross-cutting features still in transition.
     await dbConnection();
 
     await createDefaultAdmin();

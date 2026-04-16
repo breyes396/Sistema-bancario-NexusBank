@@ -2,11 +2,6 @@
 
 import mongoose from 'mongoose';
 
-/**
- * MODELO CATALOG - PROMOCIONES BANCARIAS (MONGODB)
- * 
- * Almacena promociones, ofertas y servicios exclusivos del banco
- */
 
 const catalogSchema = new mongoose.Schema(
   {

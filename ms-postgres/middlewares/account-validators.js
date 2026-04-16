@@ -23,7 +23,6 @@ export const validateAccountType = (req, res, next) => {
         });
     }
 
-    // Normalizar el valor en el body para que sea consistente
     req.body.accountType = normalizedType;
     next();
 };

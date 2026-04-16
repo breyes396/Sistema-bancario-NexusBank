@@ -86,9 +86,6 @@ const getDayRange = () => {
     return { start, end };
 };
 
-/**
- * GET endpoint to retrieve a specific transfer by ID
- */
 export const getTransferById = async (req, res) => {
     try {
         const { transferId } = req.params;
@@ -136,10 +133,6 @@ export const getTransferById = async (req, res) => {
     }
 };
 
-/**
- * POST endpoint for quick transfer using favorite alias
- * Transfers money to an account identified by its alias in user's favorites
- */
 export const transferByAlias = async (req, res) => {
     return res.status(410).json({
         success: false,
@@ -158,7 +151,6 @@ export const createTransfer = async (req, res) => {
             return res.status(401).json({ success: false, message: 'Usuario no autenticado' });
         }
 
-        // ====== VALIDACIÓN ANTIFRAUDE: Verificar bloqueo del usuario ======
         const blockStatus = await fraudDetectionService.isUserBlocked(currentUserId);
         if (blockStatus.blocked) {
             await dbTransaction.rollback();
@@ -212,7 +204,6 @@ export const createTransfer = async (req, res) => {
         if (numericAmount > MAX_TRANSFER_AMOUNT) {
             await dbTransaction.rollback();
             
-            // ====== REGISTRO DE INTENTO FALLIDO - MONTO EXCEDIDO ======
             await fraudDetectionService.recordFailedTransaction(req, currentUserId, {
                 type: 'TRANSFER',
                 amount: numericAmount,
@@ -284,7 +275,6 @@ export const createTransfer = async (req, res) => {
             });
         }
 
-        // ====== VALIDACIÓN T46: Verificar si las cuentas están congeladas ======
         if (sourceAccount.accountStatus === 'FROZEN' || sourceAccount.accountStatus === 'SUSPENDED' || sourceAccount.accountStatus === 'BLOCKED') {
             await dbTransaction.rollback();
             await notifyTransferRejected(sourceAccount.userId, `Transferencia rechazada: tu cuenta está ${sourceAccount.accountStatus}. ${sourceAccount.frozenReason || 'Por favor contacta con soporte.'}`);
@@ -338,7 +328,6 @@ export const createTransfer = async (req, res) => {
         if (sourceBalance < numericAmount) {
             await dbTransaction.rollback();
             
-            // ====== REGISTRO DE INTENTO FALLIDO ======
             await fraudDetectionService.recordFailedTransaction(req, currentUserId, {
                 type: 'TRANSFER',
                 accountId: sourceAccount.id,
@@ -350,7 +339,6 @@ export const createTransfer = async (req, res) => {
                 }
             });
             
-            // Detectar patrones sospechosos
             await fraudDetectionService.detectFraudPatterns(req, currentUserId, {
                 type: 'TRANSFER',
                 accountId: sourceAccount.id,
@@ -390,7 +378,6 @@ export const createTransfer = async (req, res) => {
 
         const sourceTransferredToday = getNumericAmount(sourceTransferredTodayRaw || 0);
 
-        // ====== VALIDACIÓN: Límite de Q2,000 acumulativo específico por destino al día ======
         const sourceToDestinationTodayRaw = await Transaction.sum('amount', {
             where: {
                 accountId: sourceAccount.id,
@@ -534,7 +521,6 @@ export const createTransfer = async (req, res) => {
     } catch (error) {
         await dbTransaction.rollback();
         
-        // ====== REGISTRO DE INTENTO FALLIDO PARA ANTIFRAUDE ======
         await fraudDetectionService.recordFailedTransaction(req, req.user?.id, {
             type: 'TRANSFER',
             amount: req.body.amount,
@@ -546,12 +532,6 @@ export const createTransfer = async (req, res) => {
     }
 };
 
-/**
- * createTransactionAudit
- * 
- * Función auxiliar para registrar auditoría de transacciones.
- * Utilizada principalmente para reversiones.
- */
 const createTransactionAudit = async ({
     transactionId,
     actorUserId,
@@ -588,29 +568,6 @@ const createTransactionAudit = async ({
     }
 };
 
-/**
- * revertDeposit
- * Endpoint: PUT /accounts/deposit-requests/:id/revert
- * Acceso: Solo Admin y Employee
- * 
- * Propósito:
- * Permite revertir un depósito aprobado dentro de una ventana de tiempo de 1 minuto.
- * Después de ese tiempo, la reversión se bloquea automáticamente.
- * 
- * Validaciones:
- * 1. El depósito debe existir y estar en estado COMPLETADA
- * 2. Debe ser de tipo DEPOSITO
- * 3. No debe haber sido revertido previamente
- * 4. Debe estar dentro de la ventana de 1 minuto
- * 5. La cuenta debe tener saldo suficiente para revertir
- * 
- * Lógica:
- * 1. Busca el depósito y valida todos los criterios
- * 2. Si tenía cupón aplicado, revierte el cashback y decrementa uso
- * 3. Resta el monto del saldo de la cuenta
- * 4. Marca la transacción como revertida
- * 5. Registra evento en auditoría con todos los detalles
- */
 export const revertTransfer = async (req, res) => {
     try {
         const actorUserId = req.user?.id;
@@ -625,7 +582,6 @@ export const revertTransfer = async (req, res) => {
         const { id } = req.params;
         const reason = req.body?.reason || null;
 
-        // ANTES de la transacción: buscar la transferencia (consulta inicial)
         let transfer = await Transaction.findOne({
             where: {
                 id,
@@ -640,7 +596,6 @@ export const revertTransfer = async (req, res) => {
             });
         }
 
-        // Validar que sea el dueño de la transferencia (quien la envió)
         if (transfer.accountId) {
             const sourceAccount = await Account.findByPk(transfer.accountId);
             if (!sourceAccount || sourceAccount.userId !== actorUserId) {
@@ -651,7 +606,6 @@ export const revertTransfer = async (req, res) => {
             }
         }
 
-        // Validar que esté completada
         if (transfer.status !== 'COMPLETADA') {
             await createTransactionAudit({
                 transactionId: transfer.id,
@@ -670,7 +624,6 @@ export const revertTransfer = async (req, res) => {
             });
         }
 
-        // Validar que no esté ya revertida
         if (transfer.isReverted) {
             await createTransactionAudit({
                 transactionId: transfer.id,
@@ -695,14 +648,12 @@ export const revertTransfer = async (req, res) => {
             });
         }
 
-        // Calcular tiempo transcurrido
         const now = new Date();
         const transactionTime = new Date(transfer.updatedAt);
         const timeElapsedMs = now - transactionTime;
         const timeElapsedSeconds = Math.floor(timeElapsedMs / 1000);
-        const FIVE_MINUTES_MS = 5 * 60 * 1000; // 5 minutos
+        const FIVE_MINUTES_MS = 5 * 60 * 1000; 
 
-        // Validar ventana de 5 minutos
         if (timeElapsedMs > FIVE_MINUTES_MS) {
             await createTransactionAudit({
                 transactionId: transfer.id,
@@ -724,11 +675,10 @@ export const revertTransfer = async (req, res) => {
             });
         }
 
-        // Inicia la transacción Sequelize
         const dbTransaction = await sequelize.transaction();
 
         try {
-            // Buscar la transferencia nuevamente con lock para transacción
+
             transfer = await Transaction.findOne({
                 where: {
                     id,
@@ -746,7 +696,6 @@ export const revertTransfer = async (req, res) => {
                 });
             }
 
-            // Buscar las cuentas con lock
             const sourceAccount = await Account.findByPk(transfer.accountId, {
                 transaction: dbTransaction,
                 lock: dbTransaction.LOCK.UPDATE
@@ -777,7 +726,6 @@ export const revertTransfer = async (req, res) => {
             const sourceBalance = getNumericAmount(sourceAccount.accountBalance);
             const destBalance = getNumericAmount(destinationAccount.accountBalance);
 
-            // Validar que la cuenta destino tenga saldo para revertir
             if (destBalance < transferAmount) {
                 await createTransactionAudit({
                     transactionId: transfer.id,
@@ -801,14 +749,12 @@ export const revertTransfer = async (req, res) => {
                 });
             }
 
-            // Revertir saldos: devolver dinero a origen, quitar de destino
             sourceAccount.accountBalance = (sourceBalance + transferAmount).toFixed(2);
             destinationAccount.accountBalance = (destBalance - transferAmount).toFixed(2);
             
             await sourceAccount.save({ transaction: dbTransaction });
             await destinationAccount.save({ transaction: dbTransaction });
 
-            // Actualizar transacción original
             transfer.status = 'REVERTIDA';
             transfer.isReverted = true;
             transfer.revertedAt = now;
@@ -817,7 +763,6 @@ export const revertTransfer = async (req, res) => {
             transfer.description = `${transfer.description} | REVERTIDA por ${actorUserId}: ${transfer.revertReason}`;
             await transfer.save({ transaction: dbTransaction });
 
-            // Crear movimiento compensatorio (transacción inversa)
             const compensationTransaction = await Transaction.create(
                 {
                     accountId: sourceAccount.id,
@@ -846,7 +791,6 @@ export const revertTransfer = async (req, res) => {
                 { transaction: dbTransaction }
             );
 
-            // Registrar en auditoría
             await createTransactionAudit({
                 transactionId: transfer.id,
                 actorUserId,
@@ -894,10 +838,8 @@ export const revertTransfer = async (req, res) => {
                 }
             });
 
-            // Commit de la transacción
             await dbTransaction.commit();
 
-            // Enviar emails a ambas partes
             const sourceUser = await getUserEmailAndName(sourceAccount.userId);
             const destUser = await getUserEmailAndName(destinationAccount.userId);
 
@@ -979,7 +921,6 @@ export const getMyAccountHistory = async (req, res) => {
             });
         }
 
-        // Buscar todas las cuentas del cliente
         const accounts = await Account.findAll({
             where: { userId: currentUserId },
             attributes: ['id', 'accountNumber', 'accountBalance', 'accountType', 'status', 'createdAt'],
@@ -993,10 +934,8 @@ export const getMyAccountHistory = async (req, res) => {
             });
         }
 
-        // Extraer IDs de las cuentas
         const accountIds = accounts.map(acc => acc.id);
 
-        // Buscar todas las transacciones de esas cuentas
         const transactions = await Transaction.findAll({
             where: {
                 accountId: {
@@ -1021,7 +960,6 @@ export const getMyAccountHistory = async (req, res) => {
             order: [['createdAt', 'DESC']]
         });
 
-        // Formatear las cuentas con su información
         const accountsData = accounts.map(acc => ({
             accountId: acc.id,
             accountNumber: acc.accountNumber,
@@ -1031,7 +969,6 @@ export const getMyAccountHistory = async (req, res) => {
             createdAt: acc.createdAt
         }));
 
-        // Formatear las transacciones
         const transactionsData = transactions.map(trx => {
             const transactionInfo = {
                 transactionId: trx.id,
@@ -1045,7 +982,6 @@ export const getMyAccountHistory = async (req, res) => {
                 updatedAt: trx.updatedAt
             };
 
-            // Información adicional opcional
             if (trx.relatedAccountId) {
                 transactionInfo.relatedAccountId = trx.relatedAccountId;
             }
@@ -1060,7 +996,6 @@ export const getMyAccountHistory = async (req, res) => {
             return transactionInfo;
         });
 
-        // Calcular totales
         const totalBalance = accounts.reduce((sum, acc) => {
             return sum + getNumericAmount(acc.accountBalance);
         }, 0);
@@ -1228,7 +1163,6 @@ export const getAdminTransactions = async (req, res) => {
             limit: parsedLimit
         });
 
-        // Obtener información de cuentas y usuarios con datos enmascarados
         const accountIds = [...new Set(rows.map(t => t.accountId))];
         const accountsWithUsers = await Account.findAll({
             where: { id: { [Op.in]: accountIds } },
@@ -1245,7 +1179,6 @@ export const getAdminTransactions = async (req, res) => {
             }]
         });
 
-        // Crear mapa de cuentas con usuarios enmascarados
         const accountMap = {};
         accountsWithUsers.forEach(acc => {
             const maskedUser = acc.User 
@@ -1265,7 +1198,6 @@ export const getAdminTransactions = async (req, res) => {
             };
         });
 
-        // Enriquecer transacciones con información enmascarada
         const enrichedTransactions = rows.map(trx => ({
             ...trx.toJSON(),
             accountInfo: accountMap[trx.accountId] || null
@@ -1357,7 +1289,6 @@ export const getEmployeeAccountTransactions = async (req, res) => {
             limit: parsedLimit
         });
 
-        // Obtener información del propietario de la cuenta con datos enmascarados
         const accountOwner = await User.findByPk(account.userId, {
             attributes: ['id', 'email'],
             include: [{
@@ -1427,16 +1358,13 @@ export const getDashboardTransactionRanking = async (req, res) => {
             });
         }
 
-        // Parámetros de la query
         const { type, order = 'DESC', limit = 20 } = req.query;
 
         const limitNumber = Math.min(Math.max(parseInt(limit) || 20, 1), 100);
         const validOrder = ['ASC', 'DESC'].includes(order?.toUpperCase()) ? order.toUpperCase() : 'DESC';
 
-        // Tipos válidos de transacciones
         const validTypes = ['DEPOSITO', 'RETIRO', 'TRANSFERENCIA_ENVIADA', 'TRANSFERENCIA_RECIBIDA', 'COMPRA'];
 
-        // Validar tipo si se proporciona
         if (type && !validTypes.includes(type.toUpperCase())) {
             return res.status(400).json({
                 success: false,
@@ -1444,20 +1372,17 @@ export const getDashboardTransactionRanking = async (req, res) => {
             });
         }
 
-        // Construir la query
         let transactionQuery = {};
         if (type) {
             transactionQuery.type = type.toUpperCase();
         }
 
-        // Obtener todas las transacciones con los filtros aplicados
         const transactions = await Transaction.findAll({
             where: transactionQuery,
             attributes: ['accountId', 'type'],
             raw: true
         });
 
-        // Agrupar por accountId y contar
         const movementsByAccount = {};
         const transactionsByAccount = {};
 
@@ -1471,7 +1396,6 @@ export const getDashboardTransactionRanking = async (req, res) => {
                 (transactionsByAccount[trx.accountId][trx.type] || 0) + 1;
         });
 
-        // Obtener información de las cuentas
         const accountIds = Object.keys(movementsByAccount);
         const accounts = await Account.findAll({
             where: {
@@ -1483,7 +1407,6 @@ export const getDashboardTransactionRanking = async (req, res) => {
             raw: true
         });
 
-        // Obtener información de usuarios
         const userIds = accounts.map(acc => acc.userId);
         const users = await User.findAll({
             where: {
@@ -1497,7 +1420,6 @@ export const getDashboardTransactionRanking = async (req, res) => {
 
         const userMap = Object.fromEntries(users.map(u => [u.id, u.email]));
 
-        // Combinar datos y crear ranking
         const ranking = accounts.map(account => ({
             accountId: account.id,
             accountNumber: account.accountNumber,
@@ -1509,7 +1431,6 @@ export const getDashboardTransactionRanking = async (req, res) => {
             movementsByType: transactionsByAccount[account.id]
         }));
 
-        // Ordenar según parámetro
         ranking.sort((a, b) => {
             if (validOrder === 'DESC') {
                 return b.totalMovements - a.totalMovements;
@@ -1518,10 +1439,8 @@ export const getDashboardTransactionRanking = async (req, res) => {
             }
         });
 
-        // Limitar resultados
         const limitedRanking = ranking.slice(0, limitNumber);
 
-        // Calcular estadísticas
         const stats = {
             totalAccounts: ranking.length,
             totalMovements: ranking.reduce((sum, acc) => sum + acc.totalMovements, 0),

@@ -2,10 +2,6 @@
 
 import mongoose from 'mongoose';
 
-/**
- * MODELO CATALOG AUDIT - AUDITORÍA DE CAMBIOS (MONGODB)
- */
-
 const catalogAuditSchema = new mongoose.Schema(
   {
     _id: {

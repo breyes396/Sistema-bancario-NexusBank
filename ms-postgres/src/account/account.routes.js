@@ -37,23 +37,18 @@ router.get('/admin/accounts/:accountId/details', verifyTokenAndGetUser, verifyRo
 
 router.get('/my-account/balance/convert', verifyTokenAndGetUser, verifyRoles(['Client']), convertAccountBalance);
 
-// ====== ENDPOINTS DE BLOQUEO/DESBLOQUEO DE CUENTAS (T46) ======
-
-// Congelar cuenta (Admin only)
 router.post('/admin/accounts/:id/freeze',
   verifyTokenAndGetUser,
   verifyRoles(['Admin']),
   freezeAccount
 );
 
-// Descongelar/Rehabilitar cuenta (Admin only)
 router.post('/admin/accounts/:id/unfreeze',
   verifyTokenAndGetUser,
   verifyRoles(['Admin']),
   unfreezeAccount
 );
 
-// Obtener historial de bloqueos (Admin only)
 router.get('/admin/accounts/:id/block-history',
   verifyTokenAndGetUser,
   verifyRoles(['Admin']),

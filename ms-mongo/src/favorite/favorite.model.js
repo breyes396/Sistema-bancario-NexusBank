@@ -2,12 +2,6 @@
 
 import mongoose from 'mongoose';
 
-/**
- * MODELO FAVORITE - CUENTAS FAVORITAS (MONGODB)
- * 
- * Almacena cuentas favoritas de los usuarios para agilizar transferencias
- */
-
 const favoriteSchema = new mongoose.Schema(
   {
     _id: {
@@ -63,13 +57,10 @@ const favoriteSchema = new mongoose.Schema(
   }
 );
 
-// Índice compuesto para evitar duplicados de la misma cuenta por usuario
 favoriteSchema.index({ userId: 1, accountNumber: 1 }, { unique: true });
 
-// Índice para búsquedas por alias
 favoriteSchema.index({ userId: 1, alias: 1 });
 
-// Índice para búsquedas activas
 favoriteSchema.index({ userId: 1, isActive: 1 });
 
 const Favorite = mongoose.model('Favorite', favoriteSchema);

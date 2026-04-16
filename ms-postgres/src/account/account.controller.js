@@ -139,7 +139,6 @@ export const listAccounts = async (req, res) => {
             }]
         });
 
-        // Aplicar máscaras si el usuario es Admin o Employee viendo cuentas de otros
         let accountsData = accounts;
         if ((currentUserRole === 'Admin' || currentUserRole === 'Employee') && whereClause.userId !== currentUserId) {
             accountsData = accounts.map(acc => {
@@ -162,7 +161,7 @@ export const listAccounts = async (req, res) => {
                 };
             });
         } else {
-            // Cliente viendo sus propias cuentas, devolver sin máscaras
+
             accountsData = accounts.map(acc => acc.toJSON());
         }
 
@@ -246,10 +245,6 @@ export const createAccount = async (req, res) => {
     }
 };
 
-/**
- * Solicitar apertura de cuenta sin token.
- * La cuenta se crea deshabilitada y en revisión para activación posterior por Admin.
- */
 export const requestAccountWithoutToken = async (req, res) => {
     try {
         const { accountType } = req.body;
@@ -344,9 +339,6 @@ export const requestAccountWithoutToken = async (req, res) => {
     }
 };
 
-/**
- * Habilitar cuenta solicitada previamente (Admin only).
- */
 export const enableRequestedAccount = async (req, res) => {
     try {
         const actorUserId = req.user?.id;
@@ -873,7 +865,6 @@ export const getAdminAccountDetails = async (req, res) => {
             ]
         });
 
-        // Aplicar máscaras a datos sensibles del usuario
         const maskedUser = user 
             ? applyExposureRulesByRole(user, actorRole, actorUserId)
             : null;
@@ -922,7 +913,6 @@ export const freezeAccount = async (req, res) => {
             return res.status(403).json({ success: false, message: 'Acceso denegado. Se requiere rol de Admin' });
         }
 
-        // Validar razón
         if (!reason || !validFreezeReasons.includes(reason)) {
             return res.status(400).json({
                 success: false,
@@ -946,7 +936,6 @@ export const freezeAccount = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Cuenta no encontrada' });
         }
 
-        // Verificar si ya está congelada
         if (account.accountStatus === 'FROZEN') {
             return res.status(400).json({
                 success: false,
@@ -955,7 +944,6 @@ export const freezeAccount = async (req, res) => {
             });
         }
 
-        // Verificar si está cerrada
         if (account.accountStatus === 'CLOSED') {
             return res.status(400).json({
                 success: false,
@@ -966,7 +954,6 @@ export const freezeAccount = async (req, res) => {
 
         const previousStatus = account.accountStatus;
 
-        // Actualizar cuenta
         await account.update({
             accountStatus: 'FROZEN',
             status: false,
@@ -978,7 +965,6 @@ export const freezeAccount = async (req, res) => {
             lastAdminChangeReason: reasonDetails || reason
         });
 
-        // Registrar en historial
         const ipAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip;
         const userAgent = req.headers['user-agent'];
 
@@ -1011,7 +997,6 @@ export const freezeAccount = async (req, res) => {
             }
         });
 
-        // Notificar al dueño de la cuenta con email específico de congelación
         const accountOwner = await getUserEmailAndName(account.userId);
         if (accountOwner) {
             await sendEmailSafe(() => sendAccountFrozenEmail(
@@ -1064,10 +1049,6 @@ export const freezeAccount = async (req, res) => {
     }
 };
 
-/**
- * Descongelar/Rehabilitar una cuenta (Admin only)
- * POST /admin/accounts/:id/unfreeze
- */
 export const unfreezeAccount = async (req, res) => {
     try {
         const actorUserId = req.user?.id;
@@ -1098,7 +1079,6 @@ export const unfreezeAccount = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Cuenta no encontrada' });
         }
 
-        // Verificar si está congelada
         if (!isBlockedAccountStatus(account.accountStatus)) {
             return res.status(400).json({
                 success: false,
@@ -1109,7 +1089,6 @@ export const unfreezeAccount = async (req, res) => {
 
         const previousStatus = account.accountStatus;
 
-        // Actualizar cuenta
         await account.update({
             accountStatus: 'ACTIVE',
             status: true,
@@ -1121,7 +1100,6 @@ export const unfreezeAccount = async (req, res) => {
             lastAdminChangeReason: reasonDetails || reason || 'Cuenta rehabilitada'
         });
 
-        // Registrar en historial
         const ipAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip;
         const userAgent = req.headers['user-agent'];
 
@@ -1152,7 +1130,6 @@ export const unfreezeAccount = async (req, res) => {
             }
         });
 
-        // Notificar al dueño de la cuenta con email específico de descongelación
         const accountOwner = await getUserEmailAndName(account.userId);
         if (accountOwner) {
             await sendEmailSafe(() => sendAccountUnfrozenEmail(
@@ -1203,10 +1180,6 @@ export const unfreezeAccount = async (req, res) => {
     }
 };
 
-/**
- * Obtener historial de bloqueos de una cuenta (Admin only)
- * GET /admin/accounts/:id/block-history
- */
 export const getAccountBlockHistory = async (req, res) => {
     try {
         const actorUserId = req.user?.id;

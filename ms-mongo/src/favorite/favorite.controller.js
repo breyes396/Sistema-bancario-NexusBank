@@ -22,10 +22,6 @@ const getAuthenticatedUserId = (req, res) => {
     return userId;
 };
 
-/**
- * POST /favorites
- * Crear una cuenta favorita
- */
 export const createFavorite = async (req, res) => {
     try {
         const userId = getAuthenticatedUserId(req, res);
@@ -41,7 +37,6 @@ export const createFavorite = async (req, res) => {
             });
         }
 
-        // Verificar si ya existe ese número de cuenta como favorito del usuario
         const existingFavorite = await Favorite.findOne({
             userId,
             accountNumber: accountNumber.trim()
@@ -59,7 +54,6 @@ export const createFavorite = async (req, res) => {
             });
         }
 
-        // Crear el favorito
         const newFavorite = await Favorite.create({
             userId,
             accountNumber,
@@ -82,7 +76,6 @@ export const createFavorite = async (req, res) => {
     } catch (error) {
         console.error('Error creando favorito:', error);
 
-        // Error de duplicado por índice único
         if (error.code === 11000) {
             return sendError(res, {
                 status: 409,
@@ -91,7 +84,6 @@ export const createFavorite = async (req, res) => {
             });
         }
 
-        // Error de validación de Mongoose
         if (error.name === 'ValidationError') {
             const messages = Object.values(error.errors).map(err => err.message);
             return sendError(res, {
@@ -111,26 +103,19 @@ export const createFavorite = async (req, res) => {
     }
 };
 
-/**
- * GET /favorites
- * Listar todos los favoritos del usuario autenticado
- */
 export const getFavorites = async (req, res) => {
     try {
         const userId = getAuthenticatedUserId(req, res);
         if (!userId) return;
 
-        // Obtener filtros opcionales
         const { isActive, search } = req.query;
 
-        // Construir query
         const query = { userId };
 
         if (isActive !== undefined) {
             query.isActive = isActive === 'true';
         }
 
-        // Búsqueda por alias o número de cuenta
         if (search) {
             query.$or = [
                 { alias: { $regex: search, $options: 'i' } },
@@ -162,10 +147,6 @@ export const getFavorites = async (req, res) => {
     }
 };
 
-/**
- * GET /favorites/:id
- * Obtener un favorito específico
- */
 export const getFavoriteById = async (req, res) => {
     try {
         const userId = getAuthenticatedUserId(req, res);
@@ -202,10 +183,6 @@ export const getFavoriteById = async (req, res) => {
     }
 };
 
-/**
- * PUT /favorites/:id
- * Editar el alias de un favorito existente
- */
 export const updateFavorite = async (req, res) => {
     try {
         const userId = getAuthenticatedUserId(req, res);
@@ -222,7 +199,6 @@ export const updateFavorite = async (req, res) => {
             });
         }
 
-        // Buscar el favorito
         const favorite = await Favorite.findOne({
             _id: id,
             userId
@@ -236,7 +212,6 @@ export const updateFavorite = async (req, res) => {
             });
         }
 
-        // Actualizar campos
         if (alias) {
             favorite.alias = alias.trim();
         }
@@ -286,10 +261,6 @@ export const updateFavorite = async (req, res) => {
     }
 };
 
-/**
- * DELETE /favorites/:id
- * Eliminar un favorito existente
- */
 export const deleteFavorite = async (req, res) => {
     try {
         const userId = getAuthenticatedUserId(req, res);

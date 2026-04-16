@@ -4,7 +4,6 @@ import { verifyTokenAndGetUser, verifyRoles } from '../../middlewares/role-middl
 
 const router = express.Router();
 
-// Todas las rutas protegidas con JWT y solo para Clientes
 router.post('/favorites', verifyTokenAndGetUser, verifyRoles(['Client']), createFavorite);
 
 router.get('/favorites', verifyTokenAndGetUser, verifyRoles(['Client']), getFavorites);

@@ -7,17 +7,14 @@ import {
 } from './email.service.js';
 
 const BLOCKING_THRESHOLDS = {
-  failedAttempts: 3, // Bloquear después de 3 intentos fallidos
-  blockingDuration: 30 * 60 * 1000, // 30 minutos
-  timeWindow: 60 * 60 * 1000, // 1 hora para contar intentos
-  rapidTransactionWindow: 5 * 60 * 1000, // 5 minutos
-  rapidTransactionLimit: 3, // Máximo 3 transacciones en 5 minutos
-  unusualAmountThreshold: 1.5 // 150% del promedio es sospechoso
+  failedAttempts: 3, 
+  blockingDuration: 30 * 60 * 1000, 
+  timeWindow: 60 * 60 * 1000, 
+  rapidTransactionWindow: 5 * 60 * 1000, 
+  rapidTransactionLimit: 3, 
+  unusualAmountThreshold: 1.5 
 };
 
-/**
- * Registra un intento de transacción fallido
- */
 export const recordFailedTransaction = async (req, userId, transactionData) => {
   try {
     const failedRecord = await FailedTransaction.create({
@@ -32,7 +29,6 @@ export const recordFailedTransaction = async (req, userId, transactionData) => {
       isBlocked: false
     });
 
-    // Verificar si se debe bloquear el usuario después de este intento
     const shouldBlock = await checkIfShouldBlock(userId);
     if (shouldBlock) {
       const blockedUntil = new Date(Date.now() + BLOCKING_THRESHOLDS.blockingDuration);
@@ -54,13 +50,11 @@ export const recordFailedTransaction = async (req, userId, transactionData) => {
         }
       });
 
-      // ====== ENVIAR EMAIL DE BLOQUEO ======
       await sendBlockingNotificationEmail(userId, blockedUntil, BLOCKING_THRESHOLDS.failedAttempts);
 
       return { blocked: true, blockedUntil };
     }
 
-    // ====== ENVIAR EMAIL DE INTENTO FALLIDO ======
     const failedCount = await FailedTransaction.countDocuments({
       userId,
       createdAt: { $gte: new Date(Date.now() - BLOCKING_THRESHOLDS.timeWindow) },
@@ -76,10 +70,6 @@ export const recordFailedTransaction = async (req, userId, transactionData) => {
   }
 };
 
-
-/**
- * Verifica si un usuario tiene bloqueos activos
- */
 export const isUserBlocked = async (userId) => {
   try {
     const blockedAttempt = await FailedTransaction.findOne({
@@ -103,9 +93,6 @@ export const isUserBlocked = async (userId) => {
   }
 };
 
-/**
- * Verifica si se debe bloquear un usuario basado en intentos fallidos recientes
- */
 async function checkIfShouldBlock(userId) {
   try {
     const failedCount = await FailedTransaction.countDocuments({
@@ -121,14 +108,10 @@ async function checkIfShouldBlock(userId) {
   }
 }
 
-/**
- * Detecta patrones sospechosos de fraude
- */
 export const detectFraudPatterns = async (req, userId, transactionData) => {
   try {
     const alerts = [];
 
-    // 1. Detectar múltiples IPs del mismo usuario
     const ipsUsed = await FailedTransaction.distinct('ipAddress', {
       userId,
       createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
@@ -144,7 +127,6 @@ export const detectFraudPatterns = async (req, userId, transactionData) => {
       });
     }
 
-    // 2. Detectar transacciones rápidas
     const recentTransactions = await FailedTransaction.countDocuments({
       userId,
       createdAt: { $gte: new Date(Date.now() - BLOCKING_THRESHOLDS.rapidTransactionWindow) }
@@ -159,7 +141,6 @@ export const detectFraudPatterns = async (req, userId, transactionData) => {
       });
     }
 
-    // 3. Detectar montos inusuales (por ahora simple, se puede mejorar)
     if (transactionData.amount > 5000) {
       alerts.push({
         alertType: 'UNUSUAL_AMOUNT',
@@ -169,7 +150,6 @@ export const detectFraudPatterns = async (req, userId, transactionData) => {
       });
     }
 
-    // Crear alertas en la base de datos y enviar emails
     for (const alert of alerts) {
       const fraudAlert = await createFraudAlert({
         userId,
@@ -177,9 +157,8 @@ export const detectFraudPatterns = async (req, userId, transactionData) => {
         ...alert
       });
 
-      // ====== ENVIAR EMAIL DE ALERTA DE FRAUDE ======
       if (fraudAlert && alert.severity !== 'LOW') {
-        // Solo enviar email para alertas MEDIUM y HIGH
+
         await sendFraudAlertNotificationEmail(userId, alert);
       }
     }
@@ -191,9 +170,6 @@ export const detectFraudPatterns = async (req, userId, transactionData) => {
   }
 };
 
-/**
- * Crea una nueva alerta de fraude
- */
 export const createFraudAlert = async (alertData) => {
   try {
     return await FraudAlert.create({
@@ -212,9 +188,6 @@ export const createFraudAlert = async (alertData) => {
   }
 };
 
-/**
- * Obtiene alertas de fraude activas de un usuario
- */
 export const getUserFraudAlerts = async (userId) => {
   try {
     return await FraudAlert.find({
@@ -227,9 +200,6 @@ export const getUserFraudAlerts = async (userId) => {
   }
 };
 
-/**
- * Obtiene todos los intentos fallidos de un usuario en las últimas 24 horas
- */
 export const getUserFailedAttempts = async (userId) => {
   try {
     return await FailedTransaction.find({
@@ -242,9 +212,6 @@ export const getUserFailedAttempts = async (userId) => {
   }
 };
 
-/**
- * Desbloquea manualmente a un usuario (solo para admins)
- */
 export const unblockUser = async (userId, adminId) => {
   try {
     await FailedTransaction.updateMany(
@@ -261,7 +228,6 @@ export const unblockUser = async (userId, adminId) => {
       }
     );
 
-    // Crear registro de alerta resuelta
     await FraudAlert.updateMany(
       {
         userId,
@@ -284,9 +250,6 @@ export const unblockUser = async (userId, adminId) => {
   }
 };
 
-/**
- * Resuelve una alerta de fraude
- */
 export const resolveFraudAlert = async (alertId, adminId, resolution = 'RESOLVED') => {
   try {
     await FraudAlert.updateOne(
@@ -306,18 +269,10 @@ export const resolveFraudAlert = async (alertId, adminId, resolution = 'RESOLVED
   }
 };
 
-// ====== FUNCIONES AUXILIARES DE EMAIL ======
-
-/**
- * Obtiene información del usuario para enviar emails
- */
 async function getUserEmailAndName(userId) {
   return null;
 }
 
-/**
- * Envía email de bloqueo de cuenta
- */
 async function sendBlockingNotificationEmail(userId, blockedUntil, failedAttempts) {
   try {
     const userInfo = await getUserEmailAndName(userId);
@@ -335,15 +290,11 @@ async function sendBlockingNotificationEmail(userId, blockedUntil, failedAttempt
   }
 }
 
-/**
- * Envía email de intento fallido
- */
 async function sendFailedAttemptNotificationEmail(userId, transactionData, attemptNumber) {
   try {
     const userInfo = await getUserEmailAndName(userId);
     if (!userInfo) return;
 
-    // Solo enviar email cada 2 intentos fallidos para no saturar
     if (attemptNumber % 2 !== 0) return;
 
     await sendFailedAttemptEmail(userInfo.email, userInfo.name, {
@@ -361,9 +312,6 @@ async function sendFailedAttemptNotificationEmail(userId, transactionData, attem
   }
 }
 
-/**
- * Envía email de alerta de fraude
- */
 async function sendFraudAlertNotificationEmail(userId, alertData) {
   try {
     const userInfo = await getUserEmailAndName(userId);

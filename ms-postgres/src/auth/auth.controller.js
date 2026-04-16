@@ -32,7 +32,6 @@ import {
 
 const PASSWORD_RESET_EXPIRES_MINUTES = 60;
 
-// Login clientes y administradores
 export const login = async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -180,14 +179,12 @@ export const login = async (req, res) => {
   }
 };
 
-// Función auxiliar para generar username automáticamente
 const generateUsername = (name) => {
-  // Limpiar el nombre: remover espacios, caracteres especiales, y limitar longitud
+  
   const cleanName = name
     .replace(/[^a-zA-Z0-9]/g, '')
     .substring(0, 20);
   
-  // Generar sufijo numérico de 4 dígitos
   const suffix = Math.floor(1000 + Math.random() * 9000);
   
   return `${cleanName}${suffix}`;
@@ -229,7 +226,6 @@ export const register = async (req, res) => {
       return res.status(409).json({ msg: 'El correo ya esta registrado' });
     }
 
-    // Generar username automáticamente si no se proporciona
     let finalUsername = username;
     if (!finalUsername) {
       let attempts = 0;

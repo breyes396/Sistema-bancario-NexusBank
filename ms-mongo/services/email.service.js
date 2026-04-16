@@ -341,7 +341,7 @@ export const sendSecurityChangeEmail = async (email, name, changeData = {}) => {
 
     return await sendEmail(email, 'NexusBank - Cambio de seguridad', html);
 };
-// ====== ALERTAS DE FRAUDE ======
+
 
 export const sendAccountBlockedEmail = async (email, name, blockData = {}) => {
     const { blockedUntil, failedAttempts, reason } = blockData;
@@ -920,9 +920,6 @@ export const sendAccountFrozenEmail = async (email, name, freezeData = {}) => {
     return await sendEmail(email, '❄️ IMPORTANTE: Tu cuenta NexusBank ha sido congelada', html);
 };
 
-/**
- * Enviar correo de cuenta descongelada
- */
 export const sendAccountUnfrozenEmail = async (email, name, unfreezeData = {}) => {
     const { accountNumber, previousReason, unfrozenAt, performedByName } = unfreezeData;
     const unfrozenTime = unfrozenAt ? new Date(unfrozenAt).toLocaleString('es-ES') : new Date().toLocaleString('es-ES');

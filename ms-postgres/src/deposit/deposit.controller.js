@@ -48,10 +48,6 @@ const sendEmailSafe = async (sendFn) => {
     }
 };
 
-/**
- * GET endpoint to retrieve all deposit requests
- * Allows filtering by status and pagination
- */
 export const getDepositRequests = async (req, res) => {
     try {
         const { status, page = 1, limit = 20 } = req.query;
@@ -109,9 +105,6 @@ export const getDepositRequests = async (req, res) => {
     }
 };
 
-/**
- * GET endpoint to retrieve a specific deposit request by ID
- */
 export const getDepositRequestById = async (req, res) => {
     try {
         const { depositId } = req.params;
@@ -197,7 +190,6 @@ export const createDepositRequest = async (req, res) => {
             });
         }
 
-        // ====== VALIDACIÓN T46: Verificar si la cuenta está congelada ======
         if (destinationAccount.accountStatus === 'FROZEN' || destinationAccount.accountStatus === 'SUSPENDED' || destinationAccount.accountStatus === 'BLOCKED') {
             return res.status(423).json({
                 success: false,
@@ -512,29 +504,6 @@ const createTransactionAudit = async ({
     }
 };
 
-/**
- * revertDeposit
- * Endpoint: PUT /accounts/deposit-requests/:id/revert
- * Acceso: Solo Admin y Employee
- * 
- * Propósito:
- * Permite revertir un depósito aprobado dentro de una ventana de tiempo de 1 minuto.
- * Después de ese tiempo, la reversión se bloquea automáticamente.
- * 
- * Validaciones:
- * 1. El depósito debe existir y estar en estado COMPLETADA
- * 2. Debe ser de tipo DEPOSITO
- * 3. No debe haber sido revertido previamente
- * 4. Debe estar dentro de la ventana de 1 minuto
- * 5. La cuenta debe tener saldo suficiente para revertir
- * 
- * Lógica:
- * 1. Busca el depósito y valida todos los criterios
- * 2. Si tenía cupón aplicado, revierte el cashback y decrementa uso
- * 3. Resta el monto del saldo de la cuenta
- * 4. Marca la transacción como revertida
- * 5. Registra evento en auditoría con todos los detalles
- */
 export const revertDeposit = async (req, res) => {
     try {
         const actorUserId = req.user?.id;
@@ -549,7 +518,6 @@ export const revertDeposit = async (req, res) => {
         const { id } = req.params;
         const reason = req.body?.reason || null;
 
-        // ANTES de la transacción: buscar el depósito (consulta inicial)
         let deposit = await Deposit.findOne({
             where: {
                 id,
@@ -564,7 +532,6 @@ export const revertDeposit = async (req, res) => {
             });
         }
 
-        // Validar que esté completado
         if (deposit.status !== 'COMPLETADA') {
             await createTransactionAudit({
                 transactionId: deposit.id,
@@ -583,7 +550,6 @@ export const revertDeposit = async (req, res) => {
             });
         }
 
-        // Validar que no esté ya revertido
         if (deposit.isReverted) {
             await createTransactionAudit({
                 transactionId: deposit.id,
@@ -608,14 +574,12 @@ export const revertDeposit = async (req, res) => {
             });
         }
 
-        // Calcular tiempo transcurrido
         const now = new Date();
         const transactionTime = new Date(deposit.updatedAt);
         const timeElapsedMs = now - transactionTime;
         const timeElapsedSeconds = Math.floor(timeElapsedMs / 1000);
         const ONE_MINUTE_MS = 60000;
 
-        // Validar ventana de 1 minuto
         if (timeElapsedMs > ONE_MINUTE_MS) {
             await createTransactionAudit({
                 transactionId: deposit.id,
@@ -641,18 +605,16 @@ export const revertDeposit = async (req, res) => {
         const cashbackToRevert = 0;
         const couponId = null;
 
-        // AHORA inicia la transacción Sequelize
         const dbTransaction = await sequelize.transaction();
 
         try {
-            // Buscar el depósito nuevamente con lock para transacción
+
             deposit = await Deposit.findOne({
                 where: { id },
                 transaction: dbTransaction,
                 lock: dbTransaction.LOCK.UPDATE
             });
 
-            // Buscar la cuenta con lock
             const account = await Account.findByPk(deposit.accountId, {
                 transaction: dbTransaction,
                 lock: dbTransaction.LOCK.UPDATE
@@ -670,7 +632,6 @@ export const revertDeposit = async (req, res) => {
             const currentBalance = getNumericAmount(account.accountBalance);
             const totalToRevert = depositAmount + cashbackToRevert;
 
-            // Validar saldo
             if (currentBalance < totalToRevert) {
                 await createTransactionAudit({
                     transactionId: deposit.id,
@@ -695,12 +656,10 @@ export const revertDeposit = async (req, res) => {
                 });
             }
 
-            // Revertir saldo
             const newBalance = currentBalance - totalToRevert;
             account.accountBalance = newBalance.toFixed(2);
             await account.save({ transaction: dbTransaction });
 
-            // Actualizar transacción
             deposit.status = 'REVERTIDA';
             deposit.isReverted = true;
             deposit.revertedAt = now;
@@ -709,10 +668,8 @@ export const revertDeposit = async (req, res) => {
             deposit.description = `${deposit.description} | REVERTIDA por ${actorUserId}: ${deposit.revertReason}`;
             await deposit.save({ transaction: dbTransaction });
 
-            // Commit de la transacción local
             await dbTransaction.commit();
 
-            // Registrar auditoría
             await createTransactionAudit({
                 transactionId: deposit.id,
                 actorUserId,

@@ -315,7 +315,7 @@ export const register = async (req, res) => {
 
     if (!emailSent && process.env.NODE_ENV === 'development') {
       response.devVerificationToken = verificationToken;
-      response.devVerifyEndpoint = '/nexusBank/v1/auth/verify-email';
+      response.devVerifyEndpoint = '/api/v1/auth/verify-email';
     }
 
     return res.status(201).json(response);
@@ -412,7 +412,7 @@ export const resendVerification = async (req, res) => {
       if (process.env.NODE_ENV === 'development') {
         response.devError = emailError.message;
         response.devVerificationToken = verificationToken;
-        response.devVerifyEndpoint = '/nexusBank/v1/auth/verify-email';
+        response.devVerifyEndpoint = '/api/v1/auth/verify-email';
       }
 
       return res.status(502).json(response);

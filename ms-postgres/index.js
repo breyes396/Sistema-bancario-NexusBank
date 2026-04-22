@@ -24,6 +24,7 @@ const start = async () => {
     app.listen(PORT, () => {
       console.log(`ms-postgres running on port ${PORT}`);
       console.log(`Health check: http://localhost:${PORT}${BASE_PATH}/health`);
+      console.log(`Swagger docs: http://localhost:${PORT}/api-docs`);
     });
   } catch (error) {
     console.error(`Error starting ms-postgres: ${error.message}`);

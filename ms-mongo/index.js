@@ -15,6 +15,7 @@ const start = async () => {
     app.listen(PORT, () => {
       console.log(`ms-mongo running on port ${PORT}`);
       console.log(`Health check: http://localhost:${PORT}${BASE_PATH}/health`);
+      console.log(`Swagger docs: http://localhost:${PORT}/api-docs`);
     });
   } catch (error) {
     console.error(`Error starting ms-mongo: ${error.message}`);

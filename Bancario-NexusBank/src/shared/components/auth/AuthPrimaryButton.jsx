@@ -4,7 +4,18 @@ export const AuthPrimaryButton = ({ type = 'button', loading = false, loadingTex
   return (
     <button
       type={type}
-      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors duration-200 text-sm disabled:opacity-50"
+      className="auth-button auth-button-primary"
+      style={{ opacity: isDisabled ? 0.6 : 1 }}
+      onMouseEnter={(e) => {
+        if (!isDisabled) {
+          e.target.style.backgroundColor = '#1F3D70';
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!isDisabled) {
+          e.target.style.backgroundColor = '#2D5899';
+        }
+      }}
       disabled={isDisabled}
     >
       {loading ? loadingText : children}

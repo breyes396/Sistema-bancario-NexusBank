@@ -10,7 +10,7 @@ export const ResetPasswordPage = () => {
   return (
     <AuthContainer>
       <AuthCard
-        logoSrc="/src/assets/img/Logo.png"
+        logoSrc="/src/assets/img/Logo.jpg"
         logoAlt="NexusBank"
         title="Restablecer contraseña"
         subtitle="Crea una nueva contraseña para volver a entrar a tu cuenta"

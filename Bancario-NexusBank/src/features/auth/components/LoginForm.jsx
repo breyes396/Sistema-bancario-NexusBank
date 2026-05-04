@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore.js';
 import { showError, showSuccess } from '../../../shared/utils/toast.js';
-import { AuthInput, AuthPrimaryButton, AuthSwitchLink } from '../../../shared/components/auth/index.js';
+import { AuthInput, AuthPrimaryButton, AuthSecondaryButton, AuthSwitchLink } from '../../../shared/components/auth/index.js';
 
 export const LoginForm = ({ onForgot }) => {
   const navigate = useNavigate();
@@ -36,12 +36,12 @@ export const LoginForm = ({ onForgot }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+    <form onSubmit={handleSubmit(onSubmit)} className="auth-form">
       <AuthInput
         id="emailOrUsername"
-        label="Email o Usuario"
+        label="Número de usuario o correo"
         type="text"
-        placeholder="correo@ejemplo.com o usuario"
+        placeholder="usuario@correo.com"
         register={register}
         rules={{
           required: 'Este campo es obligatorio',
@@ -63,15 +63,27 @@ export const LoginForm = ({ onForgot }) => {
         autoComplete="current-password"
       />
 
-      {error && <p className="text-red-600 text-xs mt-1">{error}</p>}
+      <div className="auth-inline-row">
+        <label className="auth-remember">
+          <input type="checkbox" style={{ accentColor: '#2D5899' }} />
+          <span>Recordar este dispositivo</span>
+        </label>
+      </div>
+
+      {error && <p className="auth-error">{error}</p>}
 
       <AuthPrimaryButton type="submit" loading={loading} loadingText="Iniciando...">
-        Iniciar Sesión
+        Ingresar a mi cuenta
       </AuthPrimaryButton>
 
+      <AuthSecondaryButton type="button" onClick={onForgot}>
+        Se me olvidó la contraseña
+      </AuthSecondaryButton>
+
       <AuthSwitchLink
-        actionText="¿Olvidaste tu contraseña?"
-        onClick={onForgot}
+        prefixText="¿No tienes cuenta?"
+        actionText="Regístrate aquí"
+        onClick={() => navigate('/signup')}
       />
     </form>
   );

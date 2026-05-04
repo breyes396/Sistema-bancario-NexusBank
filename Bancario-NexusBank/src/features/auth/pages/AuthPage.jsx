@@ -9,7 +9,7 @@ export const AuthPage = () => {
   return (
     <AuthContainer>
       <AuthCard
-        logoSrc="/src/assets/img/Logo.png"
+        logoSrc="/src/assets/img/Logo.jpg"
         logoAlt="NexusBank"
         title={isForgot ? 'Recuperar Contraseña' : 'Bienvenido de Nuevo'}
         subtitle={

@@ -96,10 +96,10 @@ export const validateRegister = [
 ];
 
 export const validateLogin = [
-  body('email')
-    .isEmail()
-    .withMessage('Email invalido')
-    .normalizeEmail(),
+  body('emailOrUsername')
+    .notEmpty()
+    .withMessage('Email o usuario es requerido')
+    .trim(),
   body('password')
     .notEmpty()
     .withMessage('Password es requerido'),

@@ -33,17 +33,27 @@ import {
 const PASSWORD_RESET_EXPIRES_MINUTES = 60;
 
 export const login = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, emailOrUsername } = req.body;
   try {
-    if (!email || !password) {
+    if ((!email && !emailOrUsername) || !password) {
       return sendError(res, {
         status: 400,
         code: ERROR_CODES.VALIDATION_ERROR,
-        message: 'Email y password son requeridos'
+        message: 'Email/Usuario y password son requeridos'
       });
     }
 
-    const user = await User.findOne({ where: { email } });
+    let user = null;
+    const identifier = emailOrUsername || email;
+
+    if (identifier.includes && identifier.includes('@')) {
+      // it's an email
+      user = await User.findOne({ where: { email: identifier } });
+    } else {
+      // treat as username -> find profile then user
+      const profile = await UserProfile.findOne({ where: { Username: identifier } });
+      if (profile) user = await User.findByPk(profile.UserId);
+    }
     if (!user) {
       await recordAuditEvent({
         req,
@@ -53,7 +63,7 @@ export const login = async (req, res) => {
         result: 'DENIED',
         beforeState: null,
         afterState: null,
-        metadata: { email, reason: 'USER_NOT_FOUND' }
+        metadata: { identifier, reason: 'USER_NOT_FOUND' }
       });
 
       return sendError(res, {

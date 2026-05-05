@@ -1,7 +1,7 @@
 import { Card, Typography } from '@material-tailwind/react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../../auth/store/authStore.js';
-import { showSuccess } from '../../../shared/utils/toast.js';
+import { useAuthStore } from '../../features/auth/store/authStore.js';
+import { showSuccess } from '../../shared/utils/toast.js';
 
 export const ClientPage = () => {
   const navigate = useNavigate();

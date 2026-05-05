@@ -1,6 +1,6 @@
 import { Button, Card, Typography } from '@material-tailwind/react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../../auth/store/authStore.js';
+import { useAuthStore } from '../store/authStore.js';
 import { showSuccess } from '../../../shared/utils/toast.js';
 
 export const DashboardPage = () => {

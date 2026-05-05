@@ -2,8 +2,8 @@ import { Route, Routes } from 'react-router-dom';
 import { AuthPage } from '../../features/auth/pages/AuthPage.jsx';
 import { SignupPage } from '../../features/auth/pages/SignupPage.jsx';
 import { ResetPasswordPage } from '../../features/auth/pages/ResetPasswordPage.jsx';
-import { DashboardPage } from '../../features/dashboard/pages/DashboardPage.jsx';
-import { ClientPage } from '../../features/dashboard/pages/ClientPage.jsx';
+import { DashboardPage } from '../../features/auth/pages/InicioSesion.jsx';
+import { ClientPage } from '../../app/layouts/ClientPage.jsx';
 
 export const AppRoutes = () => {
     return (

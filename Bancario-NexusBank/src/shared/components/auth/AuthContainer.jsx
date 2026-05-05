@@ -1,3 +1,5 @@
+import AnimatedLogo from './AnimatedLogo.jsx';
+
 export const AuthContainer = ({ children }) => {
   return (
     <div className="auth-root">
@@ -5,7 +7,7 @@ export const AuthContainer = ({ children }) => {
         <div className="auth-split">
           <div className="auth-left">
             <div>
-              <img className="auth-left-logo" src="/src/assets/img/Logo.jpg" alt="NexusBank" />
+              <AnimatedLogo />
               <h2 className="auth-brand">NexusBank</h2>
 
               <h3 className="auth-hero">

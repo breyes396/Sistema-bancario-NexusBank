@@ -85,7 +85,7 @@ export const LoginForm = ({ onForgot }) => {
       <AuthSwitchLink
         prefixText="¿No tienes cuenta?"
         actionText="Regístrate aquí"
-        onClick={() => navigate('/CrearCuenta')}
+        onClick={() => navigate('/register')}
       />
     </form>
   );

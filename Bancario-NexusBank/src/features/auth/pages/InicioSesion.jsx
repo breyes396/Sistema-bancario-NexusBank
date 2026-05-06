@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore.js';
 import { showSuccess } from '../../../shared/utils/toast.js';
 
-export const DashboardPage = () => {
+export const InicioSesion = () => {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
@@ -19,7 +19,7 @@ export const DashboardPage = () => {
       <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-5xl items-center justify-center">
         <Card className="w-full border border-white/10 bg-slate-900/70 p-8 shadow-2xl shadow-black/30 backdrop-blur">
           <Typography variant="h2" className="text-3xl font-black text-white">
-            Dashboard GastroFlow
+            Inicio de Sesión
           </Typography>
           <Typography className="mt-3 max-w-2xl text-slate-300">
             La sesión está activa y el estado global conserva el token y los datos básicos del usuario.

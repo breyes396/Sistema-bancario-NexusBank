@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import animationVideo from '../../../assets/animation/Sinfondo.webm';
 
 export const AnimatedLogo = () => {
   const [done, setDone] = useState(false);
@@ -17,7 +18,7 @@ export const AnimatedLogo = () => {
     <div className="animated-logo-root">
       <video
         className={`animated-logo-video ${fadeOutVideo ? 'is-hidden' : ''}`}
-        src="/src/assets/img/Sinfondo.webm"
+        src={animationVideo}
         autoPlay
         muted
         playsInline

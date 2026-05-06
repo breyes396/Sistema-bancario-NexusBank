@@ -28,17 +28,20 @@ export const useAuthStore = create(
           set({ loading: true, error: null });
 
           const res = await loginRequest({ emailOrUsername, password });
-          const { data } = res;
+          // axios response: res.data is the payload from the server
+          const payload = res.data || {};
+          const payloadData = payload.data || {};
 
           set({
-            user: data.userDetails,
-            token: data.token,
-            expiresAt: data.expiresAt,
+            user: payloadData.user || null,
+            token: payloadData.token || null,
+            expiresAt: payloadData.expiresAt || null,
             loading: false,
-            isAuthenticated: true,
+            isAuthenticated: !!payloadData.token,
           });
 
-          return { success: true, data };
+          // For compatibility with components expecting `userDetails`
+          return { success: true, data: { userDetails: payloadData.user, token: payloadData.token } };
         } catch (error) {
           const message = error.response?.data?.message || 'Error de autenticación';
 

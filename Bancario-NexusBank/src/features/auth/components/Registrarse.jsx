@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { showError, showSuccess } from '../../../shared/utils/toast.js';
 import { AuthInput, AuthPrimaryButton, AuthSwitchLink } from '../../../shared/components/auth/index.js';
 
-export const SignupForm = () => {
+export const Registrarse = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = React.useState(false);
 

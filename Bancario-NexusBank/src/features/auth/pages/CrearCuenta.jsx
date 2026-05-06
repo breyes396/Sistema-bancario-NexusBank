@@ -1,7 +1,7 @@
-import { SignupForm } from '../components/SignupForm.jsx';
+import { Registrarse } from '../components/Registrarse.jsx';
 import { AuthCard, AuthContainer } from '../../../shared/components/auth/index.js';
 
-export const SignupPage = () => {
+export const CrearCuenta = () => {
   return (
     <AuthContainer>
       <AuthCard
@@ -10,7 +10,7 @@ export const SignupPage = () => {
         title="Crear Cuenta"
         subtitle="Únete a NexusBank y gestiona tu dinero de forma inteligente"
       >
-        <SignupForm />
+        <Registrarse />
       </AuthCard>
     </AuthContainer>
   );

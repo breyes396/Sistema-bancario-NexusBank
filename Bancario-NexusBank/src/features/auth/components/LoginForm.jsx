@@ -20,9 +20,11 @@ export const LoginForm = ({ onForgot }) => {
     const result = await login(data);
 
     if (result.success) {
-      const user = result.data?.userDetails;
+      const user = result.data?.userDetails || useAuthStore.getState().user;
 
-      if (user?.role === 'PLATFORM_ADMIN') {
+      const isAdmin = user?.role === 'PLATFORM_ADMIN' || user?.role === 'Admin' || user?.role === 'Administrador';
+
+      if (isAdmin) {
         navigate('/dashboard');
       } else {
         navigate('/client');
@@ -83,7 +85,7 @@ export const LoginForm = ({ onForgot }) => {
       <AuthSwitchLink
         prefixText="¿No tienes cuenta?"
         actionText="Regístrate aquí"
-        onClick={() => navigate('/signup')}
+        onClick={() => navigate('/CrearCuenta')}
       />
     </form>
   );

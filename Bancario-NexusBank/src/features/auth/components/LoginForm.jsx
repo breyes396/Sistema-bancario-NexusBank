@@ -27,7 +27,7 @@ export const LoginForm = ({ onForgot }) => {
       if (isAdmin) {
         navigate('/dashboard');
       } else {
-        navigate('/client');
+        navigate('/dashboard');
       }
 
       showSuccess('¡Bienvenido de nuevo!');

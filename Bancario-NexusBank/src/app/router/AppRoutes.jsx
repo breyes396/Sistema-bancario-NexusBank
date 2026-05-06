@@ -3,7 +3,7 @@ import { AuthPage } from '../../features/auth/pages/AuthPage.jsx';
 import { CrearCuenta } from '../../features/auth/pages/CrearCuenta.jsx';
 import { ResetPasswordPage } from '../../features/auth/pages/ResetPasswordPage.jsx';
 import { InicioSesion } from '../../features/auth/pages/InicioSesion.jsx';
-import { ClientPage } from '../../app/layouts/ClientPage.jsx';
+import { ProtectedRoute } from '../../shared/components/auth/ProtectedRoute.jsx';
 
 export const AppRoutes = () => {
     return (
@@ -11,9 +11,14 @@ export const AppRoutes = () => {
             <Route path="/" element={<AuthPage />} />
             <Route path="/CrearCuenta" element={<CrearCuenta />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route path="/dashboard" element={<InicioSesion />} />
-            <Route path="/InicioSesion" element={<InicioSesion />} />
-            <Route path="/client" element={<ClientPage />} />
+            <Route
+                path="/dashboard"
+                element={
+                    <ProtectedRoute>
+                        <InicioSesion />
+                    </ProtectedRoute>
+                }
+            />
         </Routes>
     )
-}  
+}

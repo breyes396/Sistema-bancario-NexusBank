@@ -1,51 +1,31 @@
-import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../../features/auth/store/authStore.js';
-import { showSuccess } from '../../utils/toast.js';
-import { FaSignOutAlt, FaUser } from 'react-icons/fa';
 
 export const Navbar = () => {
-  const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
-  const logout = useAuthStore((state) => state.logout);
-
-  const handleLogout = () => {
-    logout();
-    showSuccess('Sesión cerrada correctamente');
-    navigate('/', { replace: true });
-  };
 
   return (
-    <nav className="bg-gradient-to-r from-[#2D5899] to-[#1A2E52] shadow-lg sticky top-0 z-50">
-      <div className="flex items-center justify-between px-6 py-4">
-        {/* Logo */}
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-lg bg-[#C8A84B] flex items-center justify-center">
-            <span className="font-bold text-white text-lg">NB</span>
-          </div>
-          <span className="text-xl font-bold text-white">NexusBank</span>
-        </div>
+    <header className="glass-navbar fixed top-0 left-0 right-0 h-20 z-10 md:pl-64 flex items-center justify-between px-6 lg:px-10 animate-fade-in-up">
+      <div className="flex items-center">
+        {/* Mobile menu button could go here */}
+        <h2 className="text-xl font-bold text-[#1A2E52] hidden sm:block">Panel de Cliente</h2>
+      </div>
 
-        {/* Right Section */}
-        <div className="flex items-center gap-6">
-          {/* User Info */}
-          <div className="flex items-center gap-2 text-white">
-            <FaUser className="text-[#C8A84B]" />
-            <span className="text-sm font-medium">
-              {user?.username || user?.email || 'Cliente'}
-            </span>
-          </div>
+      <div className="flex items-center space-x-6">
+        <button className="relative p-2 text-gray-500 hover:text-[#2D5899] transition bg-white/50 rounded-full shadow-sm hover-lift">
+          <span className="text-xl">🔔</span>
+          <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"></span>
+        </button>
 
-          {/* Logout Button */}
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 rounded-lg bg-red-600 hover:bg-red-700 px-4 py-2 text-white transition-colors"
-          >
-            <FaSignOutAlt size={16} />
-            <span className="text-sm font-medium">Salir</span>
-          </button>
+        <div className="flex items-center space-x-3 border-l pl-6 border-gray-300/50">
+          <div className="text-right hidden sm:block">
+            <p className="text-sm font-bold text-[#1A2E52]">{user?.firstName || 'Usuario'}</p>
+            <p className="text-xs text-gray-500">Cliente Standard</p>
+          </div>
+          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#2D5899] to-[#C8A84B] flex items-center justify-center text-white font-bold shadow-md">
+            {user?.firstName?.charAt(0) || 'U'}
+          </div>
         </div>
       </div>
-    </nav>
+    </header>
   );
 };
-

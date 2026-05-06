@@ -1,10 +1,12 @@
 import { AuthContainer, AuthCard } from '../../../shared/components/auth/index.js';
-import { showError } from '../../../shared/utils/toast.js';
 import { LoginForm } from '../components/LoginForm.jsx';
+import { useNavigate } from 'react-router-dom';
 
 export const AuthPage = () => {
+  const navigate = useNavigate();
+
   const handleForgotPassword = () => {
-    showError('La recuperación de contraseña aún no está disponible');
+    navigate('/reset-password');
   };
 
   return (
@@ -12,11 +14,8 @@ export const AuthPage = () => {
       <AuthCard
         logoSrc="/src/assets/img/Logo.jpg"
         logoAlt="NexusBank"
-        title={isForgot ? 'Recuperar Contraseña' : 'Bienvenido de Nuevo'}
-        subtitle={
-          isForgot ? 'Ingresa tu correo para recuperar contraseña' : 'Ingresa a tu cuenta NexusBank'
-        }
-
+        title="Bienvenido de Nuevo"
+        subtitle="Ingresa a tu cuenta NexusBank"
       >
         <LoginForm onForgot={handleForgotPassword} />
       </AuthCard>

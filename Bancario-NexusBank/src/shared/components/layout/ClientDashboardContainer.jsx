@@ -4,11 +4,11 @@ import { Sidebar } from './Sidebar.jsx';
 
 export const ClientDashboardContainer = () => {
   return (
-    <div className="min-h-screen bg-[#F7F9FC]">
+    <div className="dashboard-bg min-h-screen text-[#1A2E52] font-sans selection:bg-[#C8A84B] selection:text-white">
       <Navbar />
       <div className="flex">
         <Sidebar />
-        <main className="flex-1 md:ml-60 mt-20 md:mt-0 p-6 md:p-8">
+        <main className="flex-1 md:ml-64 mt-20 p-6 lg:p-10 max-w-7xl mx-auto">
           <Outlet />
         </main>
       </div>

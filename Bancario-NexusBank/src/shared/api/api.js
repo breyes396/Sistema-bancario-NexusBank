@@ -3,7 +3,7 @@ import { useAuthStore } from '../../features/auth/store/authStore.js';
 
 const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3007/api/v1';
 
-export const axiosClient = axios.create({
+export const axiosAuth = axios.create({
   baseURL,
   timeout: 10000,
   headers: {
@@ -11,7 +11,7 @@ export const axiosClient = axios.create({
   },
 });
 
-axiosClient.interceptors.request.use((config) => {
+axiosAuth.interceptors.request.use((config) => {
   const token = useAuthStore.getState().token;
 
   if (token) {

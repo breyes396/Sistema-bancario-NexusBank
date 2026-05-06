@@ -6,6 +6,7 @@ import { ProtectedRoute } from '../../shared/components/auth/ProtectedRoute.jsx'
 import { ClientDashboardContainer } from '../../shared/components/layout/ClientDashboardContainer.jsx';
 import { ClientDashboard } from '../../features/client/pages/ClientDashboard.jsx';
 
+
 export const AppRoutes = () => {
     return (
         <Routes>
@@ -22,6 +23,7 @@ export const AppRoutes = () => {
             >
                 <Route index element={<ClientDashboard />} />
             </Route>
+
         </Routes>
     )
 }

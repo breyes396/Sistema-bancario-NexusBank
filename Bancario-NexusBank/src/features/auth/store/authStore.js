@@ -56,7 +56,7 @@ export const useAuthStore = create(
       },
     }),
     {
-      name: 'gastroflow-auth-storage',
+      name: 'nexusbank-auth-storage',
       partialize: (state) => ({
         user: state.user,
         token: state.token,

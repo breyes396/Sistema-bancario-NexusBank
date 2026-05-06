@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { AuthContainer, AuthCard } from '../../../shared/components/auth/index.js';
+import { showError } from '../../../shared/utils/toast.js';
 import { LoginForm } from '../components/LoginForm.jsx';
-import { ForgotPasswordForm } from '../components/ForgotPasswordForm.jsx';
-import { AuthCard, AuthContainer } from '../../../shared/components/auth/index.js';
 
 export const AuthPage = () => {
-  const [isForgot, setIsForgot] = useState(false);
+  const handleForgotPassword = () => {
+    showError('La recuperación de contraseña aún no está disponible');
+  };
 
   return (
     <AuthContainer>
@@ -15,16 +16,9 @@ export const AuthPage = () => {
         subtitle={
           isForgot ? 'Ingresa tu correo para recuperar contraseña' : 'Ingresa a tu cuenta NexusBank'
         }
+
       >
-        {isForgot ? (
-          <ForgotPasswordForm
-            onSwitch={() => {
-              setIsForgot(false);
-            }}
-          />
-        ) : (
-          <LoginForm onForgot={() => setIsForgot(true)} />
-        )}
+        <LoginForm onForgot={handleForgotPassword} />
       </AuthCard>
     </AuthContainer>
   );

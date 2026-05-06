@@ -42,9 +42,8 @@ export const Sidebar = () => {
 
       {/* Sidebar */}
       <aside
-        className={`${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        } fixed left-0 top-16 z-30 h-[calc(100vh-4rem)] w-64 transform bg-[#1A2E52] transition-transform duration-300 ease-in-out md:relative md:top-0 md:translate-x-0 md:h-[calc(100vh-4rem)]`}
+        className={`${isOpen ? 'translate-x-0' : '-translate-x-full'
+          } fixed left-0 top-16 z-30 h-[calc(100vh-4rem)] w-64 transform bg-[#1A2E52] transition-transform duration-300 ease-in-out md:relative md:top-0 md:translate-x-0 md:h-[calc(100vh-4rem)]`}
       >
         <div className="flex flex-col gap-2 p-4">
           {menuItems.map((item) => {
@@ -58,11 +57,10 @@ export const Sidebar = () => {
                   navigate(item.path);
                   setIsOpen(false);
                 }}
-                className={`flex items-center gap-3 rounded-lg px-4 py-3 text-left font-medium transition-colors ${
-                  active
+                className={`flex items-center gap-3 rounded-lg px-4 py-3 text-left font-medium transition-colors ${active
                     ? 'bg-[#C8A84B] text-[#1A2E52]'
                     : 'text-white hover:bg-[#2D5899]'
-                }`}
+                  }`}
               >
                 <Icon size={20} />
                 <span>{item.label}</span>

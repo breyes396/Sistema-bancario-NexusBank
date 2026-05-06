@@ -88,6 +88,7 @@ export const useClientStore = create((set) => ({
         mainAccount: data.account,
         userProfile: data.profile,
         transactions: data.transactions,
+        accounts: data.accounts || [],
         loading: false,
       });
 

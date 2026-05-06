@@ -25,9 +25,10 @@ export const LoginForm = ({ onForgot }) => {
       const isAdmin = user?.role === 'PLATFORM_ADMIN' || user?.role === 'Admin' || user?.role === 'Administrador';
 
       if (isAdmin) {
-        navigate('/dashboard');
+        showError('La vista de administrador no está disponible. Solo clientes.');
+        return;
       } else {
-        navigate('/dashboard');
+        navigate('/clientdashboard');
       }
 
       showSuccess('¡Bienvenido de nuevo!');

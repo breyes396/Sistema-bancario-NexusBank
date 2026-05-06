@@ -37,23 +37,12 @@ export const ClientDashboard = () => {
     );
   }
 
-  // Datos por defecto si no existen
-  const displayAccounts = accounts.length > 0 ? accounts : [
-    { name: 'Cuenta de ahorros', accountNumber: '****4821', balance: 22100.00 },
-    { name: 'Cuenta corriente', accountNumber: '****3035', balance: 18450.00 },
-    { name: 'Inversión a plazo', accountNumber: '****2172', balance: 7770.00 },
-  ];
+  const displayAccounts = accounts.length > 0 ? accounts : (mainAccount ? [mainAccount] : []);
+  const displayTransactions = transactions;
 
-  const displayTransactions = transactions.length > 0 ? transactions : [
-    { type: 'expense', description: 'Pago de servicios', date: '4 mayo 2026', amount: -340.00 },
-    { type: 'income', description: 'Depósito recibido', date: '3 mayo 2026', amount: 5000.00 },
-    { type: 'expense', description: 'Transferencia enviada', date: '2 mayo 2026', amount: -1200.00 },
-    { type: 'income', description: 'Redimiento plazo fijo', date: '1 mayo 2026', amount: 210.00 },
-  ];
-
-  const totalBalance = mainAccount?.balance || 48320.00;
-  const totalIncomes = mainAccount?.totalIncomes || 12400.00;
-  const totalExpenses = mainAccount?.totalExpenses || 6850.00;
+  const totalBalance = mainAccount?.balance || 0;
+  const totalIncomes = mainAccount?.totalIncomes || 0;
+  const totalExpenses = mainAccount?.totalExpenses || 0;
 
   return (
     <div className="space-y-6">
@@ -118,18 +107,20 @@ export const ClientDashboard = () => {
         {/* Mis Cuentas */}
         <div className="lg:col-span-1 space-y-4">
           <h3 className="text-xl font-bold text-[#1A2E52]">Mis Cuentas</h3>
-          {displayAccounts.map((account, idx) => (
+          {displayAccounts.length > 0 ? displayAccounts.map((account, idx) => (
             <div
               key={idx}
               className="bg-white rounded-xl p-4 shadow hover:shadow-md transition cursor-pointer"
             >
-              <p className="text-gray-700 font-medium text-sm">{account.name}</p>
-              <p className="text-gray-400 text-xs mt-1">{account.accountNumber || account.number}</p>
+              <p className="text-gray-700 font-medium text-sm">{account.name || 'Cuenta Principal'}</p>
+              <p className="text-gray-400 text-xs mt-1">{account.accountNumber || account.number || 'N/A'}</p>
               <p className="text-[#2D5899] font-bold text-lg mt-3">
                 Q {(account.balance || 0).toLocaleString('es-GT', { minimumFractionDigits: 2 })}
               </p>
             </div>
-          ))}
+          )) : (
+             <p className="text-gray-500 text-sm py-4">No hay cuentas disponibles.</p>
+          )}
         </div>
 
         {/* Acciones Rápidas */}
@@ -158,7 +149,7 @@ export const ClientDashboard = () => {
       <div className="bg-white rounded-2xl p-6 shadow">
         <h3 className="text-xl font-bold text-[#1A2E52] mb-4">Movimientos Recientes</h3>
         <div className="space-y-3">
-          {displayTransactions.map((tx, idx) => (
+          {displayTransactions.length > 0 ? displayTransactions.map((tx, idx) => (
             <div key={idx} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
               <div className="flex items-center space-x-4">
                 <div
@@ -169,15 +160,17 @@ export const ClientDashboard = () => {
                   {tx.type === 'expense' || tx.amount < 0 ? '↗' : '↙'}
                 </div>
                 <div>
-                  <p className="text-gray-700 font-medium">{tx.description}</p>
-                  <p className="text-gray-400 text-xs">{tx.date}</p>
+                  <p className="text-gray-700 font-medium">{tx.description || tx.concept || 'Movimiento'}</p>
+                  <p className="text-gray-400 text-xs">{tx.date || new Date(tx.createdAt).toLocaleDateString()}</p>
                 </div>
               </div>
               <p className={`font-bold ${tx.type === 'expense' || tx.amount < 0 ? 'text-red-600' : 'text-green-600'}`}>
-                {tx.type === 'expense' || tx.amount < 0 ? '−' : '+'} Q {Math.abs(tx.amount).toLocaleString('es-GT', { minimumFractionDigits: 2 })}
+                {tx.type === 'expense' || tx.amount < 0 ? '−' : '+'} Q {Math.abs(tx.amount || 0).toLocaleString('es-GT', { minimumFractionDigits: 2 })}
               </p>
             </div>
-          ))}
+          )) : (
+            <p className="text-gray-500 text-sm py-4">No hay movimientos recientes.</p>
+          )}
         </div>
         <button className="w-full mt-4 py-2 text-[#2D5899] hover:bg-gray-50 rounded-lg transition font-medium">
           Ver todos los movimientos

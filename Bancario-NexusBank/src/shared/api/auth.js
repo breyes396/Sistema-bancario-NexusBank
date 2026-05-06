@@ -1,13 +1,13 @@
-import { axiosClient } from './api.js';
+import { axiosAuthClient } from './api.js';
 
 export const login = async (data) => {
-  return axiosClient.post('/auth/login', data);
+  return axiosAuthClient.post('/auth/login', data);
 };
 
 export const forgotPassword = async (data) => {
-  return axiosClient.post('/auth/forgot-password', data);
+  return axiosAuthClient.post('/auth/forgot-password', data);
 };
 
 export const resetPassword = async (data) => {
-  return axiosClient.post('/auth/reset-password', data);
+  return axiosAuthClient.post('/auth/reset-password', data);
 };

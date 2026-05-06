@@ -48,16 +48,18 @@ export const clientAccountService = {
   // Obtener datos del dashboard
   getDashboardData: async () => {
     try {
-      const [account, profile, transactions] = await Promise.all([
+      const [account, profile, transactions, accounts] = await Promise.all([
         clientAccountService.getMainAccount(),
         clientAccountService.getUserProfile(),
         clientAccountService.getRecentTransactions(5),
+        clientAccountService.getAllAccounts(),
       ]);
 
       return {
         account,
         profile,
         transactions,
+        accounts,
       };
     } catch (error) {
       console.error('Error fetching dashboard data:', error);

@@ -13,7 +13,7 @@ export const AuthPage = () => {
         logoAlt="NexusBank"
         title={isForgot ? 'Recuperar Contraseña' : 'Bienvenido de Nuevo'}
         subtitle={
-          isForgot ? 'Ingresa tu correo para recuperar contraseña' : 'Ingresa a tu cuenta de administrador NexusBank'
+          isForgot ? 'Ingresa tu correo para recuperar contraseña' : 'Ingresa a tu cuenta NexusBank'
         }
       >
         {isForgot ? (

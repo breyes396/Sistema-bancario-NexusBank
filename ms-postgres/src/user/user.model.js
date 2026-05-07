@@ -27,6 +27,10 @@ export const User = sequelize.define('User', {
     isVerified: {
         type: DataTypes.BOOLEAN,
         defaultValue: false
+    },
+    isApproved: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
     }
 }, {
     tableName: 'users',

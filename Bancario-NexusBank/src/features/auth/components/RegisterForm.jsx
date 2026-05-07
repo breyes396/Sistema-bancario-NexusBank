@@ -59,7 +59,7 @@ export default function RegisterForm() {
 
       await axiosAuth.post('/auth/register', payload);
 
-      toast.success('¡Solicitud enviada! Tu cuenta está pendiente de aprobación por un administrador.', { duration: 4000 });
+      toast.success('¡Solicitud enviada! Espera a que un administrador apruebe tu cuenta.', { duration: 4000 });
       reset();
       setTimeout(() => {
         navigate('/');
@@ -334,7 +334,7 @@ export default function RegisterForm() {
               <button
                 type="button"
                 className="btn-secondary"
-                onClick={() => navigate('/')}
+                onClick={() => navigate('/login')}
               >
                 ¿Ya tienes cuenta? Inicia Sesión
               </button>

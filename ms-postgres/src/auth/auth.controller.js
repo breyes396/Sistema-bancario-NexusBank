@@ -114,26 +114,54 @@ export const login = async (req, res) => {
 
     const userEmail = await UserEmail.findOne({ where: { userId: user.id } });
     const isVerified = user.isVerified || userEmail?.verified;
-    if (!isVerified) {
-      await recordAuditEvent({
-        req,
-        actorUserId: user.id,
-        action: AUDIT_ACTIONS.LOGIN,
-        resource: AUDIT_RESOURCES.AUTH,
-        result: 'DENIED',
-        beforeState: { isVerified: false },
-        afterState: { isVerified: false },
-        metadata: { email, reason: 'EMAIL_NOT_VERIFIED' }
-      });
+    const roleName = await getUserRoleName(user.id);
+    const normalizedRole = normalizeRole(roleName);
 
-      return sendError(res, {
-        status: 403,
-        code: ERROR_CODES.AUTH_EMAIL_NOT_VERIFIED,
-        message: 'Debes verificar tu email antes de iniciar sesion'
-      });
+    // SOLO validar aprobación y verificación si el usuario es CLIENTE
+    if (normalizedRole === 'Client') {
+      // Validar que está aprobado
+      if (!user.isApproved) {
+        await recordAuditEvent({
+          req,
+          actorUserId: user.id,
+          action: AUDIT_ACTIONS.LOGIN,
+          resource: AUDIT_RESOURCES.AUTH,
+          result: 'DENIED',
+          beforeState: { isApproved: false },
+          afterState: { isApproved: false },
+          metadata: { email, reason: 'ACCOUNT_NOT_APPROVED' }
+        });
+
+        return sendError(res, {
+          status: 403,
+          code: 'AUTH_ACCOUNT_NOT_APPROVED',
+          message: 'Tu cuenta está pendiente de aprobación del administrador'
+        });
+      }
+
+      // Validar que está verificado
+      if (!isVerified) {
+        await recordAuditEvent({
+          req,
+          actorUserId: user.id,
+          action: AUDIT_ACTIONS.LOGIN,
+          resource: AUDIT_RESOURCES.AUTH,
+          result: 'DENIED',
+          beforeState: { isVerified: false },
+          afterState: { isVerified: false },
+          metadata: { email, reason: 'EMAIL_NOT_VERIFIED' }
+        });
+
+        return sendError(res, {
+          status: 403,
+          code: ERROR_CODES.AUTH_EMAIL_NOT_VERIFIED,
+          message: 'Debes verificar tu email antes de iniciar sesion'
+        });
+      }
     }
 
-    const roleName = await getUserRoleName(user.id);
+    // Los admins y otros roles NO necesitan aprobación ni verificación
+    
     const token = jwt.sign(
       {
         id: user.id,
@@ -314,28 +342,14 @@ export const register = async (req, res) => {
 
     await transaction.commit();
 
-    const verificationToken = generateEmailVerificationToken(user.id);
-    let emailSent = false;
-
-    try {
-      await sendVerificationFlowEmail({ email, profileName, verificationToken });
-      emailSent = true;
-    } catch (emailError) {
-      console.error('Error enviando email de verificacion:', emailError);
-    }
-
+    // No enviar correo de verificación al crear la cuenta.
+    // La cuenta permanecerá pendiente de aprobación y el flujo de aprobación
+    // se encargará de notificar al usuario cuando su cuenta sea activada.
     const response = {
-      msg: emailSent
-        ? 'Usuario registrado. Revisa tu correo para verificar tu cuenta'
-        : 'Usuario registrado, pero no se pudo enviar el correo de verificacion',
-      emailSent,
+      msg: 'Usuario registrado. La cuenta está pendiente de aprobación por un administrador.',
+      emailSent: false,
       user: { id: user.id, email: user.email }
     };
-
-    if (!emailSent && process.env.NODE_ENV === 'development') {
-      response.devVerificationToken = verificationToken;
-      response.devVerifyEndpoint = '/api/v1/auth/verify-email';
-    }
 
     return res.status(201).json(response);
   } catch (err) {

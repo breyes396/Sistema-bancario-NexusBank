@@ -235,6 +235,24 @@ export const sendAccountCreatedEmail = async (email, name, accountData = {}) => 
     return await sendEmail(email, 'NexusBank - Cuenta creada', html);
 };
 
+export const sendAccountApprovedEmail = async (email, name, token) => {
+    const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
+    const html = `
+        <p>Hola ${name || 'cliente'},</p>
+        <p>¡Excelente noticia! Tu solicitud de cuenta en NexusBank ha sido <strong>aprobada</strong>.</p>
+        <p>Para completar el registro, verifica tu email haciendo clic en el siguiente enlace:</p>
+        <p><a href="${verificationUrl}" style="display: inline-block; padding: 12px 24px; background-color: #C8A84B; color: #082238; text-decoration: none; border-radius: 4px; font-weight: bold;">Verificar Email</a></p>
+        <p>O copia este código de verificación:</p>
+        <p style="font-size: 18px; font-weight: bold; letter-spacing: 2px; font-family: monospace;">${token}</p>
+        <p><strong>Este enlace válido por 24 horas.</strong></p>
+        <p>Una vez verificado, podrás iniciar sesión en tu cuenta.</p>
+        <p>Fecha: ${new Date().toLocaleString('es-ES')}</p>
+        <p><small>Si no solicitaste esta cuenta, por favor contacta con soporte.</small></p>
+    `;
+
+    return await sendEmail(email, 'NexusBank - Cuenta Aprobada ✓', html);
+};
+
 export const sendAccountRejectedEmail = async (email, name, reason) => {
     const html = `
         <p>Hola ${name || 'cliente'},</p>

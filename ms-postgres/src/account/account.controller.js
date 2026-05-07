@@ -12,6 +12,7 @@ import { getUserEmailAndName, sendEmailSafe } from './services/account-contact.s
 import { validateAccountLimitsPayload, isBlockedAccountStatus, validFreezeReasons } from './services/account-rules.service.js';
 import {
     sendAccountCreatedEmail,
+    sendAccountApprovedEmail,
     sendAccountRejectedEmail,
     sendSecurityChangeEmail,
     sendAccountFrozenEmail,
@@ -22,6 +23,7 @@ import {
     AUDIT_RESOURCES,
     recordAuditEvent
 } from '../../services/audit.service.js';
+import { generateEmailVerificationToken } from '../../services/auth/token.service.js';
 
 const findUserByRequestPayload = async ({ userId, email }) => {
     const normalizedUserId = (userId || '').toString().trim();
@@ -381,13 +383,24 @@ export const enableRequestedAccount = async (req, res) => {
             lastAdminChangeReason: reason || 'Habilitacion de cuenta solicitada sin token'
         });
 
-        const accountOwner = await getUserEmailAndName(account.userId);
-        if (accountOwner) {
-            await sendEmailSafe(() => sendAccountCreatedEmail(accountOwner.email, accountOwner.name, {
-                accountNumber: account.accountNumber,
-                accountType: account.accountType,
-                accountBalance: account.accountBalance
-            }));
+        // Generar token de verificación y marcar como aprobado
+        const user = await User.findByPk(account.userId);
+        if (user) {
+            user.isApproved = true;
+            await user.save();
+
+            // Generar token de verificación
+            const verificationToken = generateEmailVerificationToken(user.id);
+
+            // Obtener datos del usuario para el email
+            const accountOwner = await getUserEmailAndName(account.userId);
+            if (accountOwner) {
+                await sendEmailSafe(() => sendAccountApprovedEmail(
+                    accountOwner.email,
+                    accountOwner.name,
+                    verificationToken
+                ));
+            }
         }
 
         return res.status(200).json({

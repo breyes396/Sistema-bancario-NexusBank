@@ -4,8 +4,9 @@ export const clientAccountService = {
   // Obtener datos de la cuenta principal del cliente
   getMainAccount: async () => {
     try {
-      const response = await axiosClient.get('/accounts/main');
-      return response.data?.data || null;
+      const response = await axiosClient.get('/accounts');
+      const accounts = response.data?.data || [];
+      return accounts.length > 0 ? accounts[0] : null;
     } catch (error) {
       console.error('Error fetching main account:', error);
       throw error;
@@ -26,8 +27,8 @@ export const clientAccountService = {
   // Obtener últimos movimientos
   getRecentTransactions: async (limit = 5) => {
     try {
-      const response = await axiosClient.get(`/transactions?limit=${limit}`);
-      return response.data?.data || [];
+      const response = await axiosClient.get(`/client/transactions?limit=${limit}`);
+      return response.data?.data?.transactions || [];
     } catch (error) {
       console.error('Error fetching transactions:', error);
       throw error;
@@ -37,8 +38,8 @@ export const clientAccountService = {
   // Obtener perfil del usuario
   getUserProfile: async () => {
     try {
-      const response = await axiosClient.get('/users/profile');
-      return response.data?.data || null;
+      const response = await axiosClient.get('/auth/profile');
+      return response.data?.profile || response.data || null;
     } catch (error) {
       console.error('Error fetching user profile:', error);
       throw error;

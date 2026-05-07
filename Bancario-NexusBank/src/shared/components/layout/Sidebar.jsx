@@ -40,14 +40,6 @@ export const Sidebar = () => {
         })}
       </nav>
 
-      <div className="p-4 border-t border-gray-200/50">
-        <button
-          onClick={logout}
-          className="w-full flex items-center justify-center px-4 py-3 text-red-500 font-semibold text-sm bg-red-50/50 hover:bg-red-100 rounded-xl transition-colors"
-        >
-          <span className="mr-2">🚪</span> Cerrar Sesión
-        </button>
-      </div>
     </aside>
   );
 };

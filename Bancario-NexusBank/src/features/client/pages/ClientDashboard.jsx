@@ -39,11 +39,34 @@ export const ClientDashboard = () => {
   }
 
   const displayAccounts = accounts.length > 0 ? accounts : (mainAccount ? [mainAccount] : []);
-  const displayTransactions = transactions;
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
 
-  const totalBalance = mainAccount?.balance || 0;
-  const totalIncomes = mainAccount?.totalIncomes || 0;
-  const totalExpenses = mainAccount?.totalExpenses || 0;
+  let calculatedIncomes = 0;
+  let calculatedExpenses = 0;
+
+  transactions.forEach((tx) => {
+    if (tx.status && tx.status !== 'COMPLETADA') return;
+    
+    const txDate = new Date(tx.createdAt || tx.date || tx.updatedAt);
+    if (txDate.getMonth() === currentMonth && txDate.getFullYear() === currentYear) {
+      const amount = Number(tx.amount) || 0;
+      if (tx.type === 'DEPOSITO' || tx.type === 'TRANSFERENCIA_RECIBIDA') {
+        calculatedIncomes += amount;
+      } else if (tx.type === 'RETIRO' || tx.type === 'TRANSFERENCIA_ENVIADA' || tx.type === 'COMPRA') {
+        calculatedExpenses += amount;
+      }
+    }
+  });
+
+  const totalBalance = mainAccount?.accountBalance || mainAccount?.balance || 0;
+  const totalIncomes = calculatedIncomes;
+  const totalExpenses = calculatedExpenses;
+
+  // Limitar movimientos recientes para no saturar la vista
+  const displayTransactions = transactions.slice(0, 5);
+
+  const userName = userProfile?.name || userProfile?.Name || user?.firstName || user?.name || 'Usuario';
 
   return (
     <div className="space-y-8 animate-fade-in-up">
@@ -51,7 +74,7 @@ export const ClientDashboard = () => {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h1 className="text-4xl lg:text-5xl font-extrabold text-[#1A2E52] tracking-tight">
-            Hola, <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2D5899] to-[#C8A84B]">{user?.firstName || 'Usuario'}</span>
+            Hola, <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2D5899] to-[#C8A84B]">{userName}</span>
           </h1>
           <p className="text-gray-500 font-medium mt-2">Aquí tienes el resumen de tus finanzas al día de hoy.</p>
         </div>
@@ -163,7 +186,7 @@ export const ClientDashboard = () => {
                     <p className="text-gray-500 text-sm font-mono mt-1">{account.accountNumber || '**** **** 1234'}</p>
                   </div>
                   <p className="text-[#2D5899] font-bold text-xl">
-                    Q {(account.balance || 0).toLocaleString('es-GT', { minimumFractionDigits: 2 })}
+                    Q {(account.accountBalance || account.balance || 0).toLocaleString('es-GT', { minimumFractionDigits: 2 })}
                   </p>
                 </div>
               </div>
@@ -191,10 +214,10 @@ export const ClientDashboard = () => {
                   <div className="flex items-center space-x-4">
                     <div
                       className={`w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-sm ${
-                        tx.type === 'expense' || tx.amount < 0 ? 'bg-red-50 text-red-500' : 'bg-green-50 text-green-500'
+                        ['RETIRO', 'TRANSFERENCIA_ENVIADA', 'COMPRA'].includes(tx.type) ? 'bg-red-50 text-red-500' : 'bg-green-50 text-green-500'
                       }`}
                     >
-                      {tx.type === 'expense' || tx.amount < 0 ? '🛍️' : '💰'}
+                      {['RETIRO', 'TRANSFERENCIA_ENVIADA', 'COMPRA'].includes(tx.type) ? '🛍️' : '💰'}
                     </div>
                     <div>
                       <p className="font-bold text-[#1A2E52]">{tx.description || tx.concept || 'Transacción'}</p>
@@ -202,10 +225,10 @@ export const ClientDashboard = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className={`font-bold text-lg ${tx.type === 'expense' || tx.amount < 0 ? 'text-red-600' : 'text-green-600'}`}>
-                      {tx.type === 'expense' || tx.amount < 0 ? '−' : '+'} Q {Math.abs(tx.amount || 0).toLocaleString('es-GT', { minimumFractionDigits: 2 })}
+                    <p className={`font-bold text-lg ${['RETIRO', 'TRANSFERENCIA_ENVIADA', 'COMPRA'].includes(tx.type) ? 'text-red-600' : 'text-green-600'}`}>
+                      {['RETIRO', 'TRANSFERENCIA_ENVIADA', 'COMPRA'].includes(tx.type) ? '−' : '+'} Q {Math.abs(tx.amount || 0).toLocaleString('es-GT', { minimumFractionDigits: 2 })}
                     </p>
-                    <p className="text-gray-400 text-xs mt-0.5">Completado</p>
+                    <p className="text-gray-400 text-xs mt-0.5">{tx.status || 'Completado'}</p>
                   </div>
                 </div>
               ))}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AdminNavbar from './AdminNavbar.jsx';
 import AdminSidebar from './AdminSidebar.jsx'; // Make sure the path is case-sensitive
 import { adminDashboardService } from '../../api/adminDashboard.service.js';
@@ -14,6 +15,7 @@ const StatCard = ({ title, value, subtitle, color = '' }) => (
 );
 
 export const AdminDashboardContainer = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('ALL');
   const [currentPage, setCurrentPage] = useState(1);
@@ -222,7 +224,7 @@ export const AdminDashboardContainer = () => {
                 <div 
                   className="mt-6 p-4 rounded-xl text-white font-bold text-center cursor-pointer shadow-lg transform transition hover:scale-105"
                   style={{ background: 'linear-gradient(135deg, #C8A84B, #b0933e)' }}
-                  onClick={() => console.log('Aceptar solicitudes')}
+                  onClick={() => navigate('/AdminDashboard/requests')}
                 >
                   <span className="text-xl mr-2">⏳</span>
                   Ir a Solicitudes Pendientes

@@ -363,10 +363,10 @@ export const enableRequestedAccount = async (req, res) => {
             return res.status(400).json({ success: false, message: 'La cuenta ya se encuentra habilitada' });
         }
 
-        if (account.accountStatus !== 'UNDER_REVIEW') {
+        if (!['UNDER_REVIEW', 'CLOSED'].includes(account.accountStatus)) {
             return res.status(400).json({
                 success: false,
-                message: 'Solo se pueden habilitar cuentas en estado UNDER_REVIEW',
+                message: 'Solo se pueden habilitar cuentas en estado UNDER_REVIEW o CLOSED',
                 data: { currentStatus: account.accountStatus }
             });
         }
@@ -400,6 +400,68 @@ export const enableRequestedAccount = async (req, res) => {
                 accountStatus: account.accountStatus,
                 openedAt: account.openedAt,
                 enabledBy: actorUserId
+            }
+        });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'Error en el servidor', error: error.message });
+    }
+};
+
+export const rejectRequestedAccount = async (req, res) => {
+    try {
+        const actorUserId = req.user?.id;
+        const actorRole = req.user?.role;
+        const { id: accountId } = req.params;
+        const { reason } = req.body || {};
+
+        if (!actorUserId) {
+            return res.status(401).json({ success: false, message: 'Usuario no autenticado' });
+        }
+
+        if (actorRole !== 'Admin') {
+            return res.status(403).json({ success: false, message: 'Acceso denegado. Se requiere rol de Admin' });
+        }
+
+        const account = await Account.findByPk(accountId);
+        if (!account) {
+            return res.status(404).json({ success: false, message: 'Cuenta no encontrada' });
+        }
+
+        if (account.accountStatus !== 'UNDER_REVIEW') {
+            return res.status(400).json({
+                success: false,
+                message: 'Solo se pueden rechazar cuentas en estado UNDER_REVIEW',
+                data: { currentStatus: account.accountStatus }
+            });
+        }
+
+        await account.update({
+            status: false,
+            accountStatus: 'CLOSED',
+            lastAdminChangeBy: actorUserId,
+            lastAdminChangeAt: new Date(),
+            lastAdminChangeType: 'REQUEST_REJECT',
+            lastAdminChangeReason: reason || 'Rechazo de cuenta solicitada'
+        });
+
+        const accountOwner = await getUserEmailAndName(account.userId);
+        if (accountOwner) {
+            await sendEmailSafe(() => sendAccountRejectedEmail(
+                accountOwner.email,
+                accountOwner.name,
+                reason || 'No se cumplieron los requisitos para la apertura de la cuenta.'
+            ));
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'Cuenta rechazada exitosamente',
+            data: {
+                id: account.id,
+                accountNumber: account.accountNumber,
+                status: account.status,
+                accountStatus: account.accountStatus,
+                rejectedBy: actorUserId
             }
         });
     } catch (error) {

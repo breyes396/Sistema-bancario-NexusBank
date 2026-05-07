@@ -1,12 +1,12 @@
 import express from 'express';
 import {
-	login,
-	register,
-	verifyEmail,
-	resendVerification,
-	forgotPassword,
-	resetPassword,
-	getProfile
+  login,
+  register,
+  verifyEmail,
+  resendVerification,
+  forgotPassword,
+  resetPassword,
+  getProfile
 } from './auth.controller.js';
 import {
   validateLogin,
@@ -28,7 +28,9 @@ const router = express.Router();
 
 router.post('/login', loginLimiter, validateLogin, login);
 
-router.post('/register', validateBearerToken, verifyRoles(['Admin', 'Employee']), registerLimiter, validateRegister, register);
+router.post('/register', registerLimiter, validateRegister, register);
+
+router.post('/admin/register', validateBearerToken, verifyRoles(['Admin', 'Employee']), registerLimiter, validateRegister, register);
 
 router.post('/verify-email', verifyEmailLimiter, verifyEmail);
 

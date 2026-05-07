@@ -226,6 +226,8 @@ export const register = async (req, res) => {
   }
 
   const transaction = await sequelize.transaction();
+  const isAdmin = !!req.user; // If req.user exists, the request came through the /admin/register route with a valid token
+
   try {
     const profileName = name || fullName;
     if (!profileName || !phoneNumber) {
@@ -298,11 +300,15 @@ export const register = async (req, res) => {
     await UserRole.create({ UserId: user.id, RoleId: clientRole.id }, { transaction });
 
     const accountNumber = await generateAccountNumber(accountType || 'ahorro');
+    const finalAccountStatus = isAdmin ? 'ACTIVE' : 'UNDER_REVIEW';
+    const finalStatus = isAdmin ? true : false;
+    
     await Account.create({
       accountNumber,
       userId: user.id,
       accountType: accountType || 'ahorro',
-      status: true,
+      status: finalStatus,
+      accountStatus: finalAccountStatus,
       accountBalance: 0
     }, { transaction });
 

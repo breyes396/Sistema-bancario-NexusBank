@@ -27,6 +27,7 @@ export const BASE_PATH = '/api/v1';
 const PUBLIC_PATHS = [
   `${BASE_PATH}/health`,
   `${BASE_PATH}/auth/login`,
+  `${BASE_PATH}/auth/register`,
   `${BASE_PATH}/auth/verify-email`,
   `${BASE_PATH}/auth/resend-verification`,
   `${BASE_PATH}/auth/forgot-password`,

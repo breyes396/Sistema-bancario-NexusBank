@@ -30,5 +30,55 @@ export const adminDashboardService = {
       console.error('Error fetching admin accounts:', error);
       throw error;
     }
+  },
+
+  getDepositRequests: async () => {
+    try {
+      const response = await axiosAdmin.get('/accounts/deposit-requests');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching deposit requests:', error);
+      throw error;
+    }
+  },
+
+  approveDeposit: async (id) => {
+    try {
+      const response = await axiosAdmin.put(`/accounts/deposit-requests/${id}/approve`);
+      return response.data;
+    } catch (error) {
+      console.error('Error approving deposit:', error);
+      throw error;
+    }
+  },
+
+  rejectDeposit: async (id) => {
+    try {
+      const response = await axiosAdmin.put(`/accounts/deposit-requests/${id}/revert`);
+      return response.data;
+    } catch (error) {
+      console.error('Error rejecting deposit:', error);
+      throw error;
+    }
+  },
+
+  approveAccount: async (id) => {
+    try {
+      const response = await axiosAdmin.post(`/admin/accounts/${id}/enable`);
+      return response.data;
+    } catch (error) {
+      console.error('Error approving account:', error);
+      throw error;
+    }
+  },
+
+  rejectAccount: async (id) => {
+    try {
+      const response = await axiosAdmin.post(`/admin/accounts/${id}/reject`);
+      return response.data;
+    } catch (error) {
+      console.error('Error rejecting account:', error);
+      throw error;
+    }
   }
 };

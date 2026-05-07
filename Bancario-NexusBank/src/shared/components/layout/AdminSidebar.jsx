@@ -1,6 +1,9 @@
 import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const AdminSidebar = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const sidebarStyle = {
     width: 220,
     background: '#102b55',
@@ -16,7 +19,12 @@ const AdminSidebar = () => {
       <nav>
         <div>
           <div style={sectionTitle}>GENERAL</div>
-          <div style={{...item, background:'#0d294a', color:'#fff', fontWeight:700}}>Dashboard</div>
+          <div 
+            style={{...item, background: location.pathname === '/AdminDashboard' ? '#0d294a' : 'transparent', color: location.pathname === '/AdminDashboard' ? '#fff' : '#cfe0ff', fontWeight: location.pathname === '/AdminDashboard' ? 700 : 400}}
+            onClick={() => navigate('/AdminDashboard')}
+          >
+            Dashboard
+          </div>
           <div style={{...item, marginTop:6}}>Usuarios <span style={{marginLeft:6, background:'#ff4757', padding:'2px 6px', borderRadius:10, fontSize:12, color:'#fff'}}>142</span></div>
           <div style={{...item, marginTop:6}}>Depósitos</div>
         </div>
@@ -29,7 +37,12 @@ const AdminSidebar = () => {
 
         <div style={{marginTop:16}}>
           <div style={sectionTitle}>CONTROL</div>
-          <div style={{...item}}>Pendientes <span style={{marginLeft:6, background:'#f59e0b', padding:'2px 6px', borderRadius:10, fontSize:12, color:'#0b1220'}}>3</span></div>
+          <div 
+            style={{...item, background: location.pathname === '/AdminDashboard/requests' ? '#0d294a' : 'transparent', color: location.pathname === '/AdminDashboard/requests' ? '#fff' : '#cfe0ff', fontWeight: location.pathname === '/AdminDashboard/requests' ? 700 : 400}}
+            onClick={() => navigate('/AdminDashboard/requests')}
+          >
+            Pendientes <span style={{marginLeft:6, background:'#f59e0b', padding:'2px 6px', borderRadius:10, fontSize:12, color:'#0b1220'}}>3</span>
+          </div>
         </div>
       </nav>
     </aside>

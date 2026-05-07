@@ -3,6 +3,7 @@ import {
   createAccount,
   requestAccountWithoutToken,
   enableRequestedAccount,
+  rejectRequestedAccount,
   listAccounts,
   updateAccountLimits,
   convertAccountBalance,
@@ -26,6 +27,8 @@ router.get('/accounts', verifyTokenAndGetUser, verifyRoles(['Client', 'Employee'
 router.post('/accounts', verifyTokenAndGetUser, verifyRoles(['Admin']), validateAccountType, createAccount);
 
 router.post('/admin/accounts/:id/enable', verifyTokenAndGetUser, verifyRoles(['Admin']), enableRequestedAccount);
+
+router.post('/admin/accounts/:id/reject', verifyTokenAndGetUser, verifyRoles(['Admin']), rejectRequestedAccount);
 
 router.put('/accounts/:id/limits', verifyTokenAndGetUser, verifyRoles(['Employee', 'Admin']), updateAccountLimits);
 

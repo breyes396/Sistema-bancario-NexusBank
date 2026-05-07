@@ -5,7 +5,7 @@ import { ClientDashboardLayout } from '../../shared/components/layout/ClientDash
 import { ClientDashboard } from '../../features/client/pages/ClientDashboard.jsx';
 import { RegisterPage } from '../../features/auth/pages/RegisterPage.jsx';
 import AdminDashboardContainer from '../../shared/components/layout/AdminDashboardContainer.jsx';
-
+import PendingRequestsView from '../../shared/components/layout/PendingRequestsView.jsx';
 
 export const AppRoutes = () => {
     return (
@@ -28,6 +28,14 @@ export const AppRoutes = () => {
                 element={
                     <ProtectedRoute requiredRole="Admin">
                         <AdminDashboardContainer />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/AdminDashboard/requests"
+                element={
+                    <ProtectedRoute requiredRole="Admin">
+                        <PendingRequestsView />
                     </ProtectedRoute>
                 }
             />

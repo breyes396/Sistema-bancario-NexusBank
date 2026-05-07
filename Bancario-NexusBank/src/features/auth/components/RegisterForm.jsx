@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { axiosAuth } from '../../../shared/api/api.js';
 import '../../../styles/registerForm.css';
 
 export default function RegisterForm() {
@@ -42,29 +43,33 @@ export default function RegisterForm() {
 
     setIsLoading(true);
     try {
-      const userData = {
-        nombre: data.nombre,
+      const payload = {
+        name: data.nombre,
         username: data.username,
-        dpi: data.dpi,
-        direccion: data.direccion,
-        celular: data.celular,
+        documentNumber: data.dpi,
+        documentType: 'DPI',
+        address: data.direccion,
+        phoneNumber: data.celular.replace(/\D/g, '').slice(-8), // strip non-numeric, take last 8 digits
         email: data.correo,
         password: data.contrasena,
-        trabajo: data.trabajo,
-        ingresos: parseFloat(data.ingresos),
-        tipoCuenta: data.tipoCuenta
+        jobName: data.trabajo,
+        income: parseFloat(data.ingresos),
+        accountType: data.tipoCuenta
       };
 
-      // Simulación del registro - conectar con backend aquí
-      console.log('Datos de registro:', userData);
-      
-      toast.success('Registro exitoso. Por favor, inicia sesión.');
+      await axiosAuth.post('/auth/register', payload);
+
+      toast.success('¡Solicitud enviada! Tu cuenta está pendiente de aprobación por un administrador.', { duration: 4000 });
       reset();
       setTimeout(() => {
-        navigate('/login');
-      }, 2000);
+        navigate('/');
+      }, 3000);
     } catch (error) {
-      toast.error(error.message || 'Error al registrar usuario');
+      const msg = error.response?.data?.msg
+        || error.response?.data?.message
+        || error.response?.data?.errors?.[0]?.msg
+        || 'Error al enviar la solicitud';
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }
@@ -171,10 +176,10 @@ export default function RegisterForm() {
                 <input
                   type="tel"
                   className={`form-input ${errors.celular ? 'error' : ''}`}
-                  placeholder="+502 7777 8888"
+                  placeholder="77778888"
                   {...register('celular', {
                     required: 'El celular es requerido',
-                    pattern: { value: /^\+?[\d\s\-()]{10,}$/, message: 'Formato de teléfono inválido' }
+                    pattern: { value: /^\+?[\d\s\-()]{8,15}$/, message: 'Formato de teléfono inválido' }
                   })}
                 />
                 {errors.celular && <span className="form-error">{errors.celular.message}</span>}
@@ -205,7 +210,13 @@ export default function RegisterForm() {
                   placeholder="••••••••"
                   {...register('contrasena', {
                     required: 'La contraseña es requerida',
-                    minLength: { value: 8, message: 'Mínimo 8 caracteres' }
+                    minLength: { value: 8, message: 'Mínimo 8 caracteres' },
+                    validate: {
+                      hasUpper: v => /[A-Z]/.test(v) || 'Debe tener al menos una mayúscula',
+                      hasLower: v => /[a-z]/.test(v) || 'Debe tener al menos una minúscula',
+                      hasNumber: v => /[0-9]/.test(v) || 'Debe tener al menos un número',
+                      hasSymbol: v => /[@$!%*?&#]/.test(v) || 'Debe tener al menos un símbolo (@$!%*?&#)'
+                    }
                   })}
                 />
                 <button

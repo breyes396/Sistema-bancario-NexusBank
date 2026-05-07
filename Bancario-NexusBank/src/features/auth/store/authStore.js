@@ -54,6 +54,48 @@ export const useAuthStore = create(
           return { success: false, error: message };
         }
       },
+
+      register: async (userData) => {
+        try {
+          set({ loading: true, error: null });
+
+          const res = await registerRequest(userData);
+          const payload = res.data || {};
+          const payloadData = payload.data || {};
+
+          return { success: true, data: payloadData };
+        } catch (error) {
+          const message = error.response?.data?.message || 'Error al registrar usuario';
+
+          set({
+            error: message,
+            loading: false,
+          });
+
+          return { success: false, error: message };
+        }
+      },
+
+      register: async (userData) => {
+        try {
+          set({ loading: true, error: null });
+
+          const res = await registerRequest(userData);
+          const payload = res.data || {};
+          const payloadData = payload.data || {};
+
+          return { success: true, data: payloadData };
+        } catch (error) {
+          const message = error.response?.data?.message || 'Error al registrar usuario';
+
+          set({
+            error: message,
+            loading: false,
+          });
+
+          return { success: false, error: message };
+        }
+      },
     }),
     {
       name: 'nexusbank-auth-storage',

@@ -25,8 +25,7 @@ export const LoginForm = ({ onForgot }) => {
       const isAdmin = user?.role === 'PLATFORM_ADMIN' || user?.role === 'Admin' || user?.role === 'Administrador';
 
       if (isAdmin) {
-        showError('La vista de administrador no está disponible. Solo clientes.');
-        return;
+        navigate('/AdminDashboard');
       } else {
         navigate('/clientdashboard');
       }
@@ -86,7 +85,7 @@ export const LoginForm = ({ onForgot }) => {
       <AuthSwitchLink
         prefixText="¿No tienes cuenta?"
         actionText="Regístrate aquí"
-        onClick={() => navigate('/CrearCuenta')}
+        onClick={() => navigate('/register')}
       />
     </form>
   );

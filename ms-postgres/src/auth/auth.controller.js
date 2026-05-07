@@ -158,6 +158,8 @@ export const login = async (req, res) => {
       metadata: { email, role: normalizeRole(roleName) }
     });
 
+    const profile = await UserProfile.findOne({ where: { UserId: user.id } });
+
     return sendSuccess(res, {
       status: 200,
       message: 'Login exitoso',
@@ -166,6 +168,7 @@ export const login = async (req, res) => {
         user: {
           id: user.id,
           email: user.email,
+          name: profile?.Name || profile?.Username || 'Usuario',
           role: normalizeRole(roleName)
         }
       }

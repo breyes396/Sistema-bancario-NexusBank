@@ -5,13 +5,26 @@ export const Sidebar = () => {
   const location = useLocation();
   const logout = useAuthStore((state) => state.logout);
 
-  const navItems = [
+  const userRole = useAuthStore((state) => state.user?.role);
+  const isAdmin = userRole === 'Admin' || userRole === 'Administrador' || userRole === 'PLATFORM_ADMIN';
+
+  const clientNavItems = [
     { path: '/clientdashboard', label: 'Inicio', icon: '🏠' },
     { path: '/clientdashboard/accounts', label: 'Mis Cuentas', icon: '💳' },
     { path: '/clientdashboard/transfers', label: 'Transferencias', icon: '💸' },
     { path: '/clientdashboard/transactions', label: 'Movimientos', icon: '📋' },
     { path: '/clientdashboard/profile', label: 'Mi Perfil', icon: '👤' },
   ];
+
+  const adminNavItems = [
+    { path: '/AdminDashboard', label: 'Dashboard', icon: '📊' },
+    { path: '/AdminDashboard/users', label: 'Usuarios', icon: '👥' },
+    { path: '/AdminDashboard/accounts', label: 'Cuentas', icon: '💼' },
+    { path: '/AdminDashboard/transactions', label: 'Transacciones', icon: '📋' },
+    { path: '/AdminDashboard/settings', label: 'Configuración', icon: '⚙️' },
+  ];
+
+  const navItems = isAdmin ? adminNavItems : clientNavItems;
 
   return (
     <aside className="fixed inset-y-0 left-0 w-64 glass-panel border-r z-20 hidden md:flex flex-col animate-fade-in-up">

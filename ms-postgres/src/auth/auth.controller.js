@@ -197,6 +197,7 @@ export const login = async (req, res) => {
           id: user.id,
           email: user.email,
           name: profile?.Name || profile?.Username || 'Usuario',
+          username: profile?.Username || 'Usuario',
           role: normalizeRole(roleName)
         }
       }
@@ -560,6 +561,43 @@ export const getProfile = async (req, res) => {
   } catch (err) {
     res.status(500).json({ msg: 'Error en el servidor', error: err.message });
   }
+};
+
+export const uploadProfilePhotoController = async (req, res) => {
+	try {
+		const userId = req.user?.id;
+		if (!userId) {
+			return res.status(401).json({ msg: 'Usuario no autenticado' });
+		}
+
+		if (!req.file) {
+			return res.status(400).json({ msg: 'No se ha proporcionado ningún archivo' });
+		}
+
+		const user = await User.findByPk(userId, {
+			include: [{ model: UserProfile, as: 'UserProfile' }]
+		});
+
+		if (!user || !user.UserProfile) {
+			return res.status(404).json({ msg: 'Perfil de usuario no encontrado' });
+		}
+
+		// Ruta relativa para acceso público
+		const photoUrl = `/uploads/profiles/${req.file.filename}`;
+
+		await user.UserProfile.update({ ProfilePhotoUrl: photoUrl });
+
+		return res.status(200).json({
+			message: 'Foto de perfil actualizada exitosamente',
+			data: { photoUrl }
+		});
+	} catch (err) {
+		console.error('Error al subir foto de perfil:', err);
+		return res.status(500).json({
+			msg: 'Error al subir la foto de perfil',
+			error: err.message
+		});
+	}
 };
 
 

@@ -96,6 +96,11 @@ export const UserProfile = sequelize.define('UserProfile', {
         defaultValue: true,
         field: 'status'
     },
+    ProfilePhotoUrl: {
+        type: DataTypes.STRING(500),
+        allowNull: true,
+        field: 'profilePhotoUrl'
+    },
     UserId: {
         type: DataTypes.STRING(16),
         allowNull: false,

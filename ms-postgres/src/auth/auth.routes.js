@@ -6,7 +6,8 @@ import {
   resendVerification,
   forgotPassword,
   resetPassword,
-  getProfile
+  getProfile,
+  uploadProfilePhotoController
 } from './auth.controller.js';
 import {
   validateLogin,
@@ -23,6 +24,7 @@ import {
 } from '../../middlewares/rate-limiters.js';
 import { validateBearerToken } from '../../middlewares/auth-middleware.js';
 import { verifyRoles } from '../../middlewares/role-middleware.js';
+import { uploadProfilePhoto } from '../../middlewares/profile-photo-upload.js';
 
 const router = express.Router();
 
@@ -43,5 +45,7 @@ router.post('/forgot-password', forgotPasswordLimiter, validateForgotPassword, f
 router.post('/reset-password', validateResetPassword, resetPassword);
 
 router.get('/profile', validateBearerToken, getProfile);
+
+router.post('/profile/photo', validateBearerToken, uploadProfilePhoto.single('photo'), uploadProfilePhotoController);
 
 export default router;

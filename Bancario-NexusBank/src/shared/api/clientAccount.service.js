@@ -1,4 +1,5 @@
 import { axiosClient } from './api.js';
+import { useAuthStore } from '../../features/auth/store/authStore.js';
 
 export const clientAccountService = {
   // Obtener datos de la cuenta principal del cliente
@@ -38,6 +39,16 @@ export const clientAccountService = {
   // Obtener perfil del usuario
   getUserProfile: async () => {
     try {
+      // If we already have the user in the auth store, return a lightweight profile
+      const cached = useAuthStore.getState().user;
+      if (cached) {
+        return {
+          Name: cached.name || cached.fullName || null,
+          Username: cached.username || cached.name || null,
+          ProfilePhotoUrl: cached.profilePhotoUrl || null,
+        };
+      }
+
       const response = await axiosClient.get('/auth/profile');
       return response.data?.profile || response.data || null;
     } catch (error) {

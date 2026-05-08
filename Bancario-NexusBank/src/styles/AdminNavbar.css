@@ -1,0 +1,176 @@
+/* AdminNavbar Styles */
+
+@keyframes dropdownEnter {
+	from {
+		opacity: 0;
+		transform: translateY(-8px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes dropdownExit {
+	from {
+		opacity: 1;
+		transform: translateY(0);
+	}
+	to {
+		opacity: 0;
+		transform: translateY(-8px);
+	}
+}
+
+/* Navbar Container */
+.admin-navbar {
+	height: 64px;
+	background: #163c78;
+	color: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0 20px;
+	box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+}
+
+/* Logo Section */
+.navbar-logo {
+	height: 100%;
+	display: flex;
+	align-items: center;
+}
+
+.navbar-logo img {
+	height: 45px;
+	width: auto;
+	object-fit: contain;
+	transition: filter 0.2s ease;
+}
+
+.navbar-logo img:hover {
+	filter: brightness(1.05);
+}
+
+/* User Menu Container */
+.user-menu-container {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 16px;
+	border-radius: 8px;
+	cursor: pointer;
+	user-select: none;
+	transition: background-color 0.2s ease;
+	background-color: rgba(255, 255, 255, 0.1);
+}
+
+.user-menu-container:hover {
+	background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* User Icon */
+.user-icon {
+	width: 32px;
+	height: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #fff;
+}
+
+.user-icon svg {
+	stroke: currentColor;
+	stroke-width: 2;
+}
+
+/* User Name */
+.user-name {
+	font-size: 14px;
+	font-weight: 500;
+	white-space: nowrap;
+	color: #fff;
+}
+
+/* Dropdown Menu */
+.dropdown-menu {
+	position: absolute;
+	top: 60px;
+	right: 0;
+	background: #fff;
+	border-radius: 8px;
+	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+	min-width: 200px;
+	z-index: 50;
+	padding: 8px 0;
+	animation: dropdownEnter 0.2s ease-out;
+}
+
+/* Dropdown Item */
+.dropdown-item {
+	padding: 12px 16px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	color: #163c78;
+	font-weight: 500;
+	cursor: pointer;
+	font-size: 14px;
+	transition: background-color 0.15s ease;
+	border-bottom: 1px solid #e2e8f0;
+}
+
+.dropdown-item:last-child {
+	border-bottom: none;
+}
+
+.dropdown-item:hover {
+	background-color: #f1f5f9;
+}
+
+.dropdown-item svg {
+	width: 18px;
+	height: 18px;
+	stroke: currentColor;
+	stroke-width: 2;
+	flex-shrink: 0;
+}
+
+/* Logout Item */
+.dropdown-item.logout-item {
+	color: #ef4444;
+}
+
+.dropdown-item.logout-item:hover {
+	background-color: #fee2e2;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+	.admin-navbar {
+		padding: 0 12px;
+	}
+
+	.navbar-logo img {
+		height: 40px;
+	}
+
+	.user-menu-container {
+		padding: 8px 12px;
+		gap: 6px;
+	}
+
+	.user-name {
+		font-size: 13px;
+	}
+
+	.dropdown-menu {
+		min-width: 180px;
+	}
+
+	.dropdown-item {
+		padding: 10px 12px;
+		font-size: 13px;
+	}
+}

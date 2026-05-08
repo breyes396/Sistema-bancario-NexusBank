@@ -4,6 +4,8 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJSDoc from 'swagger-jsdoc';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 import { corsOptions } from './cors-configuration.js';
 import { helmetConfiguration } from './helmet-configuration.js';
@@ -40,11 +42,17 @@ export const createApp = () => {
   const mongoSwaggerSpec = swaggerJSDoc(mongoSwaggerOptions);
   app.set('trust proxy', 1);
 
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+
   app.use(express.urlencoded({ extended: false, limit: '10mb' }));
   app.use(express.json({ limit: '10mb' }));
   app.use(cors(corsOptions));
   app.use(helmet(helmetConfiguration));
   app.use(morgan('dev'));
+  
+  // Servir archivos estáticos de uploads
+  app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
   app.get('/api-docs/spec/postgres.json', (_req, res) => {
     return res.json(postgresSwaggerSpec);
   });

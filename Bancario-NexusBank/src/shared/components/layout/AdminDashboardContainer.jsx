@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import AdminNavbar from './AdminNavbar.jsx';
-import AdminSidebar from './AdminSidebar.jsx'; // Make sure the path is case-sensitive
+import AdminLayout from './AdminLayout.jsx';
 import { adminDashboardService } from '../../api/adminDashboard.service.js';
 import '../../../styles/adminDashboard.css';
 
@@ -101,12 +100,8 @@ export const AdminDashboardContainer = () => {
   };
 
   return (
-    <div className="admin-dashboard">
-      <AdminNavbar />
-      <div className="admin-container">
-        <AdminSidebar />
-        <main className="admin-main">
-          <section className="admin-section">
+    <AdminLayout>
+      <section className="admin-section">
             {/* Stats Cards */}
             <div className="stats-grid">
               <StatCard title="Total usuarios" value={loading ? '...' : stats.totalUsers} subtitle="+12 este mes" color="blue" />
@@ -268,10 +263,8 @@ export const AdminDashboardContainer = () => {
                 </ul>
               </div>
             </div>
-          </section>
-        </main>
-      </div>
-    </div>
+      </section>
+    </AdminLayout>
   );
 };
 

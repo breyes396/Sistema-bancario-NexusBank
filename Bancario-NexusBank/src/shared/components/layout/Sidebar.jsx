@@ -13,7 +13,7 @@ export const Sidebar = () => {
     { path: '/clientdashboard/accounts', label: 'Mis Cuentas', icon: '💳' },
     { path: '/clientdashboard/transfers', label: 'Transferencias', icon: '💸' },
     { path: '/clientdashboard/transactions', label: 'Movimientos', icon: '📋' },
-    { path: '/clientdashboard/profile', label: 'Mi Perfil', icon: '👤' },
+    { path: '/clientdashboard/profile-settings', label: 'Ajustes de perfil', icon: '👤' },
   ];
 
   const adminNavItems = [

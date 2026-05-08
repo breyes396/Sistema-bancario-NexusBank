@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import AdminNavbar from './AdminNavbar.jsx';
-import AdminSidebar from './AdminSidebar.jsx';
+import AdminLayout from './AdminLayout.jsx';
 import AdminAddUserModal from './AdminAddUserModal.jsx';
 import { adminDashboardService } from '../../api/adminDashboard.service.js';
 import { showError, showSuccess } from '../../utils/toast.js';
@@ -135,12 +134,8 @@ const PendingRequestsView = () => {
   });
 
   return (
-    <div className="admin-dashboard animate-fade-in-up">
-      <AdminNavbar />
-      <div className="admin-container">
-        <AdminSidebar />
-        <main className="admin-main">
-          <section className="admin-section">
+    <AdminLayout>
+      <section className="admin-section animate-fade-in-up">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-3xl font-bold text-[#1A2E52]">Solicitudes Pendientes y Rechazadas</h2>
               <div className="flex gap-3">
@@ -242,9 +237,7 @@ const PendingRequestsView = () => {
                 </table>
               </div>
             </div>
-          </section>
-        </main>
-      </div>
+      </section>
 
       {isModalOpen && (
         <AdminAddUserModal 
@@ -252,7 +245,7 @@ const PendingRequestsView = () => {
           onSuccess={fetchRequests} 
         />
       )}
-    </div>
+    </AdminLayout>
   );
 };
 

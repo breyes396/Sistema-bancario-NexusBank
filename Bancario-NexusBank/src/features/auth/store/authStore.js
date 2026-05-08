@@ -1,10 +1,12 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { login as loginRequest } from '../../../shared/api/auth.js';
+import { axiosClient } from '../../../shared/api/api.js';
 
 export const useAuthStore = create(
   persist(
     (set) => ({
+      lastProfileFetchedAt: null,
       user: null,
       token: null,
       expiresAt: null,
@@ -20,6 +22,20 @@ export const useAuthStore = create(
           error: null,
           loading: false,
           isAuthenticated: false,
+        });
+      },
+
+      updateUserProfile: (profileUpdates = {}) => {
+        set((state) => {
+          if (!state.user) return state;
+
+          return {
+            ...state,
+            user: {
+              ...state.user,
+              ...profileUpdates,
+            },
+          };
         });
       },
 
@@ -51,6 +67,57 @@ export const useAuthStore = create(
             isAuthenticated: false,
           });
 
+          return { success: false, error: message };
+        }
+      },
+
+      refreshUserProfile: async () => {
+        try {
+          const token = useAuthStore.getState().token;
+
+          if (!token) {
+            return { success: false, error: 'No autenticado' };
+          }
+
+          // Avoid refetching if we fetched recently (5s window)
+          const now = Date.now();
+          const last = useAuthStore.getState().lastProfileFetchedAt || 0;
+          if (now - last < 5000) {
+            const cachedUser = useAuthStore.getState().user || {};
+            return {
+              success: true,
+              data: {
+                Name: cachedUser.name,
+                Username: cachedUser.username,
+                ProfilePhotoUrl: cachedUser.profilePhotoUrl,
+              },
+            };
+          }
+
+          const response = await axiosClient.get('/auth/profile');
+          const profile = response.data?.profile || {};
+
+          set((state) => {
+            if (!state.user) return { ...state, lastProfileFetchedAt: now };
+            const nextName = profile.Name || state.user.name || state.user.username || 'Usuario';
+            const nextUsername = profile.Username || state.user.username || state.user.name || 'Usuario';
+            const nextProfilePhoto = profile.ProfilePhotoUrl || state.user.profilePhotoUrl || null;
+
+            return {
+              ...state,
+              lastProfileFetchedAt: now,
+              user: {
+                ...state.user,
+                name: nextName,
+                username: nextUsername,
+                profilePhotoUrl: nextProfilePhoto,
+              },
+            };
+          });
+
+          return { success: true, data: profile };
+        } catch (error) {
+          const message = error.response?.data?.msg || error.response?.data?.message || 'No se pudo actualizar el perfil';
           return { success: false, error: message };
         }
       },

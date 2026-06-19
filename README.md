@@ -1,330 +1,255 @@
 # NexusBank - Sistema Bancario API
 
-## 📋 Descripción General
-NexusBank es una plataforma bancaria backend que permite gestionar autenticación, usuarios, cuentas, transferencias, depósitos, favoritos, seguridad antifraude y promociones.
+## Accesos Rapidos
+- Swagger ms-postgres: `http://localhost:3006/api-docs`
+- Swagger ms-mongo: `http://localhost:3006/api-docs`
+- Base API ms-postgres: `http://localhost:3006/api/v1`
+- Base API ms-mongo: `http://localhost:3006/api/v1`
+
+En Swagger (`/api-docs`) usa el selector superior para alternar entre las dos especificaciones:
+- `Postgre`
+- `Mongo`
+
+## Descripcion General
+NexusBank es una plataforma bancaria backend que permite gestionar autenticacion, usuarios, cuentas, transferencias, depositos, favoritos, seguridad antifraude y promociones.
 
 El sistema trabaja con roles:
-- **Administrador (Admin)**
-- **Empleado (Employee)**
-- **Cliente (Client)**
+- Administrador (Admin)
+- Empleado (Employee)
+- Cliente (Client)
 
-Además, incluye controles de seguridad por JWT, validación de roles, rate limiters y auditoría de operaciones críticas.
+Ademas, incluye controles de seguridad por JWT, validacion de roles, rate limiters y auditoria de operaciones criticas.
 
----
+## Estructura Principal
+- `Bancario-NexusBank/`: Frontend React + Vite
+- `ms-mongo/`: Microservicio MongoDB (catalogo, favoritos, seguridad)
+- `ms-postgres/`: Microservicio PostgreSQL (auth, usuarios, cuentas, transacciones)
 
-## 🔐 Credenciales de Inicio
-
-**Administrador por defecto (entorno local):**
+## Credenciales de Inicio
+Administrador por defecto (entorno local):
 - Email: `adminb@nexusbank.com`
 - Password: `ADMINB`
 
-> Recomendación: cambiar credenciales en ambientes no locales.
+Recomendacion: cambiar credenciales en ambientes no locales.
 
----
-
-## ⚙️ Configuración Técnica
-
-### ⚠️ IMPORTANTE
+## Configuracion Tecnica
+### Importante
 Crear archivo `.env` con los valores de tu entorno. No subir secretos al repositorio.
 
-### 📝 Contenido base del archivo `.env`
-
+### Contenido base del archivo .env
 ```env
-NODE_ENV = development
-PORT = 3006
- 
-# MongoDB (Restaurantes, Mesas, Platos) - Local sin autenticación
+NODE_ENV=development
+PORT=3006
+
+# MongoDB
 URI_MONGO=mongodb://localhost:27017/NexusBank
- 
-# Database PostgreSQL (Usuarios, Autenticación)
+
+# PostgreSQL
 DB_HOST=localhost
 DB_PORT=5435
 DB_NAME=NexusBank
 DB_USERNAME=root
 DB_PASSWORD=admin
 DB_SQL_LOGGING=false
- 
-JWT_SECRET=MyVerySecretKeyForJWTTokenAuthenticationWith256Bits!
+
+# JWT
+JWT_SECRET=<JWT_SECRET>
 JWT_EXPIRES_IN=30m
 JWT_REFRESH_EXPIRES_IN=7d
 JWT_ISSUER=AuthService
 JWT_AUDIENCE=AuthService
- 
+
+# SMTP
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=465
 SMTP_ENABLE_SSL=true
-SMTP_USERNAME=kinalsports@gmail.com
-SMTP_PASSWORD=yrsd prvf kwat toee
-EMAIL_FROM=kinalsports@gmail.com
+SMTP_USERNAME=narutoshippude745@gmail.com
+SMTP_PASSWORD=<SMTP_APP_PASSWORD>
+EMAIL_FROM=narutoshippude745@gmail.com
 EMAIL_FROM_NAME=AuthDotnet App
- 
-# Verification Tokens (en horas)
+
+# Verificacion
 VERIFICATION_EMAIL_EXPIRY_HOURS=24
 PASSWORD_RESET_EXPIRY_HOURS=1
- 
-# Frontend URL (para enlaces en emails)
+
+# Frontend URL
 FRONTEND_URL=http://localhost:5173
- 
-# FX API (Conversion de divisas)
+
+# FX API
 FX_API_BASE_URL=https://api.fastforex.io
-FX_API_KEY=10aa904cb9-fb754e1ad4-tb3guj
+FX_API_KEY=<FX_API_KEY>
 FX_BASE_CURRENCY=GTQ
 FX_TIMEOUT_MS=5000
- 
-# Cloudinary (upload de imágenes de perfil)
-CLOUDINARY_CLOUD_NAME=dut08rmaz
-CLOUDINARY_API_KEY=279612751725163
-CLOUDINARY_API_SECRET=UxGMRqU1iB580Kxb2AlDR4n4hu0
-CLOUDINARY_BASE_URL=https://res.cloudinary.com/dut08rmaz/image/upload/
+
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=<CLOUDINARY_CLOUD_NAME>
+CLOUDINARY_API_KEY=<CLOUDINARY_API_KEY>
+CLOUDINARY_API_SECRET=<CLOUDINARY_API_SECRET>
+CLOUDINARY_BASE_URL=https://res.cloudinary.com/<CLOUDINARY_CLOUD_NAME>/image/upload/
 CLOUDINARY_FOLDER=gastroflow/profiles
 CLOUDINARY_DEFAULT_AVATAR_FILENAME=default-avatar_ewzxwx.png
- 
-# File Upload (alternativa local)
+
+# Upload local
 UPLOAD_PATH=./uploads
- 
-# CORS Configuration
+
+# CORS
 ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000,http://localhost:3006
 ADMIN_ALLOWED_ORIGINS=http://localhost:5173
 ```
 
-### ▶️ Levantar el proyecto
+## Levantar el Proyecto
+### Requisitos
+- Node.js LTS
+- pnpm
+- Docker + Docker Compose
 
+### Comandos sugeridos
 ```bash
 docker compose up -d
+```
+
+En cada servicio backend:
+```bash
+cd ms-mongo
 pnpm install
 pnpm run dev
 ```
 
-Base URL local:
-
-```text
-http://localhost:3006/nexusBank/v1
+```bash
+cd ms-postgres
+pnpm install
+pnpm run dev
 ```
 
-Colección oficial del proyecto:
+Frontend:
+```bash
+cd Bancario-NexusBank
+npm install
+npm run dev
+```
 
+Base URL local API por microservicio:
+- `ms-postgres`: `http://localhost:3006/api/v1`
+- `ms-mongo`: `http://localhost:3006/api/v1`
+
+Swagger por microservicio:
+- `ms-postgres`: `http://localhost:3006/api-docs`
+- `ms-mongo`: `http://localhost:3006/api-docs`
+
+Coleccion oficial del proyecto:
 - `NexusBank_Coleccion_Ordenada_ES.postman_collection.json`
 
----
+## Coleccion Postman Actualizada
+Archivo incluido en la raiz del proyecto con todos los endpoints actuales:
+- `NexusBank_Coleccion_Ordenada_ES.postman_collection.json`
 
-# 📖 MANUAL DE USUARIO
+Uso rapido:
+1. Importar la coleccion en Postman.
+2. Verificar variables de coleccion:
+- `baseUrl`: `http://localhost:3006`
+- `apiVersion`: `api/v1`
+3. Ejecutar requests en este orden:
+- `Auth/Login Admin` (guarda token en `adminToken`)
+- `Auth/Login Cliente` (guarda token en `clientToken`)
 
-## PARTE 1: MANUAL DEL ADMINISTRADOR
+## Manual de Usuario
+### Parte 1: Manual del Administrador
+El Administrador tiene control total sobre usuarios, cuentas, limites, depositos, promociones y seguridad operativa.
 
-El Administrador tiene control total sobre usuarios, cuentas, límites, depósitos, promociones y seguridad operativa.
+#### Que puede hacer el Administrador
+1. Gestionar usuarios
+- Listar todos los usuarios
+- Ver detalle de clientes
+- Actualizar datos de usuarios
+- Endpoints: `GET /users`, `GET /users/admin/client/:id/detail`, `GET /users/:id`, `PUT /users/:id`
 
-### ✅ QUÉ PUEDE HACER EL ADMINISTRADOR
+2. Crear clientes (registro administrativo)
+- Endpoint: `POST /auth/register`
 
-#### 1. **Gestionar usuarios**
-- Listar todos los usuarios.
-- Ver detalle de clientes.
-- Actualizar datos de usuarios.
+3. Gestionar cuentas bancarias
+- Endpoints: `GET /accounts`, `GET /admin/accounts/:accountId/details`, `PUT /accounts/:id/limits`, `GET /accounts/:id/limits/admin`, `PUT /accounts/:id/limits/admin`
 
-Endpoints clave:
-- `GET /users`
-- `GET /users/admin/client/:id/detail`
-- `GET /users/:id`
-- `PUT /users/:id`
+4. Gestionar depositos
+- Endpoints: `PUT /accounts/deposit-requests/:id/amount`, `PUT /accounts/deposit-requests/:id/approve`, `PUT /accounts/deposit-requests/:id/revert`
 
-#### 2. **Crear clientes (registro administrativo)**
-- Crear clientes desde administración (o empleado autorizado).
-- Iniciar flujo de verificación de correo.
+5. Supervision de transacciones
+- Endpoints: `GET /admin/transactions`, `GET /dashboard/transaction-ranking`
 
-Endpoint:
-- `POST /auth/register`
+6. Gestionar promociones bancarias
+- Endpoints: `GET /catalog/admin/all`, `GET /catalog/admin/audit/all`, `POST /catalog/admin/create`, `PUT /catalog/admin/:id`, `PUT /catalog/admin/:id/status`, `GET /catalog/admin/:id/audit`, `DELETE /catalog/admin/:id`
 
-#### 3. **Gestionar cuentas bancarias**
-- Ver cuentas del sistema.
-- Consultar detalles administrativos de cuenta.
-- Ajustar límites por operación y diarios.
+7. Seguridad operativa y bloqueos
+- Endpoints: `POST /admin/accounts/:id/freeze`, `POST /admin/accounts/:id/unfreeze`, `GET /admin/accounts/:id/block-history`
 
-Endpoints:
-- `GET /accounts`
-- `GET /admin/accounts/:accountId/details`
-- `PUT /accounts/:id/limits`
-- `GET /accounts/:id/limits/admin`
-- `PUT /accounts/:id/limits/admin`
+#### Que no puede hacer el Administrador
+- No debe operar con credenciales productivas en entorno local
+- No debe omitir trazabilidad de cambios criticos
+- No debe compartir tokens o secretos por canales no seguros
 
-#### 4. **Gestionar depósitos**
-- Revisar solicitudes de depósito.
-- Corregir monto de solicitud pendiente.
-- Aprobar o revertir depósitos.
+### Parte 2: Manual del Cliente
+El Cliente puede administrar su perfil, cuentas, transferencias, depositos y favoritos.
 
-Endpoints:
-- `PUT /accounts/deposit-requests/:id/amount`
-- `PUT /accounts/deposit-requests/:id/approve`
-- `PUT /accounts/deposit-requests/:id/revert`
+#### Que puede hacer el Cliente
+1. Autenticarse y gestionar acceso
+- Endpoints: `POST /auth/login`, `POST /auth/verify-email`, `GET /auth/verify-email?token=...`, `POST /auth/forgot-password`, `POST /auth/reset-password`
 
-#### 5. **Supervisión de transacciones**
-- Consultar transacciones globales.
-- Obtener ranking de transacciones para dashboard.
+2. Gestionar perfil personal
+- Endpoints: `GET /auth/profile`, `PUT /profile/edit`
 
-Endpoints:
-- `GET /admin/transactions`
-- `GET /dashboard/transaction-ranking`
+3. Gestionar cuentas propias
+- Endpoints: `POST /accounts`, `GET /accounts`, `GET /my-account/history`, `GET /my-account/balance/convert?toCurrency=USD`
 
-#### 6. **Gestionar promociones bancarias**
-- Crear, actualizar, cambiar estado y desactivar promociones.
-- Consultar auditoría global y por promoción.
+4. Solicitar depositos
+- Endpoint: `POST /accounts/deposit-requests`
 
-Endpoints:
-- `GET /catalog/admin/all`
-- `GET /catalog/admin/audit/all`
-- `POST /catalog/admin/create`
-- `PUT /catalog/admin/:id`
-- `PUT /catalog/admin/:id/status`
-- `GET /catalog/admin/:id/audit`
-- `DELETE /catalog/admin/:id`
+5. Realizar transferencias
+- Endpoints: `POST /accounts/transfers`, `PUT /accounts/transfers/:id/revert`
+- Reglas:
+  - Maximo diario por origen: Q10,000
+  - Maximo diario por cuenta destino especifica (origen->destino): Q2,000
 
-#### 7. **Seguridad operativa y bloqueos**
-- Congelar y descongelar cuentas.
-- Consultar historial de bloqueos.
+6. Consultar seguridad personal
+- Endpoints: `GET /security/status`, `GET /security/failed-attempts`, `GET /security/fraud-alerts`
 
-Endpoints:
-- `POST /admin/accounts/:id/freeze`
-- `POST /admin/accounts/:id/unfreeze`
-- `GET /admin/accounts/:id/block-history`
+7. Gestionar favoritos
+- Endpoints: `POST /favorites`, `GET /favorites`, `GET /favorites/:id`, `PUT /favorites/:id`, `DELETE /favorites/:id`
 
-### ❌ QUÉ NO PUEDE HACER EL ADMINISTRADOR
+8. Consultar promociones publicas
+- Endpoints: `GET /catalog`, `GET /catalog/:id`
 
-- No debe operar con credenciales productivas en entorno local.
-- No debe omitir trazabilidad de cambios críticos (auditoría).
-- No debe compartir tokens o secretos por canales no seguros.
+#### Que no puede hacer el Cliente
+- No puede acceder a endpoints administrativos
+- No puede modificar limites globales de cuentas
+- No puede aprobar/revertir depositos de otros usuarios
+- No puede congelar/descongelar cuentas
 
----
-
-## PARTE 2: MANUAL DEL CLIENTE
-
-El Cliente puede administrar su perfil, cuentas, transferencias, depósitos y favoritos.
-
-### ✅ QUÉ PUEDE HACER EL CLIENTE
-
-#### 1. **Autenticarse y gestionar acceso**
-- Iniciar sesión.
-- Verificar correo.
-- Recuperar contraseña.
-
-Endpoints:
-- `POST /auth/login`
-- `POST /auth/verify-email`
-- `GET /auth/verify-email?token=...`
-- `POST /auth/forgot-password`
-- `POST /auth/reset-password`
-
-#### 2. **Gestionar perfil personal**
-- Ver perfil autenticado.
-- Editar perfil propio.
-
-Endpoints:
-- `GET /auth/profile`
-- `PUT /profile/edit`
-
-#### 3. **Gestionar cuentas propias**
-- Crear cuenta.
-- Ver cuentas.
-- Ver historial.
-- Convertir saldo.
-
-Endpoints:
-- `POST /accounts`
-- `GET /accounts`
-- `GET /my-account/history`
-- `GET /my-account/balance/convert?toCurrency=USD`
-
-#### 4. **Solicitar depósitos**
-- Crear solicitud de depósito a cuenta destino.
-
-Endpoint:
-- `POST /accounts/deposit-requests`
-
-#### 5. **Realizar transferencias**
-- Transferir a cuentas propias o de terceros.
-- Revertir transferencias en ventana permitida.
-
-Endpoints:
-- `POST /accounts/transfers`
-- `PUT /accounts/transfers/:id/revert`
-
-Reglas clave:
-- Máximo diario por origen: **Q10,000**.
-- Máximo diario por cuenta destino específica (origen→destino): **Q2,000**.
-
-#### 6. **Consultar seguridad personal**
-- Ver estado de seguridad.
-- Ver intentos fallidos.
-- Ver alertas de fraude.
-
-Endpoints:
-- `GET /security/status`
-- `GET /security/failed-attempts`
-- `GET /security/fraud-alerts`
-
-#### 7. **Gestionar favoritos**
-- Crear, listar, editar y eliminar favoritos.
-
-Endpoints:
-- `POST /favorites`
-- `GET /favorites`
-- `GET /favorites/:id`
-- `PUT /favorites/:id`
-- `DELETE /favorites/:id`
-
-#### 8. **Consultar promociones públicas**
-- Ver promociones activas.
-- Ver detalle de promoción.
-
-Endpoints:
-- `GET /catalog`
-- `GET /catalog/:id`
-
-### ❌ QUÉ NO PUEDE HACER EL CLIENTE
-
-- No puede acceder a endpoints administrativos.
-- No puede modificar límites globales de cuentas.
-- No puede aprobar/revertir depósitos de otros usuarios.
-- No puede congelar/descongelar cuentas.
-
----
-
-## 📊 Reportes y consultas administrativas
-
-Aunque no hay exportación PDF/Excel expuesta en esta API actual, el administrador puede obtener datos analíticos mediante:
-
+## Reportes y Consultas Administrativas
+Aunque no hay exportacion PDF/Excel expuesta en esta API actual, el administrador puede obtener datos analiticos mediante:
 - `GET /dashboard/transaction-ranking`
 - `GET /admin/transactions`
 - `GET /catalog/admin/audit/all`
 
 Estos endpoints permiten construir reportes externos en BI o scripts internos.
 
----
-
-# 🔌 EJEMPLOS API CON JSON
-
-## PARTE 1: EJEMPLOS PARA ADMINISTRADOR
-
-### 1️⃣ Login Admin
-
+## Ejemplos API con JSON
+### Parte 1: Ejemplos para Administrador
+1. Login Admin
 ```http
-POST /nexusBank/v1/auth/login
+POST /api/v1/auth/login
 Content-Type: application/json
-```
 
-```json
 {
   "email": "adminb@nexusbank.com",
   "password": "ADMINB"
 }
 ```
 
-### 2️⃣ Crear Cliente (Admin/Employee)
-
+2. Crear Cliente (Admin/Employee)
 ```http
-POST /nexusBank/v1/auth/register
+POST /api/v1/auth/register
 Authorization: Bearer {{token_admin}}
 Content-Type: application/json
-```
 
-```json
 {
   "name": "Cliente Demo",
   "email": "cliente.demo@nexusbank.com",
@@ -335,47 +260,38 @@ Content-Type: application/json
 }
 ```
 
-### 3️⃣ Ajustar límites de cuenta
-
+3. Ajustar limites de cuenta
 ```http
-PUT /nexusBank/v1/accounts/{{account_id}}/limits
+PUT /api/v1/accounts/{{account_id}}/limits
 Authorization: Bearer {{token_admin}}
 Content-Type: application/json
-```
 
-```json
 {
   "perTransactionLimit": 2000,
   "dailyTransactionLimit": 10000,
-  "reason": "Ajuste por política operativa"
+  "reason": "Ajuste por politica operativa"
 }
 ```
 
-### 4️⃣ Aprobar depósito
-
+4. Aprobar deposito
 ```http
-PUT /nexusBank/v1/accounts/deposit-requests/{{deposit_request_id}}/approve
+PUT /api/v1/accounts/deposit-requests/{{deposit_request_id}}/approve
 Authorization: Bearer {{token_admin}}
 Content-Type: application/json
-```
 
-```json
 {
   "couponId": "cat_ABC123"
 }
 ```
 
-### 5️⃣ Crear promoción
-
+5. Crear promocion
 ```http
-POST /nexusBank/v1/catalog/admin/create
+POST /api/v1/catalog/admin/create
 Authorization: Bearer {{token_admin}}
 Content-Type: application/json
-```
 
-```json
 {
-  "name": "Cashback 10% Depósitos",
+  "name": "Cashback 10% Depositos",
   "promotionType": "DEPOSITO_CASHBACK",
   "minDepositAmount": 1000,
   "cashbackPercentage": 10,
@@ -384,61 +300,48 @@ Content-Type: application/json
 }
 ```
 
-## PARTE 2: EJEMPLOS PARA CLIENTE
-
-### 1️⃣ Login Cliente
-
+### Parte 2: Ejemplos para Cliente
+1. Login Cliente
 ```http
-POST /nexusBank/v1/auth/login
+POST /api/v1/auth/login
 Content-Type: application/json
-```
 
-```json
 {
   "email": "cliente.demo@nexusbank.com",
   "password": "Cliente123!"
 }
 ```
 
-### 2️⃣ Crear cuenta bancaria
-
+2. Crear cuenta bancaria
 ```http
-POST /nexusBank/v1/accounts
+POST /api/v1/accounts
 Authorization: Bearer {{token_cliente}}
 Content-Type: application/json
-```
 
-```json
 {
   "accountType": "ahorro"
 }
 ```
 
-### 3️⃣ Solicitar depósito
-
+3. Solicitar deposito
 ```http
-POST /nexusBank/v1/accounts/deposit-requests
+POST /api/v1/accounts/deposit-requests
 Authorization: Bearer {{token_cliente}}
 Content-Type: application/json
-```
 
-```json
 {
   "destinationAccountNumber": "001-1234567890-1",
   "amount": 500,
-  "description": "Depósito en ventanilla"
+  "description": "Deposito en ventanilla"
 }
 ```
 
-### 4️⃣ Crear transferencia
-
+4. Crear transferencia
 ```http
-POST /nexusBank/v1/accounts/transfers
+POST /api/v1/accounts/transfers
 Authorization: Bearer {{token_cliente}}
 Content-Type: application/json
-```
 
-```json
 {
   "sourceAccountNumber": "1000000001",
   "destinationAccountNumber": "1000000002",
@@ -448,62 +351,47 @@ Content-Type: application/json
 }
 ```
 
-### 5️⃣ Crear favorito
-
+5. Crear favorito
 ```http
-POST /nexusBank/v1/favorites
+POST /api/v1/favorites
 Authorization: Bearer {{token_cliente}}
 Content-Type: application/json
-```
 
-```json
 {
   "accountNumber": "001-9115890794-1",
   "accountType": "ahorro",
-  "alias": "Mamá"
+  "alias": "Mama"
 }
 ```
 
----
-
-## 📌 Resumen de Códigos de Respuesta
-
-| Código | Significado | Ejemplo |
-|--------|-------------|---------|
-| 200 | OK - Petición exitosa | Consultas y actualizaciones |
+## Resumen de Codigos de Respuesta
+| Codigo | Significado | Ejemplo |
+|---|---|---|
+| 200 | OK - Peticion exitosa | Consultas y actualizaciones |
 | 201 | Created - Recurso creado | Registro de usuario, cuenta, favorito |
-| 400 | Bad Request | Validación o regla de negocio inválida |
-| 401 | Unauthorized | Token faltante o inválido |
+| 400 | Bad Request | Validacion o regla de negocio invalida |
+| 401 | Unauthorized | Token faltante o invalido |
 | 403 | Forbidden | Rol sin permiso |
 | 404 | Not Found | Recurso no encontrado |
 | 409 | Conflict | Recurso duplicado o estado incompatible |
 | 423 | Locked | Cuenta bloqueada/congelada |
 | 500 | Internal Server Error | Error interno del servidor |
 
----
+## Autenticacion y Tokens
+Todos los endpoints protegidos requieren token JWT Bearer.
 
-## 🔐 Autenticación y Tokens
-
-Todos los endpoints protegidos requieren token **JWT Bearer**.
-
-```http
+```text
 Authorization: Bearer <JWT>
 ```
 
 Tokens por rol en Postman:
-- `token_admin`: token de administrador
-- `token_employee`: token de empleado
-- `token_cliente`: token de cliente
+- `token_admin`
+- `token_employee`
+- `token_cliente`
 
 Duraciones configurables por `.env`:
 - `JWT_EXPIRES_IN`
 - `JWT_REFRESH_EXPIRES_IN`
 
----
-
-## ✅ Recomendación final
-
-Usa siempre la colección:
-- `NexusBank_Coleccion_Ordenada_ES.postman_collection.json`
-
-y mantenla sincronizada con este README para que QA, desarrollo y documentación avancen en paralelo.
+## Recomendacion Final
+Usa siempre la coleccion `NexusBank_Coleccion_Ordenada_ES.postman_collection.json` y mantenla sincronizada con este README para que QA, desarrollo y documentacion avancen en paralelo.

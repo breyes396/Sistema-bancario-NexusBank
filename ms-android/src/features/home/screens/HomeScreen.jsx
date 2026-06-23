@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, SafeAreaView } from 'react-native';
 import authClient from '../../../shared/api/authClient';
-import { COLORS } from '../../../shared/constants/theme';
+import Button from '../../../shared/components/common/Button';
+import { COLORS, SPACING, FONT_SIZE } from '../../../shared/constants/theme';
 
-const HomeScreen = () => {
+const HomeScreen = ({ navigation }) => {
     const [connected, setConnected] = useState(null); // null (loading) | true | false
 
     useEffect(() => {
@@ -13,44 +14,57 @@ const HomeScreen = () => {
     }, []);
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>¡Hola Mundo! </Text>
-            <Text style={styles.subtitle}>Proyecto Inicial NexusBank Mobile</Text>
-            
-            <View style={styles.statusBox}>
-                <Text style={styles.statusLabel}>Estado del Backend:</Text>
-                {connected === null && (
-                    <ActivityIndicator size="small" color={COLORS.primary} />
-                )}
-                {connected === true && (
-                    <Text style={styles.connectedText}>Conectado correctamente </Text>
-                )}
-                {connected === false && (
-                    <Text style={styles.disconnectedText}>Error de conexión </Text>
-                )}
+        <SafeAreaView style={styles.safe}>
+            <View style={styles.container}>
+                <Text style={styles.title}>¡Hola Mundo!</Text>
+                <Text style={styles.subtitle}>Proyecto Inicial NexusBank Mobile</Text>
+
+                <View style={styles.statusBox}>
+                    <Text style={styles.statusLabel}>Estado del Backend:</Text>
+                    {connected === null && (
+                        <ActivityIndicator size="small" color={COLORS.primary} />
+                    )}
+                    {connected === true && (
+                        <Text style={styles.connectedText}>Conectado correctamente</Text>
+                    )}
+                    {connected === false && (
+                        <Text style={styles.disconnectedText}>Error de conexión</Text>
+                    )}
+                </View>
+
+                <View style={styles.actions}>
+                    <Button
+                        title="Depositar"
+                        onPress={() => navigation.navigate('Deposit')}
+                    />
+                </View>
             </View>
-        </View>
+        </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
+    safe: {
+        flex: 1,
+        backgroundColor: COLORS.background,
+    },
     container: {
         flex: 1,
         backgroundColor: COLORS.background,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 20,
+        padding: SPACING.lg,
     },
     title: {
-        fontSize: 28,
+        fontSize: FONT_SIZE.huge,
         fontWeight: 'bold',
         color: COLORS.text,
-        marginBottom: 8,
+        marginBottom: SPACING.xs,
     },
     subtitle: {
-        fontSize: 16,
+        fontSize: FONT_SIZE.md,
         color: COLORS.textLight,
-        marginBottom: 30,
+        marginBottom: SPACING.lg,
     },
     statusBox: {
         flexDirection: 'row',
@@ -61,22 +75,27 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         borderWidth: 1,
         borderColor: COLORS.border,
+        marginBottom: SPACING.xl,
     },
     statusLabel: {
-        fontSize: 14,
+        fontSize: FONT_SIZE.sm,
         fontWeight: '600',
         color: COLORS.text,
         marginRight: 10,
     },
     connectedText: {
-        fontSize: 14,
+        fontSize: FONT_SIZE.sm,
         color: COLORS.success,
         fontWeight: 'bold',
     },
     disconnectedText: {
-        fontSize: 14,
+        fontSize: FONT_SIZE.sm,
         color: COLORS.error,
         fontWeight: 'bold',
+    },
+    actions: {
+        width: '100%',
+        gap: SPACING.sm,
     },
 });
 

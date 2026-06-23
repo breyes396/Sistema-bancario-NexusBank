@@ -37,6 +37,11 @@ const HomeScreen = ({ navigation }) => {
                         title="Depositar"
                         onPress={() => navigation.navigate('Deposit')}
                     />
+                    <Button
+                        title="Historial de Transacciones"
+                        onPress={() => navigation.navigate('Transactions')}
+                        variant="secondary"
+                    />
                 </View>
             </View>
         </SafeAreaView>

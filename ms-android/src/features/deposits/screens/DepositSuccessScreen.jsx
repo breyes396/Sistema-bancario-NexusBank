@@ -79,7 +79,7 @@ const DepositSuccessScreen = ({ navigation, route }) => {
 
                 <Button
                     title="Volver al Inicio"
-                    onPress={() => navigation.navigate('Home')}
+                    onPress={() => navigation.navigate('Main')}
                     style={styles.btnPrimary}
                 />
                 <Button

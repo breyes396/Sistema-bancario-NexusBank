@@ -1,0 +1,461 @@
+/* transactionDetail.css */
+
+.transaction-detail-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease;
+}
+
+.transaction-detail-modal {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(26, 46, 82, 0.2);
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+
+/* Header del modal */
+.modal-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #CAD7EB;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, #2D5899 0%, #1F3D70 100%);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.modal-title {
+  margin: 0;
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.close-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 1.25rem;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+/* Contenido del modal */
+.modal-content {
+  padding: 1.5rem;
+}
+
+/* Resumen principal */
+.detail-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #F7F9FC;
+  border-radius: 8px;
+  border-left: 4px solid #2D5899;
+}
+
+.summary-amount-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.amount-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+}
+
+.amount-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1A2E52;
+}
+
+.amount-value.income {
+  color: #1A6637;
+}
+
+.amount-value.expense {
+  color: #7A1A1A;
+}
+
+.reverted-badge {
+  display: inline-block;
+  margin-top: 0.75rem;
+  padding: 0.4rem 0.75rem;
+  background: rgba(214, 58, 58, 0.1);
+  color: #d63a3a;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-section {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.status-display {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.status-icon {
+  font-size: 2rem;
+  animation: scaleIn 0.3s ease;
+}
+
+.status-icon.success {
+  color: #1A6637;
+}
+
+.status-icon.warning {
+  color: #E8D8A0;
+}
+
+.status-icon.error {
+  color: #d63a3a;
+}
+
+.status-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.status-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1A2E52;
+  margin-top: 0.25rem;
+}
+
+/* Secciones de detalles */
+.detail-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.detail-section {
+  padding: 1rem;
+  border: 1px solid #EDF2FA;
+  border-radius: 8px;
+  background: white;
+  transition: all 0.2s;
+}
+
+.detail-section:hover {
+  border-color: #CAD7EB;
+  box-shadow: 0 2px 6px rgba(26, 46, 82, 0.05);
+}
+
+.detail-section.reverted-section {
+  border-left: 4px solid #d63a3a;
+  background: rgba(214, 58, 58, 0.02);
+}
+
+.detail-section.audit-section {
+  background: #F7F9FC;
+  border-color: #d3d3d3;
+}
+
+.section-title {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1A2E52;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.detail-row {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 1rem;
+  align-items: center;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #EDF2FA;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.detail-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.detail-value {
+  font-size: 0.95rem;
+  color: #1A2E52;
+  word-break: break-word;
+}
+
+.detail-value.monospace {
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  color: #8AABC9;
+  background: #F7F9FC;
+  padding: 0.4rem 0.75rem;
+  border-radius: 4px;
+  letter-spacing: 1px;
+}
+
+/* Footer del modal */
+.modal-footer {
+  padding: 1.5rem;
+  border-top: 1px solid #CAD7EB;
+  background: #F7F9FC;
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+}
+
+.action-btn.primary {
+  background: #2D5899;
+  color: white;
+}
+
+.action-btn.primary:hover {
+  background: #1F3D70;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(45, 88, 153, 0.3);
+}
+
+.action-btn.secondary {
+  background: white;
+  color: #2D5899;
+  border: 1.5px solid #2D5899;
+}
+
+.action-btn.secondary:hover {
+  background: #2D5899;
+  color: white;
+}
+
+.action-btn:active {
+  transform: translateY(0);
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .transaction-detail-overlay {
+    padding: 0;
+  }
+
+  .transaction-detail-modal {
+    border-radius: 12px 12px 0 0;
+    max-height: 100vh;
+  }
+
+  .detail-summary {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .status-section {
+    justify-content: flex-start;
+  }
+
+  .detail-row {
+    grid-template-columns: 140px 1fr;
+    gap: 0.75rem;
+  }
+
+  .detail-label {
+    font-size: 0.85rem;
+  }
+
+  .detail-value {
+    font-size: 0.9rem;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+  }
+
+  .action-btn {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 400px) {
+  .modal-content {
+    padding: 1rem;
+  }
+
+  .detail-summary {
+    padding: 1rem;
+  }
+
+  .detail-row {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+
+  .detail-label {
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+  }
+
+  .section-title {
+    font-size: 0.95rem;
+  }
+
+  .amount-value {
+    font-size: 1.5rem;
+  }
+}
+
+/* Print styles: hide everything except the modal so printing outputs only the modal content */
+@media print {
+  /* hide everything except the overlay (more specific to avoid printing only browser header/footer) */
+  body > *:not(.transaction-detail-overlay) {
+    display: none !important;
+  }
+
+  /* ensure overlay and modal are visible */
+  .transaction-detail-overlay,
+  .transaction-detail-overlay *,
+  .transaction-detail-modal,
+  .transaction-detail-modal * {
+    display: block !important;
+    visibility: visible !important;
+  }
+
+  /* make overlay transparent and modal full-width for printing */
+  .transaction-detail-overlay {
+    position: static !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .transaction-detail-modal {
+    box-shadow: none !important;
+    max-height: none !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    margin: 0 !important;
+  }
+
+  /* remove close button and footer from print */
+  .close-btn,
+  .modal-footer {
+    display: none !important;
+  }
+
+  .detail-section {
+    page-break-inside: avoid;
+  }
+
+  /* set page margins for printing */
+  @page { margin: 10mm; }
+}

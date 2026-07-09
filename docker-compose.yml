@@ -1,9 +1,7 @@
-version: '3.9'
-
 services:
-  postgres:
+  postgres-db:
     image: postgres:16
-    container_name: nexusbank-postgres
+    container_name: nexusbank-postgres-db
     restart: always
     environment:
       POSTGRES_DB: NexusBank
@@ -14,5 +12,57 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  mongo-db:
+    image: mongo:6
+    container_name: nexusbank-mongo-db
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  postgres-service:
+    build:
+      context: .
+      dockerfile: ms-postgres/Dockerfile
+    container_name: nexusbank-postgres-service
+    ports:
+      - "3007:3007"
+    env_file:
+      - ./ms-postgres/.env.docker
+    depends_on:
+      - postgres-db
+      - mongo-db
+    restart: unless-stopped
+
+  mongo-service:
+    build:
+      context: .
+      dockerfile: ms-mongo/Dockerfile
+    container_name: nexusbank-mongo-service
+    ports:
+      - "3006:3006"
+    env_file:
+      - ./ms-mongo/.env.docker
+    depends_on:
+      - mongo-db
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Bancario-NexusBank/Dockerfile
+      args:
+        VITE_BANKING_API_URL: http://localhost:3007/api/v1
+        VITE_API_URL: http://localhost:3006/api/v1
+    container_name: nexusbank-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - postgres-service
+      - mongo-service
+    restart: unless-stopped
+
 volumes:
   postgres_data:
+  mongo_data:

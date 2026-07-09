@@ -1,0 +1,431 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   PROMOTIONS MANAGEMENT VIEW STYLES
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* ──── Filtros ──── */
+.promotions-filters {
+  background: rgba(237, 242, 250, 0.8);
+  border: 1px solid #CAD7EB;
+}
+
+.filters-header {
+  border-bottom: 1px solid #B8CCE4;
+  padding-bottom: 12px;
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+}
+
+.filter-group label {
+  color: #1A2E52;
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.filter-select,
+.search-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #CAD7EB;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+  color: #1A2E52;
+  transition: all 0.2s ease;
+}
+
+/* Ensure select text is visible and not clipped */
+.filter-select {
+  box-sizing: border-box;
+  height: 44px;
+  padding: 10px 36px 10px 12px; /* reserve arrow space */
+  line-height: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.filter-select:focus,
+.search-input:focus {
+  outline: none;
+  border-color: #2D5899;
+  box-shadow: 0 0 0 3px rgba(45, 88, 153, 0.1);
+}
+
+.search-input::placeholder {
+  color: #94a3b8;
+}
+
+/* ──── Select Options Modal ──── */
+.custom-select-options option {
+  background: #1A2E52; /* Color de fondo oscuro para contrastar */
+  color: #ffffff;      /* Texto blanco */
+}
+
+/* ──── Tabla de Promociones ──── */
+.movements-table-wrapper {
+  overflow-x: auto;
+}
+
+.movements-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+.movements-table thead {
+  background: linear-gradient(90deg, #f7f9fc 0%, #edf2fa 100%);
+  border-bottom: 2px solid #B8CCE4;
+}
+
+.movements-table thead tr th {
+  padding: 14px 16px;
+  text-align: left;
+  font-weight: 700;
+  font-size: 12px;
+  color: #1A2E52;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.movements-table tbody tr {
+  border-bottom: 1px solid #E8EEF7;
+  transition: background-color 0.15s ease;
+}
+
+.movements-table tbody tr:hover {
+  background-color: #fafbfc;
+}
+
+.movements-table tbody td {
+  padding: 14px 16px;
+  font-size: 14px;
+  color: #1A2E52;
+}
+
+.movements-table tbody td.date-column {
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* ──── Badges de Tipo de Promoción ──── */
+.type-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(45, 88, 153, 0.1);
+  color: #2D5899;
+  border: 1px solid rgba(45, 88, 153, 0.3);
+}
+
+/* ──── Status Badge ──── */
+.status-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 1px solid currentColor;
+}
+
+/* Estados con 4 colores */
+.status-badge-activa {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border-color: #10b981;
+}
+
+.status-badge-inactiva {
+  background: rgba(107, 114, 128, 0.12);
+  color: #6b7280;
+  border-color: #6b7280;
+}
+
+.status-badge-pausada {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+  border-color: #f59e0b;
+}
+
+.status-badge-expirada {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+/* ──── Fila de Promoción ──── */
+.promotion-row {
+  transition: all 0.15s ease;
+}
+
+.promotion-row:hover {
+  background-color: #f0f5fb;
+}
+
+/* ──── Celda de Acciones ──── */
+.actions-cell {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* ──── Botones de Acción ──── */
+.action-btn {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.action-btn:active {
+  transform: translateY(0);
+}
+
+.action-btn--edit {
+  background: linear-gradient(135deg, #2D5899 0%, #1A2E52 100%);
+  color: white;
+  border: 1px solid #2D5899;
+}
+
+.action-btn--edit:hover {
+  background: linear-gradient(135deg, #1A2E52 0%, #0d294a 100%);
+}
+
+.action-btn--success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: 1px solid #10b981;
+}
+
+.action-btn--success:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+.action-btn--warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  border: 1px solid #f59e0b;
+}
+
+.action-btn--warning:hover {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+}
+
+.action-btn--danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border: 1px solid #ef4444;
+}
+
+.action-btn--danger:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+}
+
+.action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ──── Responsividad ──── */
+@media (max-width: 1024px) {
+  .filters-grid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
+
+  .movements-table {
+    font-size: 12px;
+  }
+
+  .movements-table thead tr th {
+    padding: 10px 12px;
+  }
+
+  .movements-table tbody td {
+    padding: 10px 12px;
+  }
+
+  .action-btn {
+    padding: 5px 8px;
+    font-size: 10px;
+  }
+
+  .actions-cell {
+    gap: 4px;
+  }
+}
+
+@media (max-width: 768px) {
+  .filters-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .movements-table {
+    font-size: 11px;
+  }
+
+  .movements-table thead tr th {
+    padding: 8px 10px;
+  }
+
+  .movements-table tbody td {
+    padding: 8px 10px;
+  }
+
+  .action-btn {
+    padding: 4px 6px;
+    font-size: 9px;
+  }
+
+  .type-badge {
+    font-size: 10px;
+    padding: 3px 8px;
+  }
+
+  .status-badge {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+}
+
+/* ──── Animaciones ──── */
+.animate-fade-in-up {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ──── Glass Panel (reutilizar de admin dashboard si existe) ──── */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
+}
+
+/* ──── Sección Movimientos (Reutilizable) ──── */
+.movements-section {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.movements-header {
+  padding: 20px;
+  background: linear-gradient(90deg, #f7f9fc 0%, #edf2fa 100%);
+  border-bottom: 1px solid #CAD7EB;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.movements-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1A2E52;
+  margin: 0;
+}
+
+.filters-container {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* ──── Paginación ──── */
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-top: 1px solid #E8EEF7;
+  background: #fafbfc;
+}
+
+.pagination-info {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pagination-pages {
+  display: flex;
+  gap: 6px;
+}
+
+.pagination-btn,
+.pagination-page-btn {
+  border: 1px solid #CAD7EB;
+  background: #fff;
+  color: #1A2E52;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pagination-btn:hover,
+.pagination-page-btn:hover {
+  border-color: #2D5899;
+  color: #2D5899;
+}
+
+.pagination-page-btn.is-active {
+  background: linear-gradient(135deg, #2D5899 0%, #1A2E52 100%);
+  border-color: #1A2E52;
+  color: #fff;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .pagination-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .pagination-controls {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+}

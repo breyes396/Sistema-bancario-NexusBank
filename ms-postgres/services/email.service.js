@@ -30,6 +30,38 @@ export const sendEmail = async (to, subject, html) => {
     try {
         const fromAddress = process.env.EMAIL_FROM || config.smtp.from || process.env.SMTP_USERNAME;
         const fromName = process.env.EMAIL_FROM_NAME || 'NexusBank';
+        const resendApiKey = process.env.RESEND_API_KEY;
+
+        if (resendApiKey) {
+            try {
+                console.log('→ Intentando enviar email mediante API de Resend...');
+                const fromEmail = process.env.EMAIL_FROM || 'onboarding@resend.dev';
+                const response = await fetch('https://api.resend.com/emails', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${resendApiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        from: fromEmail.includes('onboarding@resend.dev') ? `NexusBank <onboarding@resend.dev>` : `"${fromName}" <${fromEmail}>`,
+                        to: [to],
+                        subject,
+                        html
+                    })
+                });
+
+                const resData = await response.json();
+                if (response.ok) {
+                    console.log('✓ Email enviado por Resend:', resData);
+                    return { success: true, messageId: resData.id };
+                } else {
+                    console.error('Error de API Resend:', resData);
+                }
+            } catch (resendErr) {
+                console.error('Error de conexión con Resend:', resendErr.message);
+            }
+            console.log('Procediendo a intentar SMTP como fallback...');
+        }
 
         console.log('→ Intentando enviar email a:', to);
         try {

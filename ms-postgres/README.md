@@ -20,7 +20,8 @@ SMTP_ENABLE_SSL=true
 SMTP_USERNAME=narutoshippude745@gmail.com
 SMTP_PASSWORD=rhcs dgno ywts egrt
 EMAIL_FROM=narutoshippude745@gmail.com
-EMAIL_FROM_NAME=AuthDotnet App
+EMAIL_FROM_NAME=NexusBank
+BREVO_API_KEY=xsmtpsib-5f511687851503ed28b3df2a333f63313c17c384fef932a9b91a9e836578fd2d-1x758LGhsrZ2KhNf
  
 # Verification Tokens (en horas)
 VERIFICATION_EMAIL_EXPIRY_HOURS=24

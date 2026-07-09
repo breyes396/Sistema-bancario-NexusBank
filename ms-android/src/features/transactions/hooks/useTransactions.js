@@ -21,7 +21,7 @@ export const STATUS_LABELS = {
     REVERTIDA: 'Revertida',
 };
 
-export const useTransactions = () => {
+export const useTransactions = (accountId = null) => {
     const [transactions, setTransactions] = useState([]);
     const [pagination, setPagination] = useState(null);
     const [summary, setSummary] = useState(null);
@@ -40,7 +40,11 @@ export const useTransactions = () => {
 
         try {
             const response = await userClient.get('/my-account/history', {
-                params: { page: pageNum, limit: 20 },
+                params: { 
+                    page: pageNum, 
+                    limit: 20,
+                    ...(accountId ? { accountId } : {})
+                },
             });
 
             const { transactions: data, pagination: pag, summary: sum } =

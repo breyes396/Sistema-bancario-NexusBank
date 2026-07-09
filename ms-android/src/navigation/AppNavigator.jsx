@@ -9,6 +9,7 @@ import RegisterScreen from '../features/auth/screens/RegisterScreen';
 import MainTabNavigator from './MainTabNavigator';
 import DepositScreen from "../features/deposits/screens/DepositScreen";
 import DepositSuccessScreen from "../features/deposits/screens/DepositSuccessScreen";
+import AccountsListScreen from '../features/accounts/screens/AccountsListScreen';
 import styles from './AppNavigator.styles';
 
 const Stack = createNativeStackNavigator();
@@ -35,6 +36,7 @@ const AppNavigator = () => {
                         <Stack.Screen name="Main" component={MainTabNavigator} />
                         <Stack.Screen name="Deposit" component={DepositScreen} />
                         <Stack.Screen name="DepositSuccess" component={DepositSuccessScreen} />
+                        <Stack.Screen name="AccountsList" component={AccountsListScreen} />
                     </Stack.Group>
                 ) : (
                     <Stack.Group>

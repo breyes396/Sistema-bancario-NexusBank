@@ -137,7 +137,8 @@ const SummaryStrip = ({ summary }) => {
 };
 
 // ── Main screen ───────────────────────────────────────────────────────────────
-const TransactionsScreen = ({ navigation }) => {
+const TransactionsScreen = ({ navigation, route }) => {
+    const { accountId, accountNumber } = route?.params || {};
     const {
         transactions,
         summary,
@@ -148,11 +149,11 @@ const TransactionsScreen = ({ navigation }) => {
         fetchTransactions,
         refresh,
         loadMore,
-    } = useTransactions();
+    } = useTransactions(accountId);
 
     useEffect(() => {
         fetchTransactions({ pageNum: 1 });
-    }, [fetchTransactions]);
+    }, [fetchTransactions, accountId]);
 
     const renderItem = useCallback(({ item }) => <TransactionCard item={item} />, []);
 
@@ -173,7 +174,9 @@ const TransactionsScreen = ({ navigation }) => {
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                     <Text style={styles.backText}>← Volver</Text>
                 </TouchableOpacity>
-                <Text style={styles.title}>Historial de Transacciones</Text>
+                <Text style={styles.title}>
+                    {accountNumber ? `Movimientos: ${accountNumber}` : 'Historial de Transacciones'}
+                </Text>
                 {pagination ? (
                     <Text style={styles.count}>{pagination.total} movimiento(s)</Text>
                 ) : null}

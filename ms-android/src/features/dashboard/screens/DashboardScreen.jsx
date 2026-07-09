@@ -44,7 +44,7 @@ const DashboardScreen = ({ navigation }) => {
                 <Text style={styles.sectionTitle}>Acceso rápido</Text>
                 <View style={styles.grid}>
                     <QuickAction icon="↔" label="Transferir" onPress={ComingSoon('Las transferencias')} />
-                    <QuickAction icon="🏦" label="Ver Cuentas" onPress={ComingSoon('El detalle de cuentas')} />
+                    <QuickAction icon="🏦" label="Ver Cuentas" onPress={() => navigation.navigate('AccountsList')} />
                     <QuickAction icon="★" label="Favoritos" onPress={ComingSoon('Los favoritos')} />
                     <QuickAction
                         icon="↓"

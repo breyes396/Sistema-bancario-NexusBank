@@ -6,8 +6,8 @@ import {
     KeyboardAvoidingView,
     Platform,
     TouchableOpacity,
-    SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRegister } from '../hooks/useRegister';
 import Button from '../../../shared/components/common/Button';
 import Input from '../../../shared/components/common/Input';

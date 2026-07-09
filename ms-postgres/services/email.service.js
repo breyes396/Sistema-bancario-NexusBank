@@ -92,7 +92,7 @@ export const sendEmail = async (to, subject, html) => {
 };
 
 export const sendVerificationEmail = async (email, name, token) => {
-    const verificationUrl = `${config.frontendUrl}/verify-email?token=${encodeURIComponent(token)}`;
+    const verificationUrl = `${config.frontendUrl}/#/verify-email?token=${encodeURIComponent(token)}`;
     
     const html = `
         <!DOCTYPE html>

@@ -70,7 +70,7 @@ export async function sendActivationEmail(to, subject, html, attachments = []) {
 }
 
 export async function sendVerificationEmail(to, name, token) {
-    const verificationUrl = `${config.frontendUrl}/verify-email?token=${encodeURIComponent(token)}`;
+    const verificationUrl = `${config.frontendUrl}/#/verify-email?token=${encodeURIComponent(token)}`;
     const html = `
         <p>Hola ${name || 'cliente'},</p>
         <p>Para activar tu cuenta en NexusBank, verifica tu email:</p>

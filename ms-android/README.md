@@ -11,12 +11,13 @@ Dado que este es un proyecto escolar, se listan a continuación las credenciales
 ### 1. Variables de Entorno Móvil (`ms-android/.env`)
 Crea un archivo `.env` en la raíz de la carpeta `ms-android/` con los siguientes valores para conectarte al backend:
 ```env
-# URL de la API de Postgres (puerto 3007)
-# 10.0.2.2 es la dirección IP especial para comunicarse con el localhost desde el emulador de Android.
-EXPO_PUBLIC_API_URL=http://10.0.2.2:3007/api/v1
+# NexusBank Backend Connections (pointing to online Render APIs)
+EXPO_PUBLIC_API_URL=https://nexusbank-postgres.onrender.com/api/v1
+EXPO_PUBLIC_MONGO_API_URL=https://nexusbank-mongo.onrender.com/api/v1
 
-# URL de la API de Mongo (puerto 3006)
-EXPO_PUBLIC_MONGO_API_URL=http://10.0.2.2:3006/api/v1
+# Desactivar la verificación de compatibilidad de Expo Router con React Navigation para SDK 56
+EXPO_ROUTER_DISABLE_RN_NAVIGATION_CHECK=1
+
 ```
 
 ### 2. Configuración de Base de Datos Centralizada

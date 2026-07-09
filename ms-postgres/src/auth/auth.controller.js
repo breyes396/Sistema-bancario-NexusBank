@@ -461,7 +461,8 @@ export const register = async (req, res) => {
     }
 
     const exists = await User.findOne({ where: { email } });
-    if (exists) {
+    const existsEmail = await UserEmail.findOne({ where: { email } });
+    if (exists || existsEmail) {
       await transaction.rollback();
       return res.status(409).json({ msg: 'El correo ya esta registrado' });
     }

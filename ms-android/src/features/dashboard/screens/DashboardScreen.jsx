@@ -1,70 +1,58 @@
-import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useEffect, useMemo } from 'react';
+import { ScrollView, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../../shared/store/authStore';
-import { Card } from '../../../shared/components/common/Common';
+import { useAccounts } from '../../accounts/hooks/useAccounts';
+import { useTransactions } from '../../transactions/hooks/useTransactions';
+import DashboardHeader from '../components/DashboardHeader';
+import BalanceCard from '../components/BalanceCard';
+import SummaryCards from '../components/SummaryCards';
+import FavoritesSection from '../components/FavoritesSection';
+import RecentMovements from '../components/RecentMovements';
+import BottomNavBar from '../components/BottomNavBar';
 import styles from './DashboardScreen.styles';
-
-const ComingSoon = (feature) => () =>
-    Alert.alert('Próximamente', `${feature} estará disponible en una próxima actualización.`);
-
-const QuickAction = ({ icon, label, onPress }) => (
-    <TouchableOpacity style={styles.actionCard} onPress={onPress} activeOpacity={0.8}>
-        <View style={styles.actionIconWrap}>
-            <Text style={styles.actionIcon}>{icon}</Text>
-        </View>
-        <Text style={styles.actionLabel}>{label}</Text>
-    </TouchableOpacity>
-);
 
 const DashboardScreen = ({ navigation }) => {
     const user = useAuthStore((state) => state.user);
-    const logout = useAuthStore((state) => state.logout);
+    const { accounts, loading: accountsLoading } = useAccounts();
+    const { transactions, summary, loading: txLoading } = useTransactions();
 
-    const firstName = (user?.name || user?.username || 'Usuario').split(' ')[0];
+    const [updatedAt, setUpdatedAt] = useState(null);
+
+    useEffect(() => {
+        if (!accountsLoading) setUpdatedAt(new Date());
+    }, [accountsLoading, accounts]);
+
+    const fullName = user?.name || user?.username || 'Usuario';
+    const firstName = fullName.split(' ')[0];
+
+    const consolidatedBalance = useMemo(() => {
+        return accounts
+            .filter((acc) => String(acc?.accountStatus).toUpperCase() === 'ACTIVE')
+            .reduce((sum, acc) => sum + parseFloat(acc?.accountBalance || 0), 0);
+    }, [accounts]);
+
+    const openDrawer = () => navigation.getParent()?.openDrawer();
 
     return (
         <SafeAreaView style={styles.safe}>
             <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-                <View style={styles.header}>
-                    <View>
-                        <Text style={styles.greeting}>Hola, {firstName} 👋</Text>
-                        <Text style={styles.subtitle}>Bienvenido de nuevo a NexusBank</Text>
-                    </View>
-                    <TouchableOpacity onPress={logout} style={styles.logoutBtn}>
-                        <Text style={styles.logoutText}>Salir</Text>
-                    </TouchableOpacity>
-                </View>
+                <DashboardHeader fullName={fullName} openDrawer={openDrawer} />
 
-                <Card style={styles.welcomeCard}>
-                    <Text style={styles.welcomeLabel}>Cuenta</Text>
-                    <Text style={styles.welcomeValue}>{user?.email}</Text>
-                </Card>
+                <Text style={styles.greeting}>Hola, {firstName}</Text>
+                <Text style={styles.subtitle}>Esto es lo que pasa en tus cuentas hoy</Text>
 
-                <Text style={styles.sectionTitle}>Acceso rápido</Text>
-                <View style={styles.grid}>
-                    <QuickAction icon="↔" label="Transferir" onPress={ComingSoon('Las transferencias')} />
-                    <QuickAction icon="🏦" label="Ver Cuentas" onPress={() => navigation.navigate('AccountsList')} />
-                    <QuickAction icon="★" label="Favoritos" onPress={ComingSoon('Los favoritos')} />
-                    <QuickAction
-                        icon="↓"
-                        label="Depositar"
-                        onPress={() => navigation.navigate('Deposit')}
-                    />
-                </View>
-
-                <Text style={styles.sectionTitle}>Movimientos</Text>
-                <TouchableOpacity
-                    style={styles.historyRow}
-                    onPress={() => navigation.navigate('Historial')}
-                    activeOpacity={0.8}
-                >
-                    <Card style={styles.historyCard}>
-                        <Text style={styles.historyText}>Ver historial de transacciones</Text>
-                        <Text style={styles.historyArrow}>›</Text>
-                    </Card>
-                </TouchableOpacity>
+                <BalanceCard
+                    consolidatedBalance={consolidatedBalance}
+                    updatedAt={updatedAt}
+                    loading={accountsLoading}
+                />
+                <SummaryCards summary={summary} loading={txLoading} />
+                <FavoritesSection />
+                <RecentMovements transactions={transactions} loading={txLoading} />
             </ScrollView>
+
+            <BottomNavBar openDrawer={openDrawer} />
         </SafeAreaView>
     );
 };

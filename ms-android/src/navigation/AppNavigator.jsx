@@ -6,7 +6,7 @@ import { useAuthStore } from '../shared/store/authStore';
 import { COLORS } from '../shared/constants/theme';
 import LoginScreen from '../features/auth/screens/LoginScreen';
 import RegisterScreen from '../features/auth/screens/RegisterScreen';
-import MainTabNavigator from './MainTabNavigator';
+import DrawerNavigator from './DrawerNavigator';
 import DepositScreen from "../features/deposits/screens/DepositScreen";
 import DepositSuccessScreen from "../features/deposits/screens/DepositSuccessScreen";
 import AccountsListScreen from '../features/accounts/screens/AccountsListScreen';
@@ -33,7 +33,7 @@ const AppNavigator = () => {
             <Stack.Navigator screenOptions={{ headerShown: false }}>
                 {isAuthenticated ? (
                     <Stack.Group>
-                        <Stack.Screen name="Main" component={MainTabNavigator} />
+                        <Stack.Screen name="Main" component={DrawerNavigator} />
                         <Stack.Screen name="Deposit" component={DepositScreen} />
                         <Stack.Screen name="DepositSuccess" component={DepositSuccessScreen} />
                         <Stack.Screen name="AccountsList" component={AccountsListScreen} />

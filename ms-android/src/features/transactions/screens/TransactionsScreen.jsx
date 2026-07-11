@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import {
     View,
     Text,
@@ -7,97 +7,21 @@ import {
     RefreshControl,
     TouchableOpacity,
     ActivityIndicator,
+    Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
     useTransactions,
-    isIncome,
-    TYPE_LABELS,
-    STATUS_LABELS,
 } from '../hooks/useTransactions';
-import { LoadingSpinner, EmptyState, Card } from '../../../shared/components/common/Common';
+import { useReversions } from '../hooks/useReversions';
+import { LoadingSpinner, EmptyState } from '../../../shared/components/common/Common';
 import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme';
+import TransactionCard from '../components/TransactionCard';
+import RevertReasonModal from '../components/RevertReasonModal';
 
 // Colors consistent with web app
 const INCOME_COLOR = '#1A6637';
 const EXPENSE_COLOR = '#7A1A1A';
-
-const STATUS_COLORS = {
-    COMPLETADA: COLORS.success,
-    PENDIENTE: COLORS.warning,
-    FALLIDA: COLORS.error,
-    REVERTIDA: '#d63a3a',
-};
-
-const formatDate = (dateStr) => {
-    if (!dateStr) return '—';
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('es-GT', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-    }) + ' ' + d.toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' });
-};
-
-const formatAmount = (amount, type) => {
-    const num = parseFloat(amount || 0).toFixed(2);
-    return isIncome(type) ? `+Q${num}` : `-Q${num}`;
-};
-
-// ── Transaction card ──────────────────────────────────────────────────────────
-const TransactionCard = ({ item }) => {
-    const income = isIncome(item.type);
-    const amountColor =
-        item.status === 'REVERTIDA' ? STATUS_COLORS.REVERTIDA
-        : income ? INCOME_COLOR
-        : EXPENSE_COLOR;
-
-    return (
-        <Card style={card.container}>
-            {/* Row 1: type badge + date */}
-            <View style={card.row}>
-                <View style={[card.badge, income ? card.badgeIncome : card.badgeExpense]}>
-                    <Text style={[card.badgeText, { color: income ? INCOME_COLOR : EXPENSE_COLOR }]}>
-                        {TYPE_LABELS[item.type] || item.type}
-                    </Text>
-                </View>
-                <Text style={card.date}>{formatDate(item.createdAt)}</Text>
-            </View>
-
-            {/* Row 2: account + amount */}
-            <View style={card.row}>
-                <View style={card.accountWrap}>
-                    <Text style={card.accountLabel}>Cuenta</Text>
-                    <Text style={card.accountValue} numberOfLines={1}>
-                        {item.accountNumber || '—'}
-                    </Text>
-                </View>
-                <Text style={[card.amount, { color: amountColor }]}>
-                    {formatAmount(item.amount, item.type)}
-                </Text>
-            </View>
-
-            {/* Row 3: ID + status */}
-            <View style={card.row}>
-                <Text style={card.id} numberOfLines={1}>
-                    ID: {item.id || '—'}
-                </Text>
-                <View style={[card.statusBadge, { backgroundColor: STATUS_COLORS[item.status] + '22' }]}>
-                    <Text style={[card.statusText, { color: STATUS_COLORS[item.status] }]}>
-                        {STATUS_LABELS[item.status] || item.status}
-                    </Text>
-                </View>
-            </View>
-
-            {/* Description (if present) */}
-            {item.description ? (
-                <Text style={card.description} numberOfLines={1}>
-                    {item.description}
-                </Text>
-            ) : null}
-        </Card>
-    );
-};
 
 // ── Summary strip ─────────────────────────────────────────────────────────────
 const SummaryStrip = ({ summary }) => {
@@ -151,11 +75,60 @@ const TransactionsScreen = ({ navigation, route }) => {
         loadMore,
     } = useTransactions(accountId);
 
+    const { addReversion } = useReversions();
+    
+    // Reversion state
+    const [selectedTx, setSelectedTx] = useState(null);
+    const [revertReason, setRevertReason] = useState('');
+    const [revertModalVisible, setRevertModalVisible] = useState(false);
+    const [revertLoading, setRevertLoading] = useState(false);
+
     useEffect(() => {
         fetchTransactions({ pageNum: 1 });
     }, [fetchTransactions, accountId]);
 
-    const renderItem = useCallback(({ item }) => <TransactionCard item={item} />, []);
+    const handleOpenRevert = (tx) => {
+        setSelectedTx(tx);
+        setRevertReason('');
+        setRevertModalVisible(true);
+    };
+
+    const handleConfirmRevert = async () => {
+        if (!revertReason || revertReason.trim() === '') {
+            Alert.alert('Error', 'Debes escribir una justificación para solicitar la reversión.');
+            return;
+        }
+
+        setRevertModalVisible(false);
+        setRevertLoading(true);
+
+        try {
+            const isTransfer = String(selectedTx.type).includes('TRANSFERENCIA');
+            await addReversion({
+                type: isTransfer ? 'TRANSFERENCIA' : 'DEPOSITO',
+                operationId: selectedTx.id,
+                reference: selectedTx.id,
+                amount: selectedTx.amount,
+                accountNumber: selectedTx.accountNumber || '',
+                sourceAccountNumber: isTransfer ? selectedTx.accountNumber : '',
+                destinationAccountNumber: isTransfer ? selectedTx.relatedAccountNumber : '',
+                operationDate: selectedTx.createdAt,
+                operationDescription: selectedTx.description || '',
+                reason: revertReason
+            });
+
+            Alert.alert('Éxito', 'Solicitud de reversión enviada correctamente para revisión.');
+            refresh();
+        } catch (err) {
+            Alert.alert('Error', err.message || 'No se pudo procesar la solicitud.');
+        } finally {
+            setRevertLoading(false);
+        }
+    };
+
+    const renderItem = useCallback(({ item }) => (
+        <TransactionCard item={item} onRevertPress={handleOpenRevert} />
+    ), []);
 
     const keyExtractor = useCallback((item) => item.id?.toString() ?? Math.random().toString(), []);
 
@@ -185,7 +158,7 @@ const TransactionsScreen = ({ navigation, route }) => {
         </View>
     );
 
-    if (loading) return <LoadingSpinner />;
+    if (loading && transactions.length === 0) return <LoadingSpinner />;
 
     if (error) {
         return (
@@ -225,6 +198,15 @@ const TransactionsScreen = ({ navigation, route }) => {
                 onEndReachedThreshold={0.3}
                 showsVerticalScrollIndicator={false}
             />
+
+            <RevertReasonModal
+                visible={revertModalVisible}
+                onClose={() => setRevertModalVisible(false)}
+                onConfirm={handleConfirmRevert}
+                reason={revertReason}
+                setReason={setRevertReason}
+                transactionId={selectedTx?.id}
+            />
         </SafeAreaView>
     );
 };
@@ -263,80 +245,6 @@ const styles = StyleSheet.create({
     footerLoader: {
         paddingVertical: SPACING.md,
         alignItems: 'center',
-    },
-});
-
-const card = StyleSheet.create({
-    container: {
-        marginHorizontal: SPACING.lg,
-        marginBottom: SPACING.sm,
-    },
-    row: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: SPACING.xs,
-    },
-    badge: {
-        paddingHorizontal: SPACING.sm,
-        paddingVertical: 3,
-        borderRadius: 6,
-    },
-    badgeIncome: {
-        backgroundColor: INCOME_COLOR + '18',
-    },
-    badgeExpense: {
-        backgroundColor: EXPENSE_COLOR + '18',
-    },
-    badgeText: {
-        fontSize: FONT_SIZE.xs,
-        fontWeight: '700',
-    },
-    date: {
-        fontSize: FONT_SIZE.xs,
-        color: COLORS.textLight,
-    },
-    accountWrap: {
-        flex: 1,
-        marginRight: SPACING.sm,
-    },
-    accountLabel: {
-        fontSize: 10,
-        color: COLORS.textLight,
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
-    },
-    accountValue: {
-        fontSize: FONT_SIZE.sm,
-        color: COLORS.text,
-        fontWeight: '500',
-    },
-    amount: {
-        fontSize: FONT_SIZE.lg,
-        fontWeight: 'bold',
-    },
-    id: {
-        fontSize: 10,
-        color: COLORS.textLight,
-        flex: 1,
-        marginRight: SPACING.sm,
-    },
-    statusBadge: {
-        paddingHorizontal: SPACING.sm,
-        paddingVertical: 2,
-        borderRadius: 6,
-    },
-    statusText: {
-        fontSize: 10,
-        fontWeight: '700',
-    },
-    description: {
-        fontSize: FONT_SIZE.xs,
-        color: COLORS.textLight,
-        marginTop: SPACING.xs,
-        borderTopWidth: 1,
-        borderTopColor: COLORS.border,
-        paddingTop: SPACING.xs,
     },
 });
 

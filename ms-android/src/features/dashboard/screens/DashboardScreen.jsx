@@ -52,7 +52,7 @@ const DashboardScreen = ({ navigation }) => {
                 <RecentMovements transactions={transactions} loading={txLoading} />
             </ScrollView>
 
-            <BottomNavBar openDrawer={openDrawer} />
+            <BottomNavBar openDrawer={openDrawer} navigation={navigation} />
         </SafeAreaView>
     );
 };

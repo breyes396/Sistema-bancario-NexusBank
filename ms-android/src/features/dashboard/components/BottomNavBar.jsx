@@ -4,7 +4,7 @@ import { Feather } from '@expo/vector-icons';
 import { DARK } from '../../../shared/constants/theme';
 import styles from '../screens/DashboardScreen.styles';
 
-const BottomNavBar = ({ openDrawer }) => (
+const BottomNavBar = ({ openDrawer, navigation }) => (
     <View style={styles.bottomNav}>
         <View style={styles.navItem}>
             <Feather name="home" size={22} color={DARK.accent} />
@@ -13,7 +13,7 @@ const BottomNavBar = ({ openDrawer }) => (
         <TouchableOpacity
             style={styles.navItem}
             activeOpacity={0.7}
-            onPress={() => console.log('Bottom nav: Cuentas (próximamente)')}
+            onPress={() => navigation?.navigate('AccountsList')}
         >
             <Feather name="credit-card" size={22} color={DARK.textMuted} />
             <Text style={styles.navLabel}>Cuentas</Text>
@@ -21,7 +21,7 @@ const BottomNavBar = ({ openDrawer }) => (
         <TouchableOpacity
             style={styles.navItem}
             activeOpacity={0.7}
-            onPress={() => console.log('Bottom nav: Transferir (próximamente)')}
+            onPress={() => navigation?.navigate('Transfer')}
         >
             <Feather name="repeat" size={22} color={DARK.textMuted} />
             <Text style={styles.navLabel}>Transferir</Text>
@@ -29,7 +29,7 @@ const BottomNavBar = ({ openDrawer }) => (
         <TouchableOpacity
             style={styles.navItem}
             activeOpacity={0.7}
-            onPress={() => console.log('Bottom nav: Historial (próximamente)')}
+            onPress={() => navigation?.navigate('Historial')}
         >
             <Feather name="file-text" size={22} color={DARK.textMuted} />
             <Text style={styles.navLabel}>Historial</Text>

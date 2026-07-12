@@ -13,6 +13,8 @@ import AccountsListScreen from '../features/accounts/screens/AccountsListScreen'
 import TransferScreen from '../features/transactions/screens/TransferScreen';
 import TransferSuccessScreen from '../features/transactions/screens/TransferSuccessScreen';
 import ReversionsScreen from '../features/transactions/screens/ReversionsScreen';
+import FavoritesScreen from '../features/favorites/screens/FavoritesScreen';
+import PromotionsScreen from '../features/promotions/screens/PromotionsScreen';
 import styles from './AppNavigator.styles';
 
 const Stack = createNativeStackNavigator();
@@ -43,6 +45,8 @@ const AppNavigator = () => {
                         <Stack.Screen name="Transfer" component={TransferScreen} />
                         <Stack.Screen name="TransferSuccess" component={TransferSuccessScreen} />
                         <Stack.Screen name="Reversions" component={ReversionsScreen} />
+                        <Stack.Screen name="Favorites" component={FavoritesScreen} />
+                        <Stack.Screen name="Promotions" component={PromotionsScreen} />
                     </Stack.Group>
                 ) : (
                     <Stack.Group>

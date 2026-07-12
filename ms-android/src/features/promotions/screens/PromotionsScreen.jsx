@@ -1,0 +1,71 @@
+import React, { useCallback, useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, FlatList, RefreshControl } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { usePromotions } from '../hooks/usePromotions';
+import PromotionCard from '../components/PromotionCard';
+import PromotionDetailModal from '../components/PromotionDetailModal';
+import { LoadingSpinner, EmptyState } from '../../../shared/components/common/Common';
+import { COLORS } from '../../../shared/constants/theme';
+import styles from './PromotionsScreen.styles';
+
+const PromotionsScreen = ({ navigation }) => {
+    const { promotions, loading, error, search, setSearch, refetch } = usePromotions();
+    const [selectedPromotion, setSelectedPromotion] = useState(null);
+
+    const handleRefresh = useCallback(() => refetch(), [refetch]);
+
+    return (
+        <SafeAreaView style={styles.safe}>
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+                    <Text style={styles.backText}>← Volver</Text>
+                </TouchableOpacity>
+                <Text style={styles.title}>Promociones Activas</Text>
+                <Text style={styles.subtitle}>Descubre los beneficios exclusivos que tenemos para ti.</Text>
+            </View>
+
+            <View style={styles.toolbar}>
+                <TextInput
+                    style={styles.searchInput}
+                    placeholder="Buscar promociones por nombre..."
+                    placeholderTextColor={COLORS.textLight}
+                    value={search}
+                    onChangeText={setSearch}
+                />
+            </View>
+
+            {error ? (
+                <View style={styles.errorCard}>
+                    <Text style={styles.errorCardText}>{error}</Text>
+                </View>
+            ) : null}
+
+            {loading && promotions.length === 0 ? (
+                <LoadingSpinner />
+            ) : (
+                <FlatList
+                    data={promotions}
+                    keyExtractor={(item) => item.id}
+                    renderItem={({ item }) => (
+                        <PromotionCard item={item} onUse={setSelectedPromotion} />
+                    )}
+                    contentContainerStyle={styles.listContent}
+                    refreshControl={
+                        <RefreshControl refreshing={loading} onRefresh={handleRefresh} colors={[COLORS.primary]} />
+                    }
+                    ListEmptyComponent={
+                        <EmptyState message="No hay promociones activas en este momento." />
+                    }
+                />
+            )}
+
+            <PromotionDetailModal
+                visible={!!selectedPromotion}
+                onClose={() => setSelectedPromotion(null)}
+                promotion={selectedPromotion}
+            />
+        </SafeAreaView>
+    );
+};
+
+export default PromotionsScreen;

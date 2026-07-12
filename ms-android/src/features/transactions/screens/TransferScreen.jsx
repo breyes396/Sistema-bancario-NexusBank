@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
-    StyleSheet,
     ScrollView,
     TouchableOpacity,
     KeyboardAvoidingView,
@@ -10,15 +9,20 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTransfer } from '../hooks/useTransfer';
+import { useFavorites } from '../../favorites/hooks/useFavorites';
 import Button from '../../../shared/components/common/Button';
 import Input from '../../../shared/components/common/Input';
 import { LoadingSpinner, Card } from '../../../shared/components/common/Common';
 import AccountPickerModal from '../components/AccountPickerModal';
 import SecurityConfirmModal from '../components/SecurityConfirmModal';
-import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme';
+import DestinationSection from '../components/DestinationSection';
+import FavoritePickerModal from '../../favorites/components/FavoritePickerModal';
+import { SPACING } from '../../../shared/constants/theme';
+import styles from './TransferScreen.styles';
 
-const TransferScreen = ({ navigation }) => {
+const TransferScreen = ({ navigation, route }) => {
     const { accounts, accountsLoading, loading, error, submitTransfer } = useTransfer();
+    const { favorites } = useFavorites();
 
     const [selectedSource, setSelectedSource] = useState(null);
     const [recipientType, setRecipientType] = useState('TERCERO'); // 'PROPIA' or 'TERCERO'
@@ -26,13 +30,14 @@ const TransferScreen = ({ navigation }) => {
     const [destinationAccountNum, setDestinationAccountNum] = useState(''); // Used if 'TERCERO'
     const [amount, setAmount] = useState('');
     const [description, setDescription] = useState('');
-    
+
     // UI state
     const [pickerSourceVisible, setPickerSourceVisible] = useState(false);
     const [pickerDestVisible, setPickerDestVisible] = useState(false);
+    const [favoritePickerVisible, setFavoritePickerVisible] = useState(false);
     const [confirmModalVisible, setConfirmModalVisible] = useState(false);
     const [confirmPassword, setConfirmPassword] = useState('');
-    
+
     // Errors
     const [errors, setErrors] = useState({});
     const [localBalanceError, setLocalBalanceError] = useState('');
@@ -43,6 +48,23 @@ const TransferScreen = ({ navigation }) => {
             setSelectedSource(accounts[0]);
         }
     }, [accounts, selectedSource]);
+
+    // Prellenado al llegar desde "Transferir" de un favorito (Favoritos o el
+    // dashboard), igual que el patrón location.state del frontend web.
+    useEffect(() => {
+        const prefill = route?.params;
+        if (!prefill?.prefillDestinationAccountNumber) return;
+
+        setRecipientType(prefill.prefillRecipientType || 'TERCERO');
+        setDestinationAccountNum(prefill.prefillDestinationAccountNumber);
+        if (prefill.prefillDescription) setDescription(prefill.prefillDescription);
+
+        navigation.setParams({
+            prefillDestinationAccountNumber: undefined,
+            prefillRecipientType: undefined,
+            prefillDescription: undefined,
+        });
+    }, [route?.params]);
 
     // Recalculate balance validation when source or amount changes
     useEffect(() => {
@@ -121,6 +143,17 @@ const TransferScreen = ({ navigation }) => {
     const handleSelectDestination = (account) => {
         setSelectedDestination(account);
         setPickerDestVisible(false);
+        if (errors.destination) {
+            setErrors((prev) => ({ ...prev, destination: null }));
+        }
+    };
+
+    const handleSelectFavorite = (favorite) => {
+        setDestinationAccountNum(favorite.accountNumber);
+        if (!description) {
+            setDescription(`Transferencia a favorito: ${favorite.alias}`);
+        }
+        setFavoritePickerVisible(false);
         if (errors.destination) {
             setErrors((prev) => ({ ...prev, destination: null }));
         }
@@ -221,92 +254,26 @@ const TransferScreen = ({ navigation }) => {
                         ) : null}
                     </View>
 
-                    {/* Recipient Type Selector */}
-                    <View style={styles.section}>
-                        <Text style={styles.label}>Destinatario</Text>
-                        <View style={styles.toggleRow}>
-                            <TouchableOpacity
-                                style={[
-                                    styles.toggleBtn,
-                                    recipientType === 'TERCERO' && styles.toggleBtnActive,
-                                ]}
-                                onPress={() => {
-                                    setRecipientType('TERCERO');
-                                    setErrors((prev) => ({ ...prev, destination: null }));
-                                }}
-                            >
-                                <Text
-                                    style={[
-                                        styles.toggleBtnText,
-                                        recipientType === 'TERCERO' && styles.toggleBtnTextActive,
-                                    ]}
-                                >
-                                    Tercero
-                                </Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[
-                                    styles.toggleBtn,
-                                    recipientType === 'PROPIA' && styles.toggleBtnActive,
-                                ]}
-                                onPress={() => {
-                                    setRecipientType('PROPIA');
-                                    setErrors((prev) => ({ ...prev, destination: null }));
-                                }}
-                            >
-                                <Text
-                                    style={[
-                                        styles.toggleBtnText,
-                                        recipientType === 'PROPIA' && styles.toggleBtnTextActive,
-                                    ]}
-                                >
-                                    Cuenta Propia
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-
-                    {/* Destination Account Input / Picker */}
-                    <View style={styles.section}>
-                        <Text style={styles.label}>Cuenta destino</Text>
-                        {recipientType === 'PROPIA' ? (
-                            <TouchableOpacity
-                                style={[styles.picker, errors.destination && styles.pickerError]}
-                                onPress={() => setPickerDestVisible(true)}
-                                activeOpacity={0.8}
-                            >
-                                {selectedDestination ? (
-                                    <View>
-                                        <Text style={styles.pickerValue}>
-                                            {selectedDestination.accountNumber}
-                                        </Text>
-                                        <Text style={styles.pickerSub}>
-                                            {selectedDestination.accountType} · Q{parseFloat(selectedDestination.accountBalance || 0).toFixed(2)}
-                                        </Text>
-                                    </View>
-                                ) : (
-                                    <Text style={styles.pickerPlaceholder}>Selecciona una de tus cuentas</Text>
-                                )}
-                                <Text style={styles.pickerArrow}>▼</Text>
-                            </TouchableOpacity>
-                        ) : (
-                            <Input
-                                placeholder="Ingresa el número de cuenta de destino"
-                                value={destinationAccountNum}
-                                onChangeText={(val) => {
-                                    setDestinationAccountNum(val.replace(/[^0-9-]/g, ''));
-                                    if (errors.destination) {
-                                        setErrors((prev) => ({ ...prev, destination: null }));
-                                    }
-                                }}
-                                keyboardType="default"
-                                error={errors.destination}
-                            />
-                        )}
-                        {recipientType === 'PROPIA' && errors.destination ? (
-                            <Text style={styles.errorText}>{errors.destination}</Text>
-                        ) : null}
-                    </View>
+                    {/* Recipient Type + Destination Account */}
+                    <DestinationSection
+                        recipientType={recipientType}
+                        onChangeRecipientType={(type) => {
+                            setRecipientType(type);
+                            setErrors((prev) => ({ ...prev, destination: null }));
+                        }}
+                        selectedDestination={selectedDestination}
+                        onOpenAccountPicker={() => setPickerDestVisible(true)}
+                        destinationAccountNum={destinationAccountNum}
+                        onChangeDestinationNumber={(val) => {
+                            setDestinationAccountNum(val.replace(/[^0-9-]/g, ''));
+                            if (errors.destination) {
+                                setErrors((prev) => ({ ...prev, destination: null }));
+                            }
+                        }}
+                        hasFavorites={favorites.length > 0}
+                        onOpenFavoritePicker={() => setFavoritePickerVisible(true)}
+                        error={errors.destination}
+                    />
 
                     {/* Amount */}
                     <View>
@@ -366,6 +333,14 @@ const TransferScreen = ({ navigation }) => {
                 title="Selecciona cuenta destino propia"
             />
 
+            {/* Favorites Quick Picker */}
+            <FavoritePickerModal
+                visible={favoritePickerVisible}
+                onClose={() => setFavoritePickerVisible(false)}
+                favorites={favorites}
+                onSelectFavorite={handleSelectFavorite}
+            />
+
             {/* Security Confirmation Modal */}
             <SecurityConfirmModal
                 visible={confirmModalVisible}
@@ -383,118 +358,5 @@ const TransferScreen = ({ navigation }) => {
         </SafeAreaView>
     );
 };
-
-const styles = StyleSheet.create({
-    safe: {
-        flex: 1,
-        backgroundColor: COLORS.background,
-    },
-    container: {
-        padding: SPACING.lg,
-        paddingBottom: SPACING.xxl,
-    },
-    header: {
-        marginBottom: SPACING.xl,
-    },
-    backBtn: {
-        marginBottom: SPACING.md,
-    },
-    backText: {
-        fontSize: FONT_SIZE.sm,
-        color: COLORS.primary,
-        fontWeight: '600',
-    },
-    title: {
-        fontSize: FONT_SIZE.xxl,
-        fontWeight: 'bold',
-        color: COLORS.text,
-        marginBottom: SPACING.xs,
-    },
-    subtitle: {
-        fontSize: FONT_SIZE.sm,
-        color: COLORS.textLight,
-        lineHeight: 20,
-    },
-    section: {
-        marginBottom: SPACING.md,
-    },
-    label: {
-        fontSize: FONT_SIZE.sm,
-        fontWeight: '600',
-        color: COLORS.text,
-        marginBottom: SPACING.xs,
-    },
-    picker: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        borderWidth: 1,
-        borderColor: COLORS.border,
-        borderRadius: 10,
-        paddingVertical: SPACING.sm + 2,
-        paddingHorizontal: SPACING.md,
-        backgroundColor: COLORS.surface,
-    },
-    pickerError: {
-        borderColor: COLORS.error,
-    },
-    pickerValue: {
-        fontSize: FONT_SIZE.md,
-        color: COLORS.text,
-        fontWeight: '500',
-    },
-    pickerSub: {
-        fontSize: FONT_SIZE.xs,
-        color: COLORS.textLight,
-        marginTop: 2,
-    },
-    pickerPlaceholder: {
-        fontSize: FONT_SIZE.md,
-        color: COLORS.textLight,
-    },
-    pickerArrow: {
-        fontSize: 12,
-        color: COLORS.textLight,
-    },
-    toggleRow: {
-        flexDirection: 'row',
-        backgroundColor: COLORS.border,
-        borderRadius: 10,
-        padding: 4,
-    },
-    toggleBtn: {
-        flex: 1,
-        paddingVertical: SPACING.sm + 2,
-        alignItems: 'center',
-        borderRadius: 8,
-    },
-    toggleBtnActive: {
-        backgroundColor: COLORS.surface,
-        ...SHADOWS.sm,
-    },
-    toggleBtnText: {
-        fontSize: FONT_SIZE.sm,
-        fontWeight: '600',
-        color: COLORS.textLight,
-    },
-    toggleBtnTextActive: {
-        color: COLORS.primary,
-    },
-    errorText: {
-        fontSize: FONT_SIZE.xs,
-        color: COLORS.error,
-        marginTop: SPACING.xs,
-    },
-    errorCard: {
-        backgroundColor: '#fef2f2',
-        borderColor: COLORS.error,
-        marginBottom: SPACING.md,
-    },
-    errorCardText: {
-        color: COLORS.error,
-        fontSize: FONT_SIZE.sm,
-        textAlign: 'center',
-    },
-});
 
 export default TransferScreen;

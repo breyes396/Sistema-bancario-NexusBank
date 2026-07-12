@@ -43,8 +43,16 @@ const CustomDrawerContent = (props) => {
                 navigation.closeDrawer();
                 navigation.getParent()?.navigate('Deposit');
                 break;
+            case 'Transferencias':
+                navigation.closeDrawer();
+                navigation.getParent()?.navigate('Transfer');
+                break;
+            case 'Reversiones':
+                navigation.closeDrawer();
+                navigation.getParent()?.navigate('Reversions');
+                break;
             default:
-                // Transferencias, Reversiones, Favoritos, Promociones: aún no
+                // Favoritos, Promociones: aún no
                 // existen como funcionalidad en el backend/app, solo UI por ahora.
                 console.log(`Menú: ${item.label} (próximamente)`);
                 navigation.closeDrawer();

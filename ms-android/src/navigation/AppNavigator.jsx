@@ -10,6 +10,9 @@ import DrawerNavigator from './DrawerNavigator';
 import DepositScreen from "../features/deposits/screens/DepositScreen";
 import DepositSuccessScreen from "../features/deposits/screens/DepositSuccessScreen";
 import AccountsListScreen from '../features/accounts/screens/AccountsListScreen';
+import TransferScreen from '../features/transactions/screens/TransferScreen';
+import TransferSuccessScreen from '../features/transactions/screens/TransferSuccessScreen';
+import ReversionsScreen from '../features/transactions/screens/ReversionsScreen';
 import styles from './AppNavigator.styles';
 
 const Stack = createNativeStackNavigator();
@@ -37,6 +40,9 @@ const AppNavigator = () => {
                         <Stack.Screen name="Deposit" component={DepositScreen} />
                         <Stack.Screen name="DepositSuccess" component={DepositSuccessScreen} />
                         <Stack.Screen name="AccountsList" component={AccountsListScreen} />
+                        <Stack.Screen name="Transfer" component={TransferScreen} />
+                        <Stack.Screen name="TransferSuccess" component={TransferSuccessScreen} />
+                        <Stack.Screen name="Reversions" component={ReversionsScreen} />
                     </Stack.Group>
                 ) : (
                     <Stack.Group>

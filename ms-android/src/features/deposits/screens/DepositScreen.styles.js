@@ -41,6 +41,30 @@ export default StyleSheet.create({
         color: COLORS.text,
         marginBottom: SPACING.xs,
     },
+    toggleRow: {
+        flexDirection: 'row',
+        backgroundColor: COLORS.border,
+        borderRadius: 10,
+        padding: 4,
+    },
+    toggleBtn: {
+        flex: 1,
+        paddingVertical: SPACING.sm + 2,
+        alignItems: 'center',
+        borderRadius: 8,
+    },
+    toggleBtnActive: {
+        backgroundColor: COLORS.surface,
+        ...SHADOWS.sm,
+    },
+    toggleBtnText: {
+        fontSize: FONT_SIZE.sm,
+        fontWeight: '600',
+        color: COLORS.textLight,
+    },
+    toggleBtnTextActive: {
+        color: COLORS.primary,
+    },
     picker: {
         flexDirection: 'row',
         alignItems: 'center',

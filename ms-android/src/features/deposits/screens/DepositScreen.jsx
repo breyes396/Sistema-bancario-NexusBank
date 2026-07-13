@@ -16,10 +16,17 @@ import Input from '../../../shared/components/common/Input';
 import { LoadingSpinner, EmptyState, Card } from '../../../shared/components/common/Common';
 import styles, { modal } from './DepositScreen.styles';
 
+const RECIPIENT_TYPES = [
+    { value: 'PROPIA', label: 'Mis Cuentas' },
+    { value: 'TERCERO', label: 'Otra Cuenta' },
+];
+
 const DepositScreen = ({ navigation }) => {
     const { accounts, accountsLoading, loading, error, submitDeposit } = useDeposit();
 
+    const [recipientType, setRecipientType] = useState('PROPIA');
     const [selectedAccount, setSelectedAccount] = useState(null);
+    const [manualAccountNumber, setManualAccountNumber] = useState('');
     const [amount, setAmount] = useState('');
     const [description, setDescription] = useState('');
     const [pickerVisible, setPickerVisible] = useState(false);
@@ -28,8 +35,12 @@ const DepositScreen = ({ navigation }) => {
 
     const validate = () => {
         const newErrors = {};
-        if (!selectedAccount) {
-            newErrors.account = 'Debes seleccionar una cuenta destino';
+        if (recipientType === 'PROPIA') {
+            if (!selectedAccount) {
+                newErrors.account = 'Debes seleccionar una cuenta destino';
+            }
+        } else if (!manualAccountNumber || manualAccountNumber.trim() === '') {
+            newErrors.account = 'El número de cuenta destino es requerido';
         }
         if (!amount || amount.trim() === '') {
             newErrors.amount = 'El monto es requerido';
@@ -57,15 +68,35 @@ const DepositScreen = ({ navigation }) => {
         }
     };
 
+    const handleChangeRecipientType = (type) => {
+        setRecipientType(type);
+        if (errors.account) {
+            setErrors((prev) => ({ ...prev, account: null }));
+        }
+    };
+
+    const handleManualAccountChange = (text) => {
+        setManualAccountNumber(text.replace(/[^0-9-]/g, ''));
+        if (errors.account) {
+            setErrors((prev) => ({ ...prev, account: null }));
+        }
+    };
+
     const handleSubmit = async () => {
         if (!validate()) return;
+        const destinationAccountNumber = recipientType === 'PROPIA'
+            ? selectedAccount.accountNumber
+            : manualAccountNumber;
         try {
             const result = await submitDeposit({
-                destinationAccountNumber: selectedAccount.accountNumber,
+                destinationAccountNumber,
                 amount,
                 description,
             });
-            navigation.replace('DepositSuccess', { deposit: result, amount, account: selectedAccount });
+            const account = recipientType === 'PROPIA'
+                ? selectedAccount
+                : { accountNumber: manualAccountNumber };
+            navigation.replace('DepositSuccess', { deposit: result, amount, account });
         } catch {
             // error already set in hook
         }
@@ -94,28 +125,59 @@ const DepositScreen = ({ navigation }) => {
                         </Text>
                     </View>
 
-                    {/* Account Picker */}
+                    {/* Recipient Type Toggle */}
                     <View style={styles.section}>
                         <Text style={styles.label}>Cuenta destino</Text>
-                        <TouchableOpacity
-                            style={[styles.picker, errors.account && styles.pickerError]}
-                            onPress={() => setPickerVisible(true)}
-                            activeOpacity={0.8}
-                        >
-                            {selectedAccount ? (
-                                <View>
-                                    <Text style={styles.pickerValue}>
-                                        {selectedAccount.accountNumber}
+                        <View style={styles.toggleRow}>
+                            {RECIPIENT_TYPES.map((type) => (
+                                <TouchableOpacity
+                                    key={type.value}
+                                    style={[styles.toggleBtn, recipientType === type.value && styles.toggleBtnActive]}
+                                    onPress={() => handleChangeRecipientType(type.value)}
+                                >
+                                    <Text
+                                        style={[
+                                            styles.toggleBtnText,
+                                            recipientType === type.value && styles.toggleBtnTextActive,
+                                        ]}
+                                    >
+                                        {type.label}
                                     </Text>
-                                    <Text style={styles.pickerSub}>
-                                        {selectedAccount.accountType} · Q{parseFloat(selectedAccount.accountBalance || 0).toFixed(2)}
-                                    </Text>
-                                </View>
-                            ) : (
-                                <Text style={styles.pickerPlaceholder}>Selecciona una cuenta</Text>
-                            )}
-                            <Text style={styles.pickerArrow}>▼</Text>
-                        </TouchableOpacity>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </View>
+
+                    {/* Account Picker or Manual Entry */}
+                    <View style={styles.section}>
+                        {recipientType === 'PROPIA' ? (
+                            <TouchableOpacity
+                                style={[styles.picker, errors.account && styles.pickerError]}
+                                onPress={() => setPickerVisible(true)}
+                                activeOpacity={0.8}
+                            >
+                                {selectedAccount ? (
+                                    <View>
+                                        <Text style={styles.pickerValue}>
+                                            {selectedAccount.accountNumber}
+                                        </Text>
+                                        <Text style={styles.pickerSub}>
+                                            {selectedAccount.accountType} · Q{parseFloat(selectedAccount.accountBalance || 0).toFixed(2)}
+                                        </Text>
+                                    </View>
+                                ) : (
+                                    <Text style={styles.pickerPlaceholder}>Selecciona una cuenta</Text>
+                                )}
+                                <Text style={styles.pickerArrow}>▼</Text>
+                            </TouchableOpacity>
+                        ) : (
+                            <Input
+                                placeholder="Ingresa el número de cuenta de destino"
+                                value={manualAccountNumber}
+                                onChangeText={handleManualAccountChange}
+                                keyboardType="default"
+                            />
+                        )}
                         {errors.account ? (
                             <Text style={styles.errorText}>{errors.account}</Text>
                         ) : null}

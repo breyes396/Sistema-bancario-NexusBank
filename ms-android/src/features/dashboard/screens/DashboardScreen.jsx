@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ScrollView, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { useAuthStore } from '../../../shared/store/authStore';
 import { useAccounts } from '../../accounts/hooks/useAccounts';
 import { useTransactions } from '../../transactions/hooks/useTransactions';
@@ -14,10 +15,19 @@ import styles from './DashboardScreen.styles';
 
 const DashboardScreen = ({ navigation }) => {
     const user = useAuthStore((state) => state.user);
-    const { accounts, loading: accountsLoading } = useAccounts();
-    const { transactions, summary, loading: txLoading } = useTransactions();
+    const { accounts, loading: accountsLoading, refetch: refetchAccounts } = useAccounts();
+    const { transactions, summary, loading: txLoading, fetchTransactions } = useTransactions();
 
     const [updatedAt, setUpdatedAt] = useState(null);
+
+    // Vuelve a pedir cuentas y movimientos cada vez que el Dashboard toma foco,
+    // para que refleje depósitos/transferencias aprobados mientras estabas en otra pantalla.
+    useFocusEffect(
+        useCallback(() => {
+            refetchAccounts();
+            fetchTransactions({ pageNum: 1 });
+        }, [refetchAccounts, fetchTransactions])
+    );
 
     useEffect(() => {
         if (!accountsLoading) setUpdatedAt(new Date());

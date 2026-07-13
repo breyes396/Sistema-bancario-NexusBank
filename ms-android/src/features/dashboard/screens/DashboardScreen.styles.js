@@ -171,6 +171,30 @@ export default StyleSheet.create({
         marginLeft: SPACING.sm,
         alignSelf: 'center',
     },
+    favoriteChip: {
+        alignItems: 'center',
+        width: 64,
+    },
+    favoriteChipAvatar: {
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: DARK.card,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    favoriteChipAvatarText: {
+        color: DARK.accent,
+        fontSize: FONT_SIZE.md,
+        fontWeight: '600',
+    },
+    favoriteChipLabel: {
+        fontSize: FONT_SIZE.xs,
+        fontWeight: '400',
+        color: DARK.textMuted,
+        marginTop: 6,
+        textAlign: 'center',
+    },
 
     // Movimientos
     emptyText: {

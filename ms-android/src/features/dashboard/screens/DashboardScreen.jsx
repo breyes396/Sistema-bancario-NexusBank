@@ -48,7 +48,7 @@ const DashboardScreen = ({ navigation }) => {
                     loading={accountsLoading}
                 />
                 <SummaryCards summary={summary} loading={txLoading} />
-                <FavoritesSection />
+                <FavoritesSection navigation={navigation} />
                 <RecentMovements transactions={transactions} loading={txLoading} />
             </ScrollView>
 

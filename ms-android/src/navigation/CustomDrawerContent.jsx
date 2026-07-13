@@ -51,9 +51,15 @@ const CustomDrawerContent = (props) => {
                 navigation.closeDrawer();
                 navigation.getParent()?.navigate('Reversions');
                 break;
+            case 'Favoritos':
+                navigation.closeDrawer();
+                navigation.getParent()?.navigate('Favorites');
+                break;
+            case 'Promociones':
+                navigation.closeDrawer();
+                navigation.getParent()?.navigate('Promotions');
+                break;
             default:
-                // Favoritos, Promociones: aún no
-                // existen como funcionalidad en el backend/app, solo UI por ahora.
                 console.log(`Menú: ${item.label} (próximamente)`);
                 navigation.closeDrawer();
         }

@@ -2,12 +2,11 @@ import React from 'react';
 import {
     View,
     Text,
-    StyleSheet,
     Modal,
     TouchableOpacity,
 } from 'react-native';
 import Input from '../../../shared/components/common/Input';
-import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme';
+import { securityModal as styles } from '../screens/TransferScreen.styles';
 
 const SecurityConfirmModal = ({
     visible,
@@ -79,91 +78,5 @@ const SecurityConfirmModal = ({
         </Modal>
     );
 };
-
-const styles = StyleSheet.create({
-    overlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.6)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: SPACING.lg,
-    },
-    card: {
-        width: '100%',
-        backgroundColor: COLORS.surface,
-        borderRadius: 16,
-        padding: SPACING.lg,
-        ...SHADOWS.md,
-    },
-    title: {
-        fontSize: FONT_SIZE.lg,
-        fontWeight: 'bold',
-        color: COLORS.text,
-        marginBottom: SPACING.xs,
-        textAlign: 'center',
-    },
-    subtitle: {
-        fontSize: FONT_SIZE.sm,
-        color: COLORS.textLight,
-        lineHeight: 18,
-        textAlign: 'center',
-        marginBottom: SPACING.md,
-    },
-    details: {
-        backgroundColor: COLORS.background,
-        borderRadius: 10,
-        padding: SPACING.md,
-        marginBottom: SPACING.md,
-        borderWidth: 1,
-        borderColor: COLORS.border,
-    },
-    detailRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingVertical: 4,
-    },
-    detailLabel: {
-        fontSize: FONT_SIZE.sm,
-        color: COLORS.textLight,
-    },
-    detailValue: {
-        fontSize: FONT_SIZE.sm,
-        fontWeight: '600',
-        color: COLORS.text,
-    },
-    amountValue: {
-        color: COLORS.primary,
-        fontWeight: 'bold',
-    },
-    btnRow: {
-        flexDirection: 'row',
-        gap: SPACING.sm,
-        marginTop: SPACING.md,
-    },
-    btn: {
-        flex: 1,
-        paddingVertical: SPACING.sm + 4,
-        borderRadius: 10,
-        alignItems: 'center',
-    },
-    btnCancel: {
-        borderWidth: 1,
-        borderColor: COLORS.border,
-        backgroundColor: COLORS.surface,
-    },
-    btnCancelText: {
-        fontSize: FONT_SIZE.md,
-        color: COLORS.textLight,
-        fontWeight: '600',
-    },
-    btnConfirm: {
-        backgroundColor: COLORS.primary,
-    },
-    btnConfirmText: {
-        fontSize: FONT_SIZE.md,
-        color: '#fff',
-        fontWeight: '600',
-    },
-});
 
 export default SecurityConfirmModal;

@@ -35,26 +35,11 @@ export default StyleSheet.create({
     section: {
         marginBottom: SPACING.md,
     },
-    labelRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: SPACING.xs,
-    },
     label: {
         fontSize: FONT_SIZE.sm,
         fontWeight: '600',
         color: COLORS.text,
-    },
-    favoritesShortcut: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 4,
-    },
-    favoritesShortcutText: {
-        fontSize: FONT_SIZE.xs,
-        fontWeight: '600',
-        color: COLORS.primary,
+        marginBottom: SPACING.xs,
     },
     picker: {
         flexDirection: 'row',
@@ -88,30 +73,6 @@ export default StyleSheet.create({
         fontSize: 12,
         color: COLORS.textLight,
     },
-    toggleRow: {
-        flexDirection: 'row',
-        backgroundColor: COLORS.border,
-        borderRadius: 10,
-        padding: 4,
-    },
-    toggleBtn: {
-        flex: 1,
-        paddingVertical: SPACING.sm + 2,
-        alignItems: 'center',
-        borderRadius: 8,
-    },
-    toggleBtnActive: {
-        backgroundColor: COLORS.surface,
-        ...SHADOWS.sm,
-    },
-    toggleBtnText: {
-        fontSize: FONT_SIZE.sm,
-        fontWeight: '600',
-        color: COLORS.textLight,
-    },
-    toggleBtnTextActive: {
-        color: COLORS.primary,
-    },
     errorText: {
         fontSize: FONT_SIZE.xs,
         color: COLORS.error,
@@ -127,10 +88,22 @@ export default StyleSheet.create({
         fontSize: FONT_SIZE.sm,
         textAlign: 'center',
     },
+    infoCard: {
+        backgroundColor: '#eff6ff',
+        borderColor: '#bfdbfe',
+        marginBottom: SPACING.lg,
+    },
+    infoText: {
+        fontSize: FONT_SIZE.xs,
+        color: '#1e40af',
+        lineHeight: 18,
+    },
+    infoBold: {
+        fontWeight: 'bold',
+    },
 });
 
-// ── AccountPickerModal (used only by TransferScreen) ────────────────────────────
-export const accountPicker = StyleSheet.create({
+export const modal = StyleSheet.create({
     overlay: {
         flex: 1,
         backgroundColor: 'rgba(0,0,0,0.4)',
@@ -180,92 +153,5 @@ export const accountPicker = StyleSheet.create({
         fontSize: FONT_SIZE.xs,
         color: COLORS.textLight,
         marginTop: 2,
-    },
-});
-
-// ── SecurityConfirmModal (used only by TransferScreen) ──────────────────────────
-export const securityModal = StyleSheet.create({
-    overlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.6)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: SPACING.lg,
-    },
-    card: {
-        width: '100%',
-        backgroundColor: COLORS.surface,
-        borderRadius: 16,
-        padding: SPACING.lg,
-        ...SHADOWS.md,
-    },
-    title: {
-        fontSize: FONT_SIZE.lg,
-        fontWeight: 'bold',
-        color: COLORS.text,
-        marginBottom: SPACING.xs,
-        textAlign: 'center',
-    },
-    subtitle: {
-        fontSize: FONT_SIZE.sm,
-        color: COLORS.textLight,
-        lineHeight: 18,
-        textAlign: 'center',
-        marginBottom: SPACING.md,
-    },
-    details: {
-        backgroundColor: COLORS.background,
-        borderRadius: 10,
-        padding: SPACING.md,
-        marginBottom: SPACING.md,
-        borderWidth: 1,
-        borderColor: COLORS.border,
-    },
-    detailRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingVertical: 4,
-    },
-    detailLabel: {
-        fontSize: FONT_SIZE.sm,
-        color: COLORS.textLight,
-    },
-    detailValue: {
-        fontSize: FONT_SIZE.sm,
-        fontWeight: '600',
-        color: COLORS.text,
-    },
-    amountValue: {
-        color: COLORS.primary,
-        fontWeight: 'bold',
-    },
-    btnRow: {
-        flexDirection: 'row',
-        gap: SPACING.sm,
-        marginTop: SPACING.md,
-    },
-    btn: {
-        flex: 1,
-        paddingVertical: SPACING.sm + 4,
-        borderRadius: 10,
-        alignItems: 'center',
-    },
-    btnCancel: {
-        borderWidth: 1,
-        borderColor: COLORS.border,
-        backgroundColor: COLORS.surface,
-    },
-    btnCancelText: {
-        fontSize: FONT_SIZE.md,
-        color: COLORS.textLight,
-        fontWeight: '600',
-    },
-    btnConfirm: {
-        backgroundColor: COLORS.primary,
-    },
-    btnConfirmText: {
-        fontSize: FONT_SIZE.md,
-        color: '#fff',
-        fontWeight: '600',
     },
 });

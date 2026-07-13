@@ -2,7 +2,6 @@ import React, { useEffect, useCallback, useState } from 'react';
 import {
     View,
     Text,
-    StyleSheet,
     FlatList,
     RefreshControl,
     TouchableOpacity,
@@ -15,9 +14,10 @@ import {
 } from '../hooks/useTransactions';
 import { useReversions } from '../hooks/useReversions';
 import { LoadingSpinner, EmptyState } from '../../../shared/components/common/Common';
-import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme';
+import { COLORS } from '../../../shared/constants/theme';
 import TransactionCard from '../components/TransactionCard';
 import RevertReasonModal from '../components/RevertReasonModal';
+import styles, { strip } from './TransactionsScreen.styles';
 
 // Colors consistent with web app
 const INCOME_COLOR = '#1A6637';
@@ -210,76 +210,5 @@ const TransactionsScreen = ({ navigation, route }) => {
         </SafeAreaView>
     );
 };
-
-// ── Styles ────────────────────────────────────────────────────────────────────
-const styles = StyleSheet.create({
-    safe: {
-        flex: 1,
-        backgroundColor: COLORS.background,
-    },
-    list: {
-        paddingBottom: SPACING.xxl,
-    },
-    header: {
-        padding: SPACING.lg,
-        paddingBottom: SPACING.sm,
-    },
-    backBtn: {
-        marginBottom: SPACING.sm,
-    },
-    backText: {
-        fontSize: FONT_SIZE.sm,
-        color: COLORS.primary,
-        fontWeight: '600',
-    },
-    title: {
-        fontSize: FONT_SIZE.xl,
-        fontWeight: 'bold',
-        color: COLORS.text,
-        marginBottom: SPACING.xs,
-    },
-    count: {
-        fontSize: FONT_SIZE.xs,
-        color: COLORS.textLight,
-    },
-    footerLoader: {
-        paddingVertical: SPACING.md,
-        alignItems: 'center',
-    },
-});
-
-const strip = StyleSheet.create({
-    container: {
-        flexDirection: 'row',
-        marginHorizontal: SPACING.lg,
-        marginBottom: SPACING.md,
-        backgroundColor: COLORS.surface,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: COLORS.border,
-        ...SHADOWS.sm,
-    },
-    item: {
-        flex: 1,
-        alignItems: 'center',
-        paddingVertical: SPACING.md,
-    },
-    divider: {
-        width: 1,
-        backgroundColor: COLORS.border,
-        marginVertical: SPACING.sm,
-    },
-    label: {
-        fontSize: 10,
-        color: COLORS.textLight,
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
-        marginBottom: 4,
-    },
-    value: {
-        fontSize: FONT_SIZE.sm,
-        fontWeight: 'bold',
-    },
-});
 
 export default TransactionsScreen;

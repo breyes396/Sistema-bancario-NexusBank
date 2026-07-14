@@ -263,7 +263,7 @@ export const createTransfer = async (req, res) => {
             }
         }
 
-        if (requestCurrency === 'GTQ' && baseAmount > MAX_TRANSFER_AMOUNT) {
+        if (baseAmount > MAX_TRANSFER_AMOUNT) {
             await dbTransaction.rollback();
             
             await fraudDetectionService.recordFailedTransaction(req, currentUserId, {
@@ -463,7 +463,7 @@ export const createTransfer = async (req, res) => {
         const sourceToDestinationToday = getNumericAmount(sourceToDestinationTodayRaw || 0);
         const sourceToDestinationAfterTransfer = sourceToDestinationToday + baseAmount;
 
-        if (requestCurrency === 'GTQ' && sourceToDestinationAfterTransfer > MAX_DAILY_TRANSFER_BY_DESTINATION_PAIR) {
+        if (sourceToDestinationAfterTransfer > MAX_DAILY_TRANSFER_BY_DESTINATION_PAIR) {
             await dbTransaction.rollback();
 
             await fraudDetectionService.recordFailedTransaction(req, currentUserId, {
@@ -499,7 +499,7 @@ export const createTransfer = async (req, res) => {
         }
 
         const sourceAfterThisTransfer = sourceTransferredToday + baseAmount;
-        if (requestCurrency === 'GTQ' && sourceAfterThisTransfer > MAX_DAILY_TRANSFER_BY_SOURCE) {
+        if (sourceAfterThisTransfer > MAX_DAILY_TRANSFER_BY_SOURCE) {
             await dbTransaction.rollback();
             await notifyTransferRejected(
                 sourceAccount.userId,

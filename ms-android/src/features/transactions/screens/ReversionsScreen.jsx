@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useReversions } from '../hooks/useReversions';
 import { Card, EmptyState, LoadingSpinner } from '../../../shared/components/common/Common';
 import HeaderMenuButton from '../../../shared/components/common/HeaderMenuButton';
+import BottomNavBar from '../../../shared/components/common/BottomNavBar';
 import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 import styles from './ReversionsScreen.styles';
 
@@ -203,6 +204,8 @@ const ReversionsScreen = ({ navigation }) => {
                     }
                 />
             )}
+
+            <BottomNavBar navigation={navigation} />
         </SafeAreaView>
     );
 };

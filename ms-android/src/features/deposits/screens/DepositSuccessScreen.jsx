@@ -1,16 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     View,
     Text,
     ScrollView,
+    TouchableOpacity,
+    ActivityIndicator,
+    Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Feather } from '@expo/vector-icons';
 import Button from '../../../shared/components/common/Button';
 import { Card } from '../../../shared/components/common/Common';
+import { downloadReceiptPdf } from '../../../shared/utils/receiptPdf';
+import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 import styles from './DepositSuccessScreen.styles';
 
 const DepositSuccessScreen = ({ navigation, route }) => {
     const { deposit, amount, account } = route.params || {};
+    const [downloading, setDownloading] = useState(false);
 
     const formatDate = (dateStr) => {
         if (!dateStr) return '—';
@@ -32,6 +39,21 @@ const DepositSuccessScreen = ({ navigation, route }) => {
         { label: 'Estado', value: deposit?.status || 'PENDIENTE' },
         { label: 'Fecha', value: formatDate(deposit?.createdAt) },
     ];
+
+    const handleDownloadReceipt = async () => {
+        setDownloading(true);
+        try {
+            await downloadReceiptPdf({
+                title: 'Comprobante de Depósito',
+                subtitle: 'Solicitud pendiente de aprobación administrativa',
+                rows,
+            });
+        } catch (err) {
+            Alert.alert('No se pudo generar el comprobante', 'Intenta de nuevo.');
+        } finally {
+            setDownloading(false);
+        }
+    };
 
     return (
         <SafeAreaView style={styles.safe}>
@@ -69,6 +91,22 @@ const DepositSuccessScreen = ({ navigation, route }) => {
                     ))}
                 </Card>
 
+                <TouchableOpacity
+                    style={styles.downloadBtn}
+                    onPress={handleDownloadReceipt}
+                    activeOpacity={0.8}
+                    disabled={downloading}
+                >
+                    {downloading ? (
+                        <ActivityIndicator size="small" color={BANK.accent} />
+                    ) : (
+                        <>
+                            <Feather name="download" size={18} color={BANK.accent} />
+                            <Text style={styles.downloadBtnText}>Descargar comprobante</Text>
+                        </>
+                    )}
+                </TouchableOpacity>
+
                 <Card style={styles.noteCard}>
                     <Text style={styles.noteText}>
                         Recibirás una notificación cuando tu depósito sea procesado. El saldo se
@@ -78,7 +116,7 @@ const DepositSuccessScreen = ({ navigation, route }) => {
 
                 <Button
                     title="Volver al Inicio"
-                    onPress={() => navigation.navigate('Main')}
+                    onPress={() => navigation.navigate('MainTabs', { screen: 'Inicio' })}
                     style={styles.btnPrimary}
                 />
                 <Button

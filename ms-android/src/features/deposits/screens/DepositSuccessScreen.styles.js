@@ -87,6 +87,24 @@ export default StyleSheet.create({
     statusValue: {
         color: BANK.accent,
     },
+    downloadBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        width: '100%',
+        paddingVertical: SPACING.sm + 4,
+        borderRadius: 10,
+        borderWidth: 1.5,
+        borderColor: BANK.accent,
+        backgroundColor: BANK.accentLight + '22',
+        marginBottom: SPACING.md,
+    },
+    downloadBtnText: {
+        fontSize: FONT_SIZE.sm,
+        fontWeight: '700',
+        color: BANK.accent,
+    },
     noteCard: {
         width: '100%',
         backgroundColor: BANK.accentLight + '33',
@@ -95,7 +113,7 @@ export default StyleSheet.create({
     },
     noteText: {
         fontSize: FONT_SIZE.xs,
-        color: BANK.primaryDark,
+        color: BANK.text,
         lineHeight: 18,
         textAlign: 'center',
     },

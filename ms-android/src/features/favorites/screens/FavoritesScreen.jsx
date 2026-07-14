@@ -15,6 +15,7 @@ import FavoriteCard from '../components/FavoriteCard';
 import FavoriteFormModal from '../components/FavoriteFormModal';
 import { LoadingSpinner, EmptyState } from '../../../shared/components/common/Common';
 import HeaderMenuButton from '../../../shared/components/common/HeaderMenuButton';
+import BottomNavBar from '../../../shared/components/common/BottomNavBar';
 import { filterFavoritesBySearch } from '../utils/favoriteHelpers';
 import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 import styles from './FavoritesScreen.styles';
@@ -143,6 +144,8 @@ const FavoritesScreen = ({ navigation }) => {
                 submitting={mutating}
                 editingFavorite={editingFavorite}
             />
+
+            <BottomNavBar navigation={navigation} />
         </SafeAreaView>
     );
 };

@@ -14,6 +14,7 @@ import {
 import { useReversions } from '../hooks/useReversions';
 import { EmptyState } from '../../../shared/components/common/Common';
 import HeaderMenuButton from '../../../shared/components/common/HeaderMenuButton';
+import BottomNavBar from '../../../shared/components/common/BottomNavBar';
 import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 import TransactionCard from '../components/TransactionCard';
 import RevertReasonModal from '../components/RevertReasonModal';
@@ -164,6 +165,7 @@ const TransactionsScreen = ({ navigation, route }) => {
                     <Text style={styles.title}>Historial de Transacciones</Text>
                 </View>
                 <EmptyState message={error} />
+                <BottomNavBar navigation={navigation} />
             </SafeAreaView>
         );
     }
@@ -201,6 +203,8 @@ const TransactionsScreen = ({ navigation, route }) => {
                 setReason={setRevertReason}
                 transactionId={selectedTx?.id}
             />
+
+            <BottomNavBar navigation={navigation} />
         </SafeAreaView>
     );
 };

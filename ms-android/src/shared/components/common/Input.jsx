@@ -3,12 +3,12 @@ import { View, Text, TextInput, StyleSheet } from 'react-native';
 import { FONT_SIZE, SPACING } from '../../constants/theme';
 import { BANK_DARK as BANK } from '../../constants/colors';
 
-const Input = ({ label, error, ...props }) => {
+const Input = ({ label, error, style, ...props }) => {
     return (
         <View style={styles.container}>
             {label && <Text style={styles.label}>{label}</Text>}
             <TextInput
-                style={[styles.input, error && styles.inputError]}
+                style={[styles.input, error && styles.inputError, style]}
                 placeholderTextColor={BANK.textMuted}
                 {...props}
             />

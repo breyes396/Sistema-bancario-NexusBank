@@ -6,6 +6,7 @@ import PromotionCard from '../components/PromotionCard';
 import PromotionDetailModal from '../components/PromotionDetailModal';
 import { LoadingSpinner, EmptyState } from '../../../shared/components/common/Common';
 import HeaderMenuButton from '../../../shared/components/common/HeaderMenuButton';
+import BottomNavBar from '../../../shared/components/common/BottomNavBar';
 import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 import styles from './PromotionsScreen.styles';
 
@@ -63,6 +64,8 @@ const PromotionsScreen = ({ navigation }) => {
                 onClose={() => setSelectedPromotion(null)}
                 promotion={selectedPromotion}
             />
+
+            <BottomNavBar navigation={navigation} />
         </SafeAreaView>
     );
 };

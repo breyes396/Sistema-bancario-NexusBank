@@ -2,6 +2,7 @@ import React from 'react';
 import {
     View,
     Text,
+    Image,
     ScrollView,
     KeyboardAvoidingView,
     Platform,
@@ -44,7 +45,11 @@ const LoginScreen = ({ navigation }) => {
                 >
                     <View style={styles.brand}>
                         <View style={styles.logoCircle}>
-                            <Text style={styles.logoText}>NB</Text>
+                            <Image
+                                source={require('../../../../assets/images/Logo.jpg')}
+                                style={styles.logoImage}
+                                resizeMode="contain"
+                            />
                         </View>
                         <Text style={styles.brandTitle}>NexusBank</Text>
                         <Text style={styles.brandSubtitle}>Ingresa a tu cuenta</Text>

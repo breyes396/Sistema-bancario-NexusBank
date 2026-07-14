@@ -20,20 +20,18 @@ export default StyleSheet.create({
         marginBottom: SPACING.xl,
     },
     logoCircle: {
-        width: 68,
-        height: 68,
-        borderRadius: 34,
-        backgroundColor: BANK.primary,
+        width: 92,
+        height: 92,
+        borderRadius: 46,
+        backgroundColor: '#000000',
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: SPACING.md,
-        borderWidth: 2,
-        borderColor: BANK.accent,
+        overflow: 'hidden',
     },
-    logoText: {
-        color: BANK.onPrimary,
-        fontSize: FONT_SIZE.xl,
-        fontWeight: 'bold',
+    logoImage: {
+        width: '100%',
+        height: '100%',
     },
     brandTitle: {
         fontSize: FONT_SIZE.xxl,

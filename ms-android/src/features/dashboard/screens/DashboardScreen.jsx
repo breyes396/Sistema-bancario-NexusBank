@@ -10,7 +10,7 @@ import BalanceCard from '../components/BalanceCard';
 import SummaryCards from '../components/SummaryCards';
 import FavoritesSection from '../components/FavoritesSection';
 import RecentMovements from '../components/RecentMovements';
-import BottomNavBar from '../components/BottomNavBar';
+import BottomNavBar from '../../../shared/components/common/BottomNavBar';
 import styles from './DashboardScreen.styles';
 
 const DashboardScreen = ({ navigation }) => {
@@ -62,7 +62,7 @@ const DashboardScreen = ({ navigation }) => {
                 <RecentMovements transactions={transactions} loading={txLoading} />
             </ScrollView>
 
-            <BottomNavBar openDrawer={openDrawer} navigation={navigation} />
+            <BottomNavBar navigation={navigation} />
         </SafeAreaView>
     );
 };

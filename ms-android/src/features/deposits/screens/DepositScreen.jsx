@@ -15,6 +15,7 @@ import Button from '../../../shared/components/common/Button';
 import Input from '../../../shared/components/common/Input';
 import { EmptyState, Card } from '../../../shared/components/common/Common';
 import HeaderMenuButton from '../../../shared/components/common/HeaderMenuButton';
+import BottomNavBar from '../../../shared/components/common/BottomNavBar';
 import styles, { modal } from './DepositScreen.styles';
 
 const RECIPIENT_TYPES = [
@@ -223,6 +224,8 @@ const DepositScreen = ({ navigation }) => {
                     />
                 </ScrollView>
             </KeyboardAvoidingView>
+
+            <BottomNavBar navigation={navigation} />
 
             {/* Account Picker Modal */}
             <Modal visible={pickerVisible} transparent animationType="slide">

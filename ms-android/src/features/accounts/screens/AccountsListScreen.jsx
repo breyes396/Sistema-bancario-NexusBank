@@ -12,6 +12,7 @@ import { useAccounts } from '../hooks/useAccounts';
 import AccountCard from '../components/AccountCard';
 import { EmptyState } from '../../../shared/components/common/Common';
 import HeaderMenuButton from '../../../shared/components/common/HeaderMenuButton';
+import BottomNavBar from '../../../shared/components/common/BottomNavBar';
 import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 import styles from './AccountsListScreen.styles';
 
@@ -65,6 +66,8 @@ const AccountsListScreen = ({ navigation }) => {
                 }
                 showsVerticalScrollIndicator={false}
             />
+
+            <BottomNavBar navigation={navigation} />
         </SafeAreaView>
     );
 };

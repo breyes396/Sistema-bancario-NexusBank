@@ -14,6 +14,7 @@ import Button from '../../../shared/components/common/Button';
 import Input from '../../../shared/components/common/Input';
 import { Card } from '../../../shared/components/common/Common';
 import HeaderMenuButton from '../../../shared/components/common/HeaderMenuButton';
+import BottomNavBar from '../../../shared/components/common/BottomNavBar';
 import AccountPickerModal from '../components/AccountPickerModal';
 import SecurityConfirmModal from '../components/SecurityConfirmModal';
 import DestinationSection from '../components/DestinationSection';
@@ -309,6 +310,8 @@ const TransferScreen = ({ navigation, route }) => {
                     />
                 </ScrollView>
             </KeyboardAvoidingView>
+
+            <BottomNavBar navigation={navigation} />
 
             {/* Source Account Picker Modal */}
             <AccountPickerModal

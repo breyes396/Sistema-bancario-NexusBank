@@ -120,7 +120,7 @@ export default StyleSheet.create({
     },
     infoText: {
         fontSize: FONT_SIZE.xs,
-        color: BANK.primary,
+        color: BANK.text,
         lineHeight: 18,
     },
     infoBold: {

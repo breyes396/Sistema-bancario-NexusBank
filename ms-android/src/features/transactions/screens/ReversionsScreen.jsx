@@ -10,7 +10,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useReversions } from '../hooks/useReversions';
 import { Card, EmptyState, LoadingSpinner } from '../../../shared/components/common/Common';
-import { COLORS } from '../../../shared/constants/theme';
+import HeaderMenuButton from '../../../shared/components/common/HeaderMenuButton';
+import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 import styles from './ReversionsScreen.styles';
 
 const STATUS_LABELS = {
@@ -20,9 +21,9 @@ const STATUS_LABELS = {
 };
 
 const STATUS_COLORS = {
-    PENDING: COLORS.warning,
-    APPROVED: COLORS.success,
-    REJECTED: COLORS.error,
+    PENDING: BANK.warning,
+    APPROVED: BANK.success,
+    REJECTED: BANK.error,
 };
 
 const ReversionsScreen = ({ navigation }) => {
@@ -73,7 +74,7 @@ const ReversionsScreen = ({ navigation }) => {
     const renderItem = ({ item }) => {
         const status = String(item.status).toUpperCase();
         const typeText = item.type === 'DEPOSITO' ? 'Depósito' : 'Transferencia';
-        const badgeColor = STATUS_COLORS[status] || COLORS.textLight;
+        const badgeColor = STATUS_COLORS[status] || BANK.textMuted;
 
         return (
             <Card style={styles.card}>
@@ -132,9 +133,7 @@ const ReversionsScreen = ({ navigation }) => {
         <SafeAreaView style={styles.safe}>
             {/* Header */}
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                    <Text style={styles.backText}>← Volver</Text>
-                </TouchableOpacity>
+                <HeaderMenuButton navigation={navigation} style={styles.backBtn} />
                 <Text style={styles.title}>Reversiones</Text>
                 <Text style={styles.subtitle}>
                     Seguimiento de tus solicitudes de reversión de transferencias y depósitos.
@@ -146,7 +145,7 @@ const ReversionsScreen = ({ navigation }) => {
                 <TextInput
                     style={styles.searchInput}
                     placeholder="Buscar por referencia, cuenta o motivo..."
-                    placeholderTextColor={COLORS.textLight}
+                    placeholderTextColor={BANK.textMuted}
                     value={search}
                     onChangeText={setSearch}
                 />
@@ -196,7 +195,7 @@ const ReversionsScreen = ({ navigation }) => {
                         <RefreshControl
                             refreshing={loading}
                             onRefresh={handleRefresh}
-                            colors={[COLORS.primary]}
+                            colors={[BANK.primary]}
                         />
                     }
                     ListEmptyComponent={

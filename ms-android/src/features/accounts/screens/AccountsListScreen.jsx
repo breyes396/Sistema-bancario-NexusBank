@@ -3,7 +3,6 @@ import {
     View,
     Text,
     FlatList,
-    TouchableOpacity,
     Alert,
     RefreshControl,
 } from 'react-native';
@@ -12,7 +11,8 @@ import * as Clipboard from 'expo-clipboard';
 import { useAccounts } from '../hooks/useAccounts';
 import AccountCard from '../components/AccountCard';
 import { LoadingSpinner, EmptyState } from '../../../shared/components/common/Common';
-import { COLORS } from '../../../shared/constants/theme';
+import HeaderMenuButton from '../../../shared/components/common/HeaderMenuButton';
+import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 import styles from './AccountsListScreen.styles';
 
 const AccountsListScreen = ({ navigation }) => {
@@ -35,9 +35,7 @@ const AccountsListScreen = ({ navigation }) => {
     return (
         <SafeAreaView style={styles.safe}>
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                    <Text style={styles.backText}>← Volver</Text>
-                </TouchableOpacity>
+                <HeaderMenuButton navigation={navigation} style={styles.backBtn} />
                 <Text style={styles.title}>Mis Cuentas Bancarias</Text>
                 <Text style={styles.subtitle}>Consulta tus saldos y detalles de cuentas activas</Text>
             </View>
@@ -58,8 +56,8 @@ const AccountsListScreen = ({ navigation }) => {
                     <RefreshControl
                         refreshing={loading}
                         onRefresh={refetch}
-                        colors={[COLORS.primary]}
-                        tintColor={COLORS.primary}
+                        colors={[BANK.primary]}
+                        tintColor={BANK.primary}
                     />
                 }
                 ListEmptyComponent={

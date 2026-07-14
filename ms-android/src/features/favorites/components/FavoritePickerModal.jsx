@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import { EmptyState } from '../../../shared/components/common/Common';
 import { getFavoriteAccountTypeLabel, filterFavoritesBySearch } from '../utils/favoriteHelpers';
-import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme';
+import { SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme';
+import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 
 // Acceso rápido a favoritos dentro del formulario de Transferencias: mismo
 // look & feel que AccountPickerModal, con buscador por alias o número de cuenta.
@@ -33,7 +34,7 @@ const FavoritePickerModal = ({ visible, onClose, favorites, onSelectFavorite }) 
                         <TextInput
                             style={styles.searchInput}
                             placeholder="Buscar por alias o cuenta..."
-                            placeholderTextColor={COLORS.textLight}
+                            placeholderTextColor={BANK.textMuted}
                             value={search}
                             onChangeText={setSearch}
                         />
@@ -68,11 +69,11 @@ const FavoritePickerModal = ({ visible, onClose, favorites, onSelectFavorite }) 
 const styles = StyleSheet.create({
     overlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.4)',
+        backgroundColor: 'rgba(5,15,34,0.5)',
         justifyContent: 'flex-end',
     },
     sheet: {
-        backgroundColor: COLORS.surface,
+        backgroundColor: BANK.surface,
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
         maxHeight: '70%',
@@ -85,16 +86,16 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: SPACING.lg,
         borderBottomWidth: 1,
-        borderBottomColor: COLORS.border,
+        borderBottomColor: BANK.border,
     },
     title: {
         fontSize: FONT_SIZE.lg,
         fontWeight: 'bold',
-        color: COLORS.text,
+        color: BANK.text,
     },
     close: {
         fontSize: FONT_SIZE.lg,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
         paddingHorizontal: SPACING.sm,
     },
     searchWrap: {
@@ -103,28 +104,28 @@ const styles = StyleSheet.create({
     },
     searchInput: {
         borderWidth: 1,
-        borderColor: COLORS.border,
+        borderColor: BANK.border,
         borderRadius: 10,
         paddingVertical: SPACING.sm,
         paddingHorizontal: SPACING.md,
         fontSize: FONT_SIZE.sm,
-        color: COLORS.text,
-        backgroundColor: COLORS.background,
+        color: BANK.text,
+        backgroundColor: BANK.background,
     },
     item: {
         paddingVertical: SPACING.md,
         paddingHorizontal: SPACING.lg,
         borderBottomWidth: 1,
-        borderBottomColor: COLORS.border,
+        borderBottomColor: BANK.border,
     },
     itemAlias: {
         fontSize: FONT_SIZE.md,
-        color: COLORS.text,
+        color: BANK.text,
         fontWeight: '600',
     },
     itemSub: {
         fontSize: FONT_SIZE.xs,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
         marginTop: 2,
     },
 });

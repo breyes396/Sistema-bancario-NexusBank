@@ -1,20 +1,14 @@
 import React from 'react';
 import { View, ActivityIndicator } from 'react-native';
-import { NavigationContainer } from "@react-navigation/native";
+import { NavigationContainer, useNavigationContainerRef } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useAuthStore } from '../shared/store/authStore';
+import { useNavigationStore } from '../shared/store/navigationStore';
+import { getActiveRouteName } from '../shared/utils/navigationHelpers';
 import { COLORS } from '../shared/constants/theme';
 import LoginScreen from '../features/auth/screens/LoginScreen';
 import RegisterScreen from '../features/auth/screens/RegisterScreen';
 import DrawerNavigator from './DrawerNavigator';
-import DepositScreen from "../features/deposits/screens/DepositScreen";
-import DepositSuccessScreen from "../features/deposits/screens/DepositSuccessScreen";
-import AccountsListScreen from '../features/accounts/screens/AccountsListScreen';
-import TransferScreen from '../features/transactions/screens/TransferScreen';
-import TransferSuccessScreen from '../features/transactions/screens/TransferSuccessScreen';
-import ReversionsScreen from '../features/transactions/screens/ReversionsScreen';
-import FavoritesScreen from '../features/favorites/screens/FavoritesScreen';
-import PromotionsScreen from '../features/promotions/screens/PromotionsScreen';
 import styles from './AppNavigator.styles';
 
 const Stack = createNativeStackNavigator();
@@ -24,6 +18,7 @@ const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
     const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
     const hasHydrated = useAuthStore((state) => state._hasHydrated);
+    const navigationRef = useNavigationContainerRef();
 
     if (!hasHydrated) {
         return (
@@ -34,19 +29,21 @@ const AppNavigator = () => {
     }
 
     return (
-        <NavigationContainer>
+        <NavigationContainer
+            ref={navigationRef}
+            onReady={() => {
+                useNavigationStore
+                    .getState()
+                    .setActiveRouteName(getActiveRouteName(navigationRef.getRootState()));
+            }}
+            onStateChange={(state) => {
+                useNavigationStore.getState().setActiveRouteName(getActiveRouteName(state));
+            }}
+        >
             <Stack.Navigator screenOptions={{ headerShown: false }}>
                 {isAuthenticated ? (
                     <Stack.Group>
                         <Stack.Screen name="Main" component={DrawerNavigator} />
-                        <Stack.Screen name="Deposit" component={DepositScreen} />
-                        <Stack.Screen name="DepositSuccess" component={DepositSuccessScreen} />
-                        <Stack.Screen name="AccountsList" component={AccountsListScreen} />
-                        <Stack.Screen name="Transfer" component={TransferScreen} />
-                        <Stack.Screen name="TransferSuccess" component={TransferSuccessScreen} />
-                        <Stack.Screen name="Reversions" component={ReversionsScreen} />
-                        <Stack.Screen name="Favorites" component={FavoritesScreen} />
-                        <Stack.Screen name="Promotions" component={PromotionsScreen} />
                     </Stack.Group>
                 ) : (
                     <Stack.Group>

@@ -6,13 +6,14 @@ import {
     accountStatusLabel,
     getStatusBadgeStyle,
 } from '../utils/accountHelpers';
+import { PALETTE } from '../../../shared/constants/colors';
 import styles from '../screens/AccountsListScreen.styles';
 
 const AccountCard = ({ item, index, onPress, onCopy }) => {
     const typeLabel = getAccountTypeLabel(item.accountType);
     const statusLabel = accountStatusLabel(item.accountStatus);
-    
-    const accentColors = ['#1a365d', '#2d3748', '#1a202c'];
+
+    const accentColors = [PALETTE.navy700, PALETTE.navy500, PALETTE.navy300];
     const cardBgColor = accentColors[index % accentColors.length];
 
     return (

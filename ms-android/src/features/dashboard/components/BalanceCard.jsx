@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { DARK } from '../../../shared/constants/theme';
+import { BANK_DARK as DARK } from '../../../shared/constants/colors';
 import { formatBalance } from '../../accounts/utils/accountHelpers';
 import { formatUpdatedAt } from '../../../shared/utils/dateHelpers';
 import styles from '../screens/DashboardScreen.styles';

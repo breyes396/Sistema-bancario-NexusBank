@@ -1,12 +1,12 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Card } from '../../../shared/components/common/Common';
-import { COLORS } from '../../../shared/constants/theme';
+import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 import { isIncome } from '../hooks/useTransactions';
 import { card } from '../screens/TransactionsScreen.styles';
 
-const INCOME_COLOR = '#1A6637';
-const EXPENSE_COLOR = '#7A1A1A';
+const INCOME_COLOR = BANK.income;
+const EXPENSE_COLOR = BANK.expense;
 
 const STATUS_LABELS = {
     COMPLETADA: 'Completada',
@@ -16,9 +16,9 @@ const STATUS_LABELS = {
 };
 
 const STATUS_COLORS = {
-    COMPLETADA: COLORS.success,
-    PENDIENTE: COLORS.warning,
-    FALLIDA: COLORS.error,
+    COMPLETADA: BANK.success,
+    PENDIENTE: BANK.warning,
+    FALLIDA: BANK.error,
     REVERTIDA: '#d63a3a',
 };
 

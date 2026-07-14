@@ -6,7 +6,7 @@ import {
     TextInput,
     TouchableOpacity,
 } from 'react-native';
-import { COLORS } from '../../../shared/constants/theme';
+import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 import { revertModal as styles } from '../screens/TransactionsScreen.styles';
 
 const RevertReasonModal = ({
@@ -29,7 +29,7 @@ const RevertReasonModal = ({
                     <TextInput
                         style={styles.modalInput}
                         placeholder="Motivo de reversión..."
-                        placeholderTextColor={COLORS.textLight}
+                        placeholderTextColor={BANK.textMuted}
                         value={reason}
                         onChangeText={setReason}
                         multiline

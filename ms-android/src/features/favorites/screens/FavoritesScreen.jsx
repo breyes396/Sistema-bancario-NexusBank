@@ -14,8 +14,9 @@ import { useFavorites } from '../hooks/useFavorites';
 import FavoriteCard from '../components/FavoriteCard';
 import FavoriteFormModal from '../components/FavoriteFormModal';
 import { LoadingSpinner, EmptyState } from '../../../shared/components/common/Common';
+import HeaderMenuButton from '../../../shared/components/common/HeaderMenuButton';
 import { filterFavoritesBySearch } from '../utils/favoriteHelpers';
-import { COLORS } from '../../../shared/constants/theme';
+import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 import styles from './FavoritesScreen.styles';
 
 const FavoritesScreen = ({ navigation }) => {
@@ -86,9 +87,7 @@ const FavoritesScreen = ({ navigation }) => {
     return (
         <SafeAreaView style={styles.safe}>
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                    <Text style={styles.backText}>← Volver</Text>
-                </TouchableOpacity>
+                <HeaderMenuButton navigation={navigation} style={styles.backBtn} />
                 <Text style={styles.title}>Favoritos</Text>
                 <Text style={styles.subtitle}>
                     Guarda cuentas de uso recurrente y ejecuta transferencias rápidas.
@@ -99,12 +98,12 @@ const FavoritesScreen = ({ navigation }) => {
                 <TextInput
                     style={styles.searchInput}
                     placeholder="Buscar por alias o cuenta..."
-                    placeholderTextColor={COLORS.textLight}
+                    placeholderTextColor={BANK.textMuted}
                     value={search}
                     onChangeText={setSearch}
                 />
                 <TouchableOpacity style={styles.addBtn} onPress={handleAdd} activeOpacity={0.8}>
-                    <Feather name="plus" size={18} color={COLORS.primary} />
+                    <Feather name="plus" size={18} color={BANK.primary} />
                     <Text style={styles.addBtnText}>Agregar favorito</Text>
                 </TouchableOpacity>
             </View>
@@ -131,7 +130,7 @@ const FavoritesScreen = ({ navigation }) => {
                     )}
                     contentContainerStyle={styles.listContent}
                     refreshControl={
-                        <RefreshControl refreshing={loading} onRefresh={handleRefresh} colors={[COLORS.primary]} />
+                        <RefreshControl refreshing={loading} onRefresh={handleRefresh} colors={[BANK.primary]} />
                     }
                     ListEmptyComponent={<EmptyState message="No hay favoritos registrados." />}
                 />

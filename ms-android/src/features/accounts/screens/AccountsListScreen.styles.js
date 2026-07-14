@@ -1,10 +1,11 @@
 import { StyleSheet } from 'react-native';
-import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme';
+import { SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme';
+import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 
 export default StyleSheet.create({
     safe: {
         flex: 1,
-        backgroundColor: COLORS.background,
+        backgroundColor: BANK.background,
     },
     header: {
         padding: SPACING.lg,
@@ -15,18 +16,18 @@ export default StyleSheet.create({
     },
     backText: {
         fontSize: FONT_SIZE.sm,
-        color: COLORS.primary,
+        color: BANK.primary,
         fontWeight: '600',
     },
     title: {
         fontSize: FONT_SIZE.xxl,
         fontWeight: 'bold',
-        color: COLORS.text,
+        color: BANK.text,
         marginBottom: SPACING.xs,
     },
     subtitle: {
         fontSize: FONT_SIZE.sm,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
     },
     list: {
         padding: SPACING.lg,
@@ -64,7 +65,7 @@ export default StyleSheet.create({
     cardChip: {
         width: 35,
         height: 25,
-        backgroundColor: '#ecc94b',
+        backgroundColor: BANK.accent,
         borderRadius: 4,
         marginBottom: SPACING.xs,
     },

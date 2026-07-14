@@ -4,7 +4,6 @@ import {
     Text,
     FlatList,
     RefreshControl,
-    TouchableOpacity,
     ActivityIndicator,
     Alert,
 } from 'react-native';
@@ -14,7 +13,8 @@ import {
 } from '../hooks/useTransactions';
 import { useReversions } from '../hooks/useReversions';
 import { LoadingSpinner, EmptyState } from '../../../shared/components/common/Common';
-import { COLORS } from '../../../shared/constants/theme';
+import HeaderMenuButton from '../../../shared/components/common/HeaderMenuButton';
+import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 import TransactionCard from '../components/TransactionCard';
 import RevertReasonModal from '../components/RevertReasonModal';
 import styles, { strip } from './TransactionsScreen.styles';
@@ -136,7 +136,7 @@ const TransactionsScreen = ({ navigation, route }) => {
         if (!pagination || pagination.page >= pagination.pages) return null;
         return (
             <View style={styles.footerLoader}>
-                <ActivityIndicator size="small" color={COLORS.primary} />
+                <ActivityIndicator size="small" color={BANK.primary} />
             </View>
         );
     };
@@ -144,9 +144,7 @@ const TransactionsScreen = ({ navigation, route }) => {
     const renderHeader = () => (
         <View>
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                    <Text style={styles.backText}>← Volver</Text>
-                </TouchableOpacity>
+                <HeaderMenuButton navigation={navigation} style={styles.backBtn} />
                 <Text style={styles.title}>
                     {accountNumber ? `Movimientos: ${accountNumber}` : 'Historial de Transacciones'}
                 </Text>
@@ -164,9 +162,7 @@ const TransactionsScreen = ({ navigation, route }) => {
         return (
             <SafeAreaView style={styles.safe}>
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                        <Text style={styles.backText}>← Volver</Text>
-                    </TouchableOpacity>
+                    <HeaderMenuButton navigation={navigation} style={styles.backBtn} />
                     <Text style={styles.title}>Historial de Transacciones</Text>
                 </View>
                 <EmptyState message={error} />
@@ -190,8 +186,8 @@ const TransactionsScreen = ({ navigation, route }) => {
                     <RefreshControl
                         refreshing={refreshing}
                         onRefresh={refresh}
-                        colors={[COLORS.primary]}
-                        tintColor={COLORS.primary}
+                        colors={[BANK.primary]}
+                        tintColor={BANK.primary}
                     />
                 }
                 onEndReached={loadMore}

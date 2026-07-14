@@ -1,10 +1,11 @@
 import { StyleSheet } from 'react-native';
-import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme';
+import { SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme';
+import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 
 export default StyleSheet.create({
     safe: {
         flex: 1,
-        backgroundColor: COLORS.background,
+        backgroundColor: BANK.background,
     },
     container: {
         padding: SPACING.lg,
@@ -18,18 +19,18 @@ export default StyleSheet.create({
     },
     backText: {
         fontSize: FONT_SIZE.sm,
-        color: COLORS.primary,
+        color: BANK.primary,
         fontWeight: '600',
     },
     title: {
         fontSize: FONT_SIZE.xxl,
         fontWeight: 'bold',
-        color: COLORS.text,
+        color: BANK.text,
         marginBottom: SPACING.xs,
     },
     subtitle: {
         fontSize: FONT_SIZE.sm,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
         lineHeight: 20,
     },
     section: {
@@ -38,12 +39,12 @@ export default StyleSheet.create({
     label: {
         fontSize: FONT_SIZE.sm,
         fontWeight: '600',
-        color: COLORS.text,
+        color: BANK.text,
         marginBottom: SPACING.xs,
     },
     toggleRow: {
         flexDirection: 'row',
-        backgroundColor: COLORS.border,
+        backgroundColor: BANK.border,
         borderRadius: 10,
         padding: 4,
     },
@@ -54,72 +55,72 @@ export default StyleSheet.create({
         borderRadius: 8,
     },
     toggleBtnActive: {
-        backgroundColor: COLORS.surface,
+        backgroundColor: BANK.surface,
         ...SHADOWS.sm,
     },
     toggleBtnText: {
         fontSize: FONT_SIZE.sm,
         fontWeight: '600',
-        color: COLORS.textLight,
+        color: BANK.textMuted,
     },
     toggleBtnTextActive: {
-        color: COLORS.primary,
+        color: BANK.primary,
     },
     picker: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         borderWidth: 1,
-        borderColor: COLORS.border,
+        borderColor: BANK.border,
         borderRadius: 10,
         paddingVertical: SPACING.sm + 2,
         paddingHorizontal: SPACING.md,
-        backgroundColor: COLORS.surface,
+        backgroundColor: BANK.surface,
     },
     pickerError: {
-        borderColor: COLORS.error,
+        borderColor: BANK.error,
     },
     pickerValue: {
         fontSize: FONT_SIZE.md,
-        color: COLORS.text,
+        color: BANK.text,
         fontWeight: '500',
     },
     pickerSub: {
         fontSize: FONT_SIZE.xs,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
         marginTop: 2,
     },
     pickerPlaceholder: {
         fontSize: FONT_SIZE.md,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
     },
     pickerArrow: {
         fontSize: 12,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
     },
     errorText: {
         fontSize: FONT_SIZE.xs,
-        color: COLORS.error,
+        color: BANK.error,
         marginTop: SPACING.xs,
     },
     errorCard: {
-        backgroundColor: '#fef2f2',
-        borderColor: COLORS.error,
+        backgroundColor: BANK.surface,
+        borderColor: BANK.error,
         marginBottom: SPACING.md,
     },
     errorCardText: {
-        color: COLORS.error,
+        color: BANK.error,
         fontSize: FONT_SIZE.sm,
         textAlign: 'center',
     },
     infoCard: {
-        backgroundColor: '#eff6ff',
-        borderColor: '#bfdbfe',
+        backgroundColor: BANK.surface,
+        borderColor: BANK.accentLight,
         marginBottom: SPACING.lg,
     },
     infoText: {
         fontSize: FONT_SIZE.xs,
-        color: '#1e40af',
+        color: BANK.primary,
         lineHeight: 18,
     },
     infoBold: {
@@ -130,11 +131,11 @@ export default StyleSheet.create({
 export const modal = StyleSheet.create({
     overlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.4)',
+        backgroundColor: 'rgba(5,15,34,0.5)',
         justifyContent: 'flex-end',
     },
     sheet: {
-        backgroundColor: COLORS.surface,
+        backgroundColor: BANK.surface,
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
         maxHeight: '60%',
@@ -147,35 +148,35 @@ export const modal = StyleSheet.create({
         alignItems: 'center',
         padding: SPACING.lg,
         borderBottomWidth: 1,
-        borderBottomColor: COLORS.border,
+        borderBottomColor: BANK.border,
     },
     title: {
         fontSize: FONT_SIZE.lg,
         fontWeight: 'bold',
-        color: COLORS.text,
+        color: BANK.text,
     },
     close: {
         fontSize: FONT_SIZE.lg,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
         paddingHorizontal: SPACING.sm,
     },
     item: {
         paddingVertical: SPACING.md,
         paddingHorizontal: SPACING.lg,
         borderBottomWidth: 1,
-        borderBottomColor: COLORS.border,
+        borderBottomColor: BANK.border,
     },
     itemSelected: {
-        backgroundColor: '#eff6ff',
+        backgroundColor: BANK.accentLight + '33',
     },
     itemNumber: {
         fontSize: FONT_SIZE.md,
-        color: COLORS.text,
+        color: BANK.text,
         fontWeight: '600',
     },
     itemSub: {
         fontSize: FONT_SIZE.xs,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
         marginTop: 2,
     },
 });

@@ -1,10 +1,11 @@
 import { StyleSheet } from 'react-native';
-import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme';
+import { SPACING, FONT_SIZE } from '../../../shared/constants/theme';
+import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 
 export default StyleSheet.create({
     safe: {
         flex: 1,
-        backgroundColor: COLORS.background,
+        backgroundColor: BANK.background,
     },
     header: {
         paddingHorizontal: SPACING.lg,
@@ -16,18 +17,18 @@ export default StyleSheet.create({
     },
     backText: {
         fontSize: FONT_SIZE.sm,
-        color: COLORS.primary,
+        color: BANK.primary,
         fontWeight: '600',
     },
     title: {
         fontSize: FONT_SIZE.xxl,
         fontWeight: 'bold',
-        color: COLORS.text,
+        color: BANK.text,
         marginBottom: SPACING.xs,
     },
     subtitle: {
         fontSize: FONT_SIZE.sm,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
         lineHeight: 18,
     },
     toolbar: {
@@ -37,13 +38,13 @@ export default StyleSheet.create({
     },
     searchInput: {
         borderWidth: 1,
-        borderColor: COLORS.border,
+        borderColor: BANK.border,
         borderRadius: 10,
         paddingVertical: SPACING.sm,
         paddingHorizontal: SPACING.md,
         fontSize: FONT_SIZE.sm,
-        color: COLORS.text,
-        backgroundColor: COLORS.surface,
+        color: BANK.text,
+        backgroundColor: BANK.surface,
     },
     addBtn: {
         flexDirection: 'row',
@@ -51,7 +52,7 @@ export default StyleSheet.create({
         justifyContent: 'center',
         gap: SPACING.xs,
         borderWidth: 1.5,
-        borderColor: COLORS.primary,
+        borderColor: BANK.primary,
         borderStyle: 'dashed',
         borderRadius: 10,
         paddingVertical: SPACING.sm + 2,
@@ -59,7 +60,7 @@ export default StyleSheet.create({
     addBtnText: {
         fontSize: FONT_SIZE.sm,
         fontWeight: '600',
-        color: COLORS.primary,
+        color: BANK.primary,
     },
     listContent: {
         padding: SPACING.lg,
@@ -78,23 +79,23 @@ export default StyleSheet.create({
     alias: {
         fontSize: FONT_SIZE.lg,
         fontWeight: 'bold',
-        color: COLORS.text,
+        color: BANK.text,
     },
     accountNumber: {
         fontSize: FONT_SIZE.xs,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
         marginTop: 2,
     },
     typeBadge: {
         paddingVertical: 4,
         paddingHorizontal: 10,
         borderRadius: 12,
-        backgroundColor: COLORS.primary + '18',
+        backgroundColor: BANK.primary + '18',
     },
     typeBadgeText: {
         fontSize: FONT_SIZE.xs - 1,
         fontWeight: '700',
-        color: COLORS.primary,
+        color: BANK.primary,
     },
     actionsRow: {
         flexDirection: 'row',
@@ -102,7 +103,7 @@ export default StyleSheet.create({
         marginTop: SPACING.md,
         paddingTop: SPACING.sm,
         borderTopWidth: 1,
-        borderTopColor: COLORS.border,
+        borderTopColor: BANK.border,
     },
     actionBtn: {
         flex: 1,
@@ -118,8 +119,8 @@ export default StyleSheet.create({
         fontWeight: '600',
     },
     errorCard: {
-        backgroundColor: '#fef2f2',
-        borderColor: COLORS.error,
+        backgroundColor: BANK.surface,
+        borderColor: BANK.error,
         marginHorizontal: SPACING.lg,
         marginBottom: SPACING.sm,
         padding: SPACING.md,
@@ -127,7 +128,7 @@ export default StyleSheet.create({
         borderWidth: 1,
     },
     errorCardText: {
-        color: COLORS.error,
+        color: BANK.error,
         fontSize: FONT_SIZE.sm,
         textAlign: 'center',
     },

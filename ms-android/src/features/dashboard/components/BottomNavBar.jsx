@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { DARK } from '../../../shared/constants/theme';
+import { BANK_DARK as DARK } from '../../../shared/constants/colors';
 import styles from '../screens/DashboardScreen.styles';
 
 const BottomNavBar = ({ openDrawer, navigation }) => (
@@ -13,7 +13,7 @@ const BottomNavBar = ({ openDrawer, navigation }) => (
         <TouchableOpacity
             style={styles.navItem}
             activeOpacity={0.7}
-            onPress={() => navigation?.navigate('AccountsList')}
+            onPress={() => navigation?.navigate('Secondary', { screen: 'AccountsList' })}
         >
             <Feather name="credit-card" size={22} color={DARK.textMuted} />
             <Text style={styles.navLabel}>Cuentas</Text>
@@ -21,7 +21,7 @@ const BottomNavBar = ({ openDrawer, navigation }) => (
         <TouchableOpacity
             style={styles.navItem}
             activeOpacity={0.7}
-            onPress={() => navigation?.navigate('Transfer')}
+            onPress={() => navigation?.navigate('Secondary', { screen: 'Transfer' })}
         >
             <Feather name="repeat" size={22} color={DARK.textMuted} />
             <Text style={styles.navLabel}>Transferir</Text>

@@ -11,7 +11,8 @@ import {
 import Input from '../../../shared/components/common/Input';
 import Button from '../../../shared/components/common/Button';
 import { ACCOUNT_TYPE_OPTIONS, validateFavoriteForm } from '../utils/favoriteHelpers';
-import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme';
+import { SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme';
+import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 
 const emptyForm = { accountNumber: '', accountType: 'ahorro', alias: '' };
 
@@ -119,11 +120,11 @@ const FavoriteFormModal = ({ visible, onClose, onSubmit, submitting, editingFavo
 const styles = StyleSheet.create({
     overlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.4)',
+        backgroundColor: 'rgba(5,15,34,0.5)',
         justifyContent: 'flex-end',
     },
     sheet: {
-        backgroundColor: COLORS.surface,
+        backgroundColor: BANK.surface,
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
         ...SHADOWS.md,
@@ -134,16 +135,16 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: SPACING.lg,
         borderBottomWidth: 1,
-        borderBottomColor: COLORS.border,
+        borderBottomColor: BANK.border,
     },
     title: {
         fontSize: FONT_SIZE.lg,
         fontWeight: 'bold',
-        color: COLORS.text,
+        color: BANK.text,
     },
     close: {
         fontSize: FONT_SIZE.lg,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
         paddingHorizontal: SPACING.sm,
     },
     body: {
@@ -151,18 +152,18 @@ const styles = StyleSheet.create({
         paddingBottom: SPACING.xl,
     },
     inputDisabled: {
-        backgroundColor: COLORS.background,
-        color: COLORS.textLight,
+        backgroundColor: BANK.background,
+        color: BANK.textMuted,
     },
     label: {
         fontSize: FONT_SIZE.sm,
         fontWeight: '600',
-        color: COLORS.text,
+        color: BANK.text,
         marginBottom: SPACING.xs,
     },
     toggleRow: {
         flexDirection: 'row',
-        backgroundColor: COLORS.border,
+        backgroundColor: BANK.border,
         borderRadius: 10,
         padding: 4,
         marginBottom: SPACING.md,
@@ -174,20 +175,20 @@ const styles = StyleSheet.create({
         borderRadius: 8,
     },
     toggleBtnActive: {
-        backgroundColor: COLORS.surface,
+        backgroundColor: BANK.surface,
         ...SHADOWS.sm,
     },
     toggleBtnText: {
         fontSize: FONT_SIZE.sm,
         fontWeight: '600',
-        color: COLORS.textLight,
+        color: BANK.textMuted,
     },
     toggleBtnTextActive: {
-        color: COLORS.primary,
+        color: BANK.primary,
     },
     errorText: {
         fontSize: FONT_SIZE.xs,
-        color: COLORS.error,
+        color: BANK.error,
         marginBottom: SPACING.md,
         textAlign: 'center',
     },

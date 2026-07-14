@@ -2,19 +2,22 @@ import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useFavorites } from '../../favorites/hooks/useFavorites';
-import { DARK } from '../../../shared/constants/theme';
+import { BANK_DARK as DARK } from '../../../shared/constants/colors';
 import styles from '../screens/DashboardScreen.styles';
 
 const FavoritesSection = ({ navigation }) => {
     const { favorites, loading } = useFavorites();
 
-    const goToFavorites = () => navigation?.navigate('Favorites');
+    const goToFavorites = () => navigation?.navigate('Secondary', { screen: 'Favorites' });
 
     const goToTransfer = (favorite) => {
-        navigation?.navigate('Transfer', {
-            prefillDestinationAccountNumber: favorite.accountNumber,
-            prefillRecipientType: 'TERCERO',
-            prefillDescription: `Transferencia a favorito: ${favorite.alias}`,
+        navigation?.navigate('Secondary', {
+            screen: 'Transfer',
+            params: {
+                prefillDestinationAccountNumber: favorite.accountNumber,
+                prefillRecipientType: 'TERCERO',
+                prefillDescription: `Transferencia a favorito: ${favorite.alias}`,
+            },
         });
     };
 

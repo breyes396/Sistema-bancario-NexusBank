@@ -1,10 +1,11 @@
 import { StyleSheet } from 'react-native';
-import { COLORS, SPACING, FONT_SIZE } from '../../../shared/constants/theme';
+import { SPACING, FONT_SIZE } from '../../../shared/constants/theme';
+import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 
 export default StyleSheet.create({
     safe: {
         flex: 1,
-        backgroundColor: COLORS.background,
+        backgroundColor: BANK.background,
     },
     header: {
         paddingHorizontal: SPACING.lg,
@@ -16,18 +17,18 @@ export default StyleSheet.create({
     },
     backText: {
         fontSize: FONT_SIZE.sm,
-        color: COLORS.primary,
+        color: BANK.primary,
         fontWeight: '600',
     },
     title: {
         fontSize: FONT_SIZE.xxl,
         fontWeight: 'bold',
-        color: COLORS.text,
+        color: BANK.text,
         marginBottom: SPACING.xs,
     },
     subtitle: {
         fontSize: FONT_SIZE.sm,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
         lineHeight: 18,
     },
     filtersContainer: {
@@ -37,13 +38,13 @@ export default StyleSheet.create({
     },
     searchInput: {
         borderWidth: 1,
-        borderColor: COLORS.border,
+        borderColor: BANK.border,
         borderRadius: 10,
         paddingVertical: SPACING.sm,
         paddingHorizontal: SPACING.md,
         fontSize: FONT_SIZE.sm,
-        color: COLORS.text,
-        backgroundColor: COLORS.surface,
+        color: BANK.text,
+        backgroundColor: BANK.surface,
     },
     selectRow: {
         flexDirection: 'row',
@@ -54,11 +55,11 @@ export default StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         borderWidth: 1,
-        borderColor: COLORS.border,
+        borderColor: BANK.border,
         borderRadius: 10,
         paddingVertical: SPACING.sm,
         paddingHorizontal: SPACING.md,
-        backgroundColor: COLORS.surface,
+        backgroundColor: BANK.surface,
     },
     dropdownHalf: {
         flex: 1,
@@ -66,11 +67,11 @@ export default StyleSheet.create({
     filterSelectorText: {
         fontSize: FONT_SIZE.xs + 1,
         fontWeight: '600',
-        color: COLORS.text,
+        color: BANK.text,
     },
     arrowIcon: {
         fontSize: FONT_SIZE.xs,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
     },
     listContent: {
         padding: SPACING.lg,
@@ -86,19 +87,19 @@ export default StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'flex-start',
         borderBottomWidth: 1,
-        borderBottomColor: COLORS.border,
+        borderBottomColor: BANK.border,
         paddingBottom: SPACING.sm,
     },
     cardType: {
         fontSize: FONT_SIZE.xs,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
         fontWeight: '500',
         marginBottom: 2,
     },
     cardAmount: {
         fontSize: FONT_SIZE.lg,
         fontWeight: 'bold',
-        color: COLORS.text,
+        color: BANK.text,
     },
     statusBadge: {
         paddingVertical: 4,
@@ -119,40 +120,40 @@ export default StyleSheet.create({
     },
     detailLabel: {
         fontSize: FONT_SIZE.xs,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
     },
     detailValue: {
         fontSize: FONT_SIZE.xs,
         fontWeight: '600',
-        color: COLORS.text,
+        color: BANK.text,
     },
     detailBlock: {
         marginTop: 4,
     },
     reasonText: {
         fontSize: FONT_SIZE.xs + 1,
-        color: COLORS.text,
-        backgroundColor: COLORS.background,
+        color: BANK.text,
+        backgroundColor: BANK.background,
         padding: SPACING.xs + 2,
         borderRadius: 6,
         marginTop: 4,
         borderWidth: 1,
-        borderColor: COLORS.border,
+        borderColor: BANK.border,
     },
     adminCommentBlock: {
         marginTop: 8,
         paddingTop: 8,
         borderTopWidth: 1,
-        borderTopColor: COLORS.border,
+        borderTopColor: BANK.border,
     },
     adminCommentLabel: {
         fontSize: FONT_SIZE.xs,
-        color: COLORS.error,
+        color: BANK.error,
         fontWeight: '600',
     },
     adminCommentText: {
         fontSize: FONT_SIZE.xs + 1,
-        color: COLORS.text,
+        color: BANK.text,
         fontStyle: 'italic',
         marginTop: 2,
     },

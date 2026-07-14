@@ -1,10 +1,11 @@
 import { StyleSheet } from 'react-native';
-import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme';
+import { SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme';
+import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 
 export default StyleSheet.create({
     safe: {
         flex: 1,
-        backgroundColor: COLORS.background,
+        backgroundColor: BANK.background,
     },
     list: {
         paddingBottom: SPACING.xxl,
@@ -18,18 +19,18 @@ export default StyleSheet.create({
     },
     backText: {
         fontSize: FONT_SIZE.sm,
-        color: COLORS.primary,
+        color: BANK.primary,
         fontWeight: '600',
     },
     title: {
         fontSize: FONT_SIZE.xl,
         fontWeight: 'bold',
-        color: COLORS.text,
+        color: BANK.text,
         marginBottom: SPACING.xs,
     },
     count: {
         fontSize: FONT_SIZE.xs,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
     },
     footerLoader: {
         paddingVertical: SPACING.md,
@@ -43,10 +44,10 @@ export const strip = StyleSheet.create({
         flexDirection: 'row',
         marginHorizontal: SPACING.lg,
         marginBottom: SPACING.md,
-        backgroundColor: COLORS.surface,
+        backgroundColor: BANK.surface,
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: COLORS.border,
+        borderColor: BANK.border,
         ...SHADOWS.sm,
     },
     item: {
@@ -56,12 +57,12 @@ export const strip = StyleSheet.create({
     },
     divider: {
         width: 1,
-        backgroundColor: COLORS.border,
+        backgroundColor: BANK.border,
         marginVertical: SPACING.sm,
     },
     label: {
         fontSize: 10,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
         textTransform: 'uppercase',
         letterSpacing: 0.5,
         marginBottom: 4,
@@ -90,10 +91,10 @@ export const card = StyleSheet.create({
         borderRadius: 6,
     },
     badgeIncome: {
-        backgroundColor: '#1A663718',
+        backgroundColor: BANK.income + '33',
     },
     badgeExpense: {
-        backgroundColor: '#7A1A1A18',
+        backgroundColor: BANK.expense + '33',
     },
     badgeText: {
         fontSize: FONT_SIZE.xs,
@@ -101,7 +102,7 @@ export const card = StyleSheet.create({
     },
     date: {
         fontSize: FONT_SIZE.xs,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
     },
     accountWrap: {
         flex: 1,
@@ -109,13 +110,13 @@ export const card = StyleSheet.create({
     },
     accountLabel: {
         fontSize: 10,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
         textTransform: 'uppercase',
         letterSpacing: 0.5,
     },
     accountValue: {
         fontSize: FONT_SIZE.sm,
-        color: COLORS.text,
+        color: BANK.text,
         fontWeight: '500',
     },
     amount: {
@@ -124,7 +125,7 @@ export const card = StyleSheet.create({
     },
     id: {
         fontSize: 10,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
         flex: 1,
         marginRight: SPACING.sm,
     },
@@ -139,37 +140,37 @@ export const card = StyleSheet.create({
     },
     description: {
         fontSize: FONT_SIZE.xs,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
         marginTop: SPACING.xs,
         borderTopWidth: 1,
-        borderTopColor: COLORS.border,
+        borderTopColor: BANK.border,
         paddingTop: SPACING.xs,
     },
     revertContainer: {
         marginTop: SPACING.sm,
         paddingTop: SPACING.xs,
         borderTopWidth: 1,
-        borderTopColor: COLORS.border,
+        borderTopColor: BANK.border,
     },
     revertBtn: {
-        backgroundColor: '#fffbeb',
+        backgroundColor: BANK.accentLight + '33',
         borderWidth: 1,
-        borderColor: '#fef3c7',
+        borderColor: BANK.accentLight,
         borderRadius: 8,
         paddingVertical: 6,
         alignItems: 'center',
     },
     revertBtnDisabled: {
-        backgroundColor: COLORS.background,
-        borderColor: COLORS.border,
+        backgroundColor: BANK.background,
+        borderColor: BANK.border,
     },
     revertBtnText: {
         fontSize: 11,
         fontWeight: '700',
-        color: '#b45309',
+        color: BANK.accent,
     },
     revertBtnTextDisabled: {
-        color: COLORS.textLight,
+        color: BANK.textMuted,
     },
 });
 
@@ -177,14 +178,14 @@ export const card = StyleSheet.create({
 export const revertModal = StyleSheet.create({
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.6)',
+        backgroundColor: 'rgba(5,15,34,0.65)',
         justifyContent: 'center',
         alignItems: 'center',
         padding: SPACING.lg,
     },
     modalCard: {
         width: '100%',
-        backgroundColor: COLORS.surface,
+        backgroundColor: BANK.surface,
         borderRadius: 16,
         padding: SPACING.lg,
         ...SHADOWS.md,
@@ -192,25 +193,25 @@ export const revertModal = StyleSheet.create({
     modalTitle: {
         fontSize: FONT_SIZE.lg,
         fontWeight: 'bold',
-        color: COLORS.text,
+        color: BANK.text,
         marginBottom: SPACING.xs,
         textAlign: 'center',
     },
     modalSubtitle: {
         fontSize: FONT_SIZE.sm,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
         lineHeight: 18,
         textAlign: 'center',
         marginBottom: SPACING.md,
     },
     modalInput: {
         borderWidth: 1,
-        borderColor: COLORS.border,
+        borderColor: BANK.border,
         borderRadius: 10,
         padding: SPACING.sm,
         fontSize: FONT_SIZE.sm,
-        color: COLORS.text,
-        backgroundColor: COLORS.background,
+        color: BANK.text,
+        backgroundColor: BANK.background,
         minHeight: 80,
         textAlignVertical: 'top',
         marginBottom: SPACING.md,
@@ -227,20 +228,20 @@ export const revertModal = StyleSheet.create({
     },
     modalBtnCancel: {
         borderWidth: 1,
-        borderColor: COLORS.border,
-        backgroundColor: COLORS.surface,
+        borderColor: BANK.border,
+        backgroundColor: BANK.surface,
     },
     modalBtnCancelText: {
         fontSize: FONT_SIZE.md,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
         fontWeight: '600',
     },
     modalBtnConfirm: {
-        backgroundColor: COLORS.primary,
+        backgroundColor: BANK.primary,
     },
     modalBtnConfirmText: {
         fontSize: FONT_SIZE.md,
-        color: '#fff',
+        color: BANK.onPrimary,
         fontWeight: '600',
     },
 });

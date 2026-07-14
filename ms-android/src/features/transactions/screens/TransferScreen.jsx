@@ -13,6 +13,7 @@ import { useFavorites } from '../../favorites/hooks/useFavorites';
 import Button from '../../../shared/components/common/Button';
 import Input from '../../../shared/components/common/Input';
 import { LoadingSpinner, Card } from '../../../shared/components/common/Common';
+import HeaderMenuButton from '../../../shared/components/common/HeaderMenuButton';
 import AccountPickerModal from '../components/AccountPickerModal';
 import SecurityConfirmModal from '../components/SecurityConfirmModal';
 import DestinationSection from '../components/DestinationSection';
@@ -218,9 +219,7 @@ const TransferScreen = ({ navigation, route }) => {
                 >
                     {/* Header */}
                     <View style={styles.header}>
-                        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                            <Text style={styles.backText}>← Volver</Text>
-                        </TouchableOpacity>
+                        <HeaderMenuButton navigation={navigation} style={styles.backBtn} />
                         <Text style={styles.title}>Transferir fondos</Text>
                         <Text style={styles.subtitle}>
                             Envía dinero al instante entre tus cuentas o a cuentas de terceros en NexusBank.

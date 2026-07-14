@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TextInput, StyleSheet } from 'react-native';
-import { COLORS, FONT_SIZE, SPACING } from '../../constants/theme';
+import { FONT_SIZE, SPACING } from '../../constants/theme';
+import { BANK_DARK as BANK } from '../../constants/colors';
 
 const Input = ({ label, error, ...props }) => {
     return (
@@ -8,7 +9,7 @@ const Input = ({ label, error, ...props }) => {
             {label && <Text style={styles.label}>{label}</Text>}
             <TextInput
                 style={[styles.input, error && styles.inputError]}
-                placeholderTextColor={COLORS.textLight}
+                placeholderTextColor={BANK.textMuted}
                 {...props}
             />
             {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -23,25 +24,25 @@ const styles = StyleSheet.create({
     label: {
         fontSize: FONT_SIZE.sm,
         fontWeight: '600',
-        color: COLORS.text,
+        color: BANK.text,
         marginBottom: SPACING.xs,
     },
     input: {
         borderWidth: 1,
-        borderColor: COLORS.border,
+        borderColor: BANK.border,
         borderRadius: 10,
         paddingVertical: SPACING.sm + 2,
         paddingHorizontal: SPACING.md,
         fontSize: FONT_SIZE.md,
-        color: COLORS.text,
-        backgroundColor: COLORS.surface,
+        color: BANK.text,
+        backgroundColor: BANK.surface,
     },
     inputError: {
-        borderColor: COLORS.error,
+        borderColor: BANK.error,
     },
     error: {
         fontSize: FONT_SIZE.xs,
-        color: COLORS.error,
+        color: BANK.error,
         marginTop: SPACING.xs,
     },
 });

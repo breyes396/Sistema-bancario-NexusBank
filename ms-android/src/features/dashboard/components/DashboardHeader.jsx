@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { DARK } from '../../../shared/constants/theme';
+import { BANK_DARK as DARK } from '../../../shared/constants/colors';
 import { getInitials } from '../../../shared/utils/stringHelpers';
 import styles from '../screens/DashboardScreen.styles';
 

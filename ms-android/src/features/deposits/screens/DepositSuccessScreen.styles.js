@@ -1,10 +1,11 @@
 import { StyleSheet } from 'react-native';
-import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme';
+import { SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme';
+import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 
 export default StyleSheet.create({
     safe: {
         flex: 1,
-        backgroundColor: COLORS.background,
+        backgroundColor: BANK.background,
     },
     container: {
         padding: SPACING.lg,
@@ -15,35 +16,37 @@ export default StyleSheet.create({
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: COLORS.success,
+        backgroundColor: BANK.primary,
         justifyContent: 'center',
         alignItems: 'center',
         marginTop: SPACING.xl,
         marginBottom: SPACING.lg,
+        borderWidth: 2,
+        borderColor: BANK.accent,
         ...SHADOWS.md,
     },
     icon: {
-        color: '#fff',
+        color: BANK.onPrimary,
         fontSize: 36,
         fontWeight: 'bold',
     },
     title: {
         fontSize: FONT_SIZE.xxl,
         fontWeight: 'bold',
-        color: COLORS.text,
+        color: BANK.text,
         marginBottom: SPACING.sm,
         textAlign: 'center',
     },
     subtitle: {
         fontSize: FONT_SIZE.sm,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
         textAlign: 'center',
         lineHeight: 20,
         marginBottom: SPACING.xl,
         paddingHorizontal: SPACING.md,
     },
     badge: {
-        color: COLORS.warning,
+        color: BANK.accent,
         fontWeight: 'bold',
     },
     card: {
@@ -53,7 +56,7 @@ export default StyleSheet.create({
     cardTitle: {
         fontSize: FONT_SIZE.md,
         fontWeight: 'bold',
-        color: COLORS.text,
+        color: BANK.text,
         marginBottom: SPACING.md,
         textAlign: 'center',
     },
@@ -63,36 +66,36 @@ export default StyleSheet.create({
         alignItems: 'center',
         paddingVertical: SPACING.sm,
         borderBottomWidth: 1,
-        borderBottomColor: COLORS.border,
+        borderBottomColor: BANK.border,
     },
     rowLabel: {
         fontSize: FONT_SIZE.sm,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
         flex: 1,
     },
     rowValue: {
         fontSize: FONT_SIZE.sm,
-        color: COLORS.text,
+        color: BANK.text,
         fontWeight: '600',
         flex: 1,
         textAlign: 'right',
     },
     amountValue: {
-        color: COLORS.primary,
+        color: BANK.primary,
         fontSize: FONT_SIZE.md,
     },
     statusValue: {
-        color: COLORS.warning,
+        color: BANK.accent,
     },
     noteCard: {
         width: '100%',
-        backgroundColor: '#fffbeb',
-        borderColor: '#fde68a',
+        backgroundColor: BANK.accentLight + '33',
+        borderColor: BANK.accentLight,
         marginBottom: SPACING.xl,
     },
     noteText: {
         fontSize: FONT_SIZE.xs,
-        color: '#92400e',
+        color: BANK.primaryDark,
         lineHeight: 18,
         textAlign: 'center',
     },

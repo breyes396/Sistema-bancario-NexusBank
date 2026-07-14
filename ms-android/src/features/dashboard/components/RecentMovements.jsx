@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { DARK } from '../../../shared/constants/theme';
+import { BANK_DARK as DARK } from '../../../shared/constants/colors';
 import { formatBalance } from '../../accounts/utils/accountHelpers';
 import { isIncome, TYPE_LABELS } from '../../transactions/hooks/useTransactions';
 import { formatMovementDate } from '../../../shared/utils/dateHelpers';

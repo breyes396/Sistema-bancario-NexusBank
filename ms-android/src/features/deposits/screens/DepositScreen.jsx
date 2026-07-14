@@ -14,6 +14,7 @@ import { useDeposit } from '../hooks/useDeposit';
 import Button from '../../../shared/components/common/Button';
 import Input from '../../../shared/components/common/Input';
 import { LoadingSpinner, EmptyState, Card } from '../../../shared/components/common/Common';
+import HeaderMenuButton from '../../../shared/components/common/HeaderMenuButton';
 import styles, { modal } from './DepositScreen.styles';
 
 const RECIPIENT_TYPES = [
@@ -116,9 +117,7 @@ const DepositScreen = ({ navigation }) => {
                 >
                     {/* Header */}
                     <View style={styles.header}>
-                        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                            <Text style={styles.backText}>← Volver</Text>
-                        </TouchableOpacity>
+                        <HeaderMenuButton navigation={navigation} style={styles.backBtn} />
                         <Text style={styles.title}>Depósitos</Text>
                         <Text style={styles.subtitle}>
                             Solicita un depósito a tu cuenta. La solicitud queda pendiente de aprobación.

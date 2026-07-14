@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
-import { DARK, SPACING, FONT_SIZE } from '../shared/constants/theme';
+import { SPACING, FONT_SIZE } from '../shared/constants/theme';
+import { BANK_DARK as DARK } from '../shared/constants/colors';
 
 export default StyleSheet.create({
     safe: {

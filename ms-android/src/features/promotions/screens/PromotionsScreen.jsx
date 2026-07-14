@@ -1,11 +1,12 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, RefreshControl } from 'react-native';
+import { View, Text, TextInput, FlatList, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePromotions } from '../hooks/usePromotions';
 import PromotionCard from '../components/PromotionCard';
 import PromotionDetailModal from '../components/PromotionDetailModal';
 import { LoadingSpinner, EmptyState } from '../../../shared/components/common/Common';
-import { COLORS } from '../../../shared/constants/theme';
+import HeaderMenuButton from '../../../shared/components/common/HeaderMenuButton';
+import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 import styles from './PromotionsScreen.styles';
 
 const PromotionsScreen = ({ navigation }) => {
@@ -17,9 +18,7 @@ const PromotionsScreen = ({ navigation }) => {
     return (
         <SafeAreaView style={styles.safe}>
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                    <Text style={styles.backText}>← Volver</Text>
-                </TouchableOpacity>
+                <HeaderMenuButton navigation={navigation} style={styles.backBtn} />
                 <Text style={styles.title}>Promociones Activas</Text>
                 <Text style={styles.subtitle}>Descubre los beneficios exclusivos que tenemos para ti.</Text>
             </View>
@@ -28,7 +27,7 @@ const PromotionsScreen = ({ navigation }) => {
                 <TextInput
                     style={styles.searchInput}
                     placeholder="Buscar promociones por nombre..."
-                    placeholderTextColor={COLORS.textLight}
+                    placeholderTextColor={BANK.textMuted}
                     value={search}
                     onChangeText={setSearch}
                 />
@@ -51,7 +50,7 @@ const PromotionsScreen = ({ navigation }) => {
                     )}
                     contentContainerStyle={styles.listContent}
                     refreshControl={
-                        <RefreshControl refreshing={loading} onRefresh={handleRefresh} colors={[COLORS.primary]} />
+                        <RefreshControl refreshing={loading} onRefresh={handleRefresh} colors={[BANK.primary]} />
                     }
                     ListEmptyComponent={
                         <EmptyState message="No hay promociones activas en este momento." />

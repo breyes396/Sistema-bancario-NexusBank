@@ -7,7 +7,7 @@ import {
     getPromotionBenefitText,
     formatPromotionDate,
 } from '../utils/promotionHelpers';
-import { COLORS } from '../../../shared/constants/theme';
+import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 import styles from '../screens/PromotionsScreen.styles';
 
 const PromotionCard = ({ item, onUse }) => (
@@ -24,7 +24,7 @@ const PromotionCard = ({ item, onUse }) => (
             </Text>
 
             <View style={styles.benefitRow}>
-                <Feather name="gift" size={16} color={COLORS.primary} />
+                <Feather name="gift" size={16} color={BANK.accent} />
                 <Text style={styles.benefitText}>{getPromotionBenefitText(item)}</Text>
             </View>
 
@@ -33,7 +33,7 @@ const PromotionCard = ({ item, onUse }) => (
             </Text>
 
             <TouchableOpacity style={styles.useBtn} onPress={() => onUse(item)} activeOpacity={0.8}>
-                <Feather name="info" size={16} color="#fff" />
+                <Feather name="info" size={16} color={BANK.onPrimary} />
                 <Text style={styles.useBtnText}>Ver detalle y usar</Text>
             </TouchableOpacity>
         </View>

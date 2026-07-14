@@ -6,13 +6,13 @@ import { formatBalance } from '../../accounts/utils/accountHelpers';
 import { formatUpdatedAt } from '../../../shared/utils/dateHelpers';
 import styles from '../screens/DashboardScreen.styles';
 
-const BalanceCard = ({ consolidatedBalance, updatedAt, loading }) => {
+const BalanceCard = ({ balance, updatedAt, loading }) => {
     const [hideBalance, setHideBalance] = useState(false);
 
     return (
         <View style={styles.balanceCard}>
             <View style={styles.balanceHeaderRow}>
-                <Text style={styles.balanceLabel}>Saldo total consolidado</Text>
+                <Text style={styles.balanceLabel}>Saldo cuenta principal</Text>
                 <TouchableOpacity onPress={() => setHideBalance((prev) => !prev)} activeOpacity={0.7}>
                     <Feather name={hideBalance ? 'eye-off' : 'eye'} size={20} color={DARK.text} />
                 </TouchableOpacity>
@@ -21,7 +21,7 @@ const BalanceCard = ({ consolidatedBalance, updatedAt, loading }) => {
                 <ActivityIndicator color={DARK.text} style={{ marginTop: 12, alignSelf: 'flex-start' }} />
             ) : (
                 <Text style={styles.balanceAmount}>
-                    {hideBalance ? '••••••' : formatBalance(consolidatedBalance)}
+                    {hideBalance ? '••••••' : formatBalance(balance)}
                 </Text>
             )}
             <Text style={styles.balanceUpdated}>{updatedAt ? formatUpdatedAt(updatedAt) : ' '}</Text>

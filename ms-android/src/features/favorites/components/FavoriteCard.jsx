@@ -6,7 +6,7 @@ import { getFavoriteAccountTypeLabel } from '../utils/favoriteHelpers';
 import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 import styles from '../screens/FavoritesScreen.styles';
 
-const FavoriteCard = ({ item, onTransfer, onEdit, onDelete }) => (
+const FavoriteCard = ({ item, onTransactions, onEdit, onDelete }) => (
     <Card style={styles.card}>
         <View style={styles.cardHeader}>
             <View>
@@ -19,9 +19,9 @@ const FavoriteCard = ({ item, onTransfer, onEdit, onDelete }) => (
         </View>
 
         <View style={styles.actionsRow}>
-            <TouchableOpacity style={styles.actionBtn} onPress={() => onTransfer(item)} activeOpacity={0.7}>
-                <Feather name="send" size={16} color={BANK.primary} />
-                <Text style={[styles.actionBtnText, { color: BANK.primary }]}>Transferir</Text>
+            <TouchableOpacity style={styles.actionBtn} onPress={() => onTransactions(item)} activeOpacity={0.7}>
+                <Feather name="repeat" size={16} color={BANK.primary} />
+                <Text style={[styles.actionBtnText, { color: BANK.primary }]}>Transacciones</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.actionBtn} onPress={() => onEdit(item)} activeOpacity={0.7}>
                 <Feather name="edit-2" size={16} color={BANK.textMuted} />

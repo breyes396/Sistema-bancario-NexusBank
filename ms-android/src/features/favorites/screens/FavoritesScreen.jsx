@@ -13,6 +13,7 @@ import { Feather } from '@expo/vector-icons';
 import { useFavorites } from '../hooks/useFavorites';
 import FavoriteCard from '../components/FavoriteCard';
 import FavoriteFormModal from '../components/FavoriteFormModal';
+import FavoriteActionModal from '../components/FavoriteActionModal';
 import { LoadingSpinner, EmptyState } from '../../../shared/components/common/Common';
 import HeaderMenuButton from '../../../shared/components/common/HeaderMenuButton';
 import BottomNavBar from '../../../shared/components/common/BottomNavBar';
@@ -35,6 +36,8 @@ const FavoritesScreen = ({ navigation }) => {
     const [search, setSearch] = useState('');
     const [formVisible, setFormVisible] = useState(false);
     const [editingFavorite, setEditingFavorite] = useState(null);
+    const [actionsVisible, setActionsVisible] = useState(false);
+    const [actionsFavorite, setActionsFavorite] = useState(null);
 
     const visibleFavorites = useMemo(
         () => filterFavoritesBySearch(favorites, search),
@@ -77,11 +80,30 @@ const FavoritesScreen = ({ navigation }) => {
         );
     };
 
-    const handleTransfer = (favorite) => {
+    const handleOpenActions = (favorite) => {
+        setActionsFavorite(favorite);
+        setActionsVisible(true);
+    };
+
+    const handleCloseActions = () => {
+        setActionsVisible(false);
+        setActionsFavorite(null);
+    };
+
+    const handleSelectTransfer = (favorite) => {
+        handleCloseActions();
         navigation.navigate('Transfer', {
             prefillDestinationAccountNumber: favorite.accountNumber,
             prefillRecipientType: 'TERCERO',
             prefillDescription: `Transferencia a favorito: ${favorite.alias}`,
+        });
+    };
+
+    const handleSelectDeposit = (favorite) => {
+        handleCloseActions();
+        navigation.navigate('Deposit', {
+            prefillDestinationAccountNumber: favorite.accountNumber,
+            prefillDescription: `Depósito a favorito: ${favorite.alias}`,
         });
     };
 
@@ -124,7 +146,7 @@ const FavoritesScreen = ({ navigation }) => {
                     renderItem={({ item }) => (
                         <FavoriteCard
                             item={item}
-                            onTransfer={handleTransfer}
+                            onTransactions={handleOpenActions}
                             onEdit={handleEdit}
                             onDelete={handleDelete}
                         />
@@ -143,6 +165,14 @@ const FavoritesScreen = ({ navigation }) => {
                 onSubmit={handleFormSubmit}
                 submitting={mutating}
                 editingFavorite={editingFavorite}
+            />
+
+            <FavoriteActionModal
+                visible={actionsVisible}
+                favorite={actionsFavorite}
+                onClose={handleCloseActions}
+                onSelectTransfer={handleSelectTransfer}
+                onSelectDeposit={handleSelectDeposit}
             />
 
             <BottomNavBar navigation={navigation} />

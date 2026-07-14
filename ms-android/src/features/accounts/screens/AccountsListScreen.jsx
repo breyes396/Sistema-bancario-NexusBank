@@ -25,9 +25,12 @@ const AccountsListScreen = ({ navigation }) => {
     };
 
     const handleSelectAccount = (account) => {
-        navigation.navigate('Historial', {
-            accountId: account.id,
-            accountNumber: account.accountNumber,
+        navigation.navigate('MainTabs', {
+            screen: 'Historial',
+            params: {
+                accountId: account.id,
+                accountNumber: account.accountNumber,
+            },
         });
     };
 

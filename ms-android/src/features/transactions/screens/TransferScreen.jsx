@@ -18,12 +18,13 @@ import BottomNavBar from '../../../shared/components/common/BottomNavBar';
 import AccountPickerModal from '../components/AccountPickerModal';
 import SecurityConfirmModal from '../components/SecurityConfirmModal';
 import DestinationSection from '../components/DestinationSection';
+import CurrencySelector from '../components/CurrencySelector';
 import FavoritePickerModal from '../../favorites/components/FavoritePickerModal';
 import { SPACING } from '../../../shared/constants/theme';
 import styles from './TransferScreen.styles';
 
 const TransferScreen = ({ navigation, route }) => {
-    const { accounts, loading, error, submitTransfer } = useTransfer();
+    const { accounts, loading, error, submitTransfer, getExchangeRate } = useTransfer();
     const { favorites } = useFavorites();
 
     const [selectedSource, setSelectedSource] = useState(null);
@@ -32,6 +33,13 @@ const TransferScreen = ({ navigation, route }) => {
     const [destinationAccountNum, setDestinationAccountNum] = useState(''); // Used if 'TERCERO'
     const [amount, setAmount] = useState('');
     const [description, setDescription] = useState('');
+    const [currency, setCurrency] = useState('GTQ');
+    const [isManualCurrency, setIsManualCurrency] = useState(false);
+    const [customCurrency, setCustomCurrency] = useState('');
+    const [convertedAmount, setConvertedAmount] = useState(null);
+    const [convertLoading, setConvertLoading] = useState(false);
+
+    const effectiveCurrency = (isManualCurrency ? customCurrency : currency).trim().toUpperCase();
 
     // UI state
     const [pickerSourceVisible, setPickerSourceVisible] = useState(false);
@@ -69,12 +77,14 @@ const TransferScreen = ({ navigation, route }) => {
     }, [route?.params]);
 
     // Recalculate balance validation when source or amount changes
+    // (el saldo local solo se compara en Quetzales; en otra moneda el backend
+    // valida con el tipo de cambio real, igual que en la web)
     useEffect(() => {
         validateBalance(amount, selectedSource);
-    }, [amount, selectedSource]);
+    }, [amount, selectedSource, effectiveCurrency]);
 
     const validateBalance = (amtVal, srcAcc) => {
-        if (!srcAcc) {
+        if (!srcAcc || effectiveCurrency !== 'GTQ') {
             setLocalBalanceError('');
             return;
         }
@@ -84,7 +94,7 @@ const TransferScreen = ({ navigation, route }) => {
         }
         const numericAmount = parseFloat(amtVal);
         const balance = parseFloat(srcAcc.accountBalance || 0);
-        
+
         if (isNaN(numericAmount) || numericAmount <= 0) {
             setLocalBalanceError('Monto inválido');
         } else if (numericAmount > balance) {
@@ -93,6 +103,41 @@ const TransferScreen = ({ navigation, route }) => {
             setLocalBalanceError('');
         }
     };
+
+    // Vista previa del equivalente en GTQ usando el mismo endpoint de tipo de
+    // cambio que la web (GET /my-account/balance/convert).
+    useEffect(() => {
+        if (effectiveCurrency === 'GTQ' || effectiveCurrency.length !== 3 || !selectedSource) {
+            setConvertedAmount(null);
+            return;
+        }
+        const numericAmount = parseFloat(amount);
+        if (isNaN(numericAmount) || numericAmount <= 0) {
+            setConvertedAmount(null);
+            return;
+        }
+
+        let cancelled = false;
+        setConvertLoading(true);
+        const timer = setTimeout(async () => {
+            try {
+                const result = await getExchangeRate(selectedSource.id, effectiveCurrency);
+                const rate = parseFloat(result?.exchangeRate);
+                if (!cancelled && rate > 0) {
+                    setConvertedAmount((numericAmount / rate).toFixed(2));
+                }
+            } catch {
+                if (!cancelled) setConvertedAmount(null);
+            } finally {
+                if (!cancelled) setConvertLoading(false);
+            }
+        }, 500);
+
+        return () => {
+            cancelled = true;
+            clearTimeout(timer);
+        };
+    }, [effectiveCurrency, amount, selectedSource, getExchangeRate]);
 
     const validateForm = () => {
         const newErrors = {};
@@ -117,7 +162,10 @@ const TransferScreen = ({ navigation, route }) => {
         } else if (localBalanceError) {
             newErrors.amount = 'Corrige el error de saldo antes de continuar';
         }
-        
+        if (isManualCurrency && customCurrency.trim().length !== 3) {
+            newErrors.currency = 'Ingresa un código de moneda válido (3 letras)';
+        }
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -186,15 +234,17 @@ const TransferScreen = ({ navigation, route }) => {
                 recipientType,
                 amount,
                 description,
+                currency: effectiveCurrency,
             });
-            
+
             navigation.replace('TransferSuccess', {
                 transfer: result,
                 amount,
                 sourceAccount: selectedSource,
                 destinationNumber: destNum,
                 recipientType,
-                description
+                description,
+                currency: effectiveCurrency,
             });
         } catch {
             // error is stored in hook and shown below
@@ -276,7 +326,7 @@ const TransferScreen = ({ navigation, route }) => {
                     {/* Amount */}
                     <View>
                         <Input
-                            label="Monto (Q)"
+                            label={`Monto (${effectiveCurrency || 'GTQ'})`}
                             placeholder="0.00"
                             value={amount}
                             onChangeText={handleAmountChange}
@@ -284,6 +334,19 @@ const TransferScreen = ({ navigation, route }) => {
                             error={errors.amount || localBalanceError}
                         />
                     </View>
+
+                    {/* Currency */}
+                    <CurrencySelector
+                        currency={currency}
+                        isManualCurrency={isManualCurrency}
+                        customCurrency={customCurrency}
+                        onSelectCurrency={setCurrency}
+                        onToggleManual={() => setIsManualCurrency((prev) => !prev)}
+                        onChangeCustomCurrency={setCustomCurrency}
+                        convertedAmount={convertedAmount}
+                        convertLoading={convertLoading}
+                    />
+                    {errors.currency ? <Text style={styles.errorText}>{errors.currency}</Text> : null}
 
                     {/* Description */}
                     <Input
@@ -350,6 +413,7 @@ const TransferScreen = ({ navigation, route }) => {
                 destinationNumber={recipientType === 'PROPIA' ? selectedDestination?.accountNumber : destinationAccountNum}
                 recipientType={recipientType}
                 amount={amount}
+                currency={effectiveCurrency}
                 description={description}
                 confirmPassword={confirmPassword}
                 setConfirmPassword={setConfirmPassword}

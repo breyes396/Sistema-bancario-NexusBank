@@ -65,7 +65,7 @@ export const useTransactions = (accountId = null) => {
             setLoading(false);
             setRefreshing(false);
         }
-    }, []);
+    }, [accountId]);
 
     const refresh = useCallback(() => {
         fetchTransactions({ pageNum: 1, isRefresh: true });

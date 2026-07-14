@@ -16,6 +16,7 @@ const SecurityConfirmModal = ({
     destinationNumber,
     recipientType,
     amount,
+    currency,
     description,
     confirmPassword,
     setConfirmPassword,
@@ -42,7 +43,8 @@ const SecurityConfirmModal = ({
                         <View style={styles.detailRow}>
                             <Text style={styles.detailLabel}>Monto:</Text>
                             <Text style={[styles.detailValue, styles.amountValue]}>
-                                Q{parseFloat(amount || 0).toFixed(2)}
+                                {currency && currency !== 'GTQ' ? currency : 'Q'}{' '}
+                                {parseFloat(amount || 0).toFixed(2)}
                             </Text>
                         </View>
                         <View style={styles.detailRow}>

@@ -128,6 +128,40 @@ export default StyleSheet.create({
         fontSize: FONT_SIZE.sm,
         textAlign: 'center',
     },
+    currencyRow: {
+        flexDirection: 'row',
+        gap: SPACING.sm,
+        paddingVertical: 2,
+    },
+    currencyChip: {
+        paddingVertical: SPACING.sm,
+        paddingHorizontal: SPACING.md,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: BANK.border,
+        backgroundColor: BANK.surface,
+    },
+    currencyChipActive: {
+        borderColor: BANK.primary,
+        backgroundColor: BANK.primary + '22',
+    },
+    currencyChipText: {
+        fontSize: FONT_SIZE.sm,
+        fontWeight: '600',
+        color: BANK.textMuted,
+    },
+    currencyChipTextActive: {
+        color: BANK.primary,
+    },
+    currencyPreviewLoader: {
+        marginTop: SPACING.xs,
+        alignSelf: 'flex-start',
+    },
+    currencyPreviewText: {
+        fontSize: FONT_SIZE.xs,
+        color: BANK.accent,
+        marginTop: SPACING.xs,
+    },
 });
 
 // ── AccountPickerModal (used only by TransferScreen) ────────────────────────────

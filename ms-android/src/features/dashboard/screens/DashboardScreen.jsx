@@ -36,10 +36,13 @@ const DashboardScreen = ({ navigation }) => {
     const fullName = user?.name || user?.username || 'Usuario';
     const firstName = fullName.split(' ')[0];
 
-    const consolidatedBalance = useMemo(() => {
-        return accounts
-            .filter((acc) => String(acc?.accountStatus).toUpperCase() === 'ACTIVE')
-            .reduce((sum, acc) => sum + parseFloat(acc?.accountBalance || 0), 0);
+    // La cuenta principal es la primera cuenta activa (la más antigua): useAccounts
+    // ya devuelve el arreglo ordenado con activas primero y por fecha de creación.
+    const mainAccountBalance = useMemo(() => {
+        const mainAccount = accounts.find(
+            (acc) => String(acc?.accountStatus).toUpperCase() === 'ACTIVE'
+        );
+        return parseFloat(mainAccount?.accountBalance || 0);
     }, [accounts]);
 
     const openDrawer = () => navigation.getParent()?.openDrawer();
@@ -53,7 +56,7 @@ const DashboardScreen = ({ navigation }) => {
                 <Text style={styles.subtitle}>Esto es lo que pasa en tus cuentas hoy</Text>
 
                 <BalanceCard
-                    consolidatedBalance={consolidatedBalance}
+                    balance={mainAccountBalance}
                     updatedAt={updatedAt}
                     loading={accountsLoading}
                 />

@@ -28,6 +28,13 @@ export const useTransfer = () => {
         fetchAccounts();
     }, [fetchAccounts]);
 
+    const getExchangeRate = useCallback(async (accountId, targetCurrency) => {
+        const response = await userClient.get('/my-account/balance/convert', {
+            params: { accountId, targetCurrency },
+        });
+        return response.data?.data || response.data;
+    }, []);
+
     const submitTransfer = async ({
         sourceAccountNumber,
         destinationAccountNumber,
@@ -57,5 +64,5 @@ export const useTransfer = () => {
         }
     };
 
-    return { accounts, accountsLoading, loading, error, submitTransfer, fetchAccounts };
+    return { accounts, accountsLoading, loading, error, submitTransfer, fetchAccounts, getExchangeRate };
 };

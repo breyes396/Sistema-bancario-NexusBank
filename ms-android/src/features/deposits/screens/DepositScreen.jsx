@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -23,7 +23,7 @@ const RECIPIENT_TYPES = [
     { value: 'TERCERO', label: 'Otra Cuenta' },
 ];
 
-const DepositScreen = ({ navigation }) => {
+const DepositScreen = ({ navigation, route }) => {
     const { accounts, loading, error, submitDeposit } = useDeposit();
 
     const [recipientType, setRecipientType] = useState('PROPIA');
@@ -34,6 +34,22 @@ const DepositScreen = ({ navigation }) => {
     const [pickerVisible, setPickerVisible] = useState(false);
 
     const [errors, setErrors] = useState({});
+
+    // Prellenado al llegar desde "Transacciones" de un favorito, igual que el
+    // patrón ya usado en TransferScreen.
+    useEffect(() => {
+        const prefill = route?.params;
+        if (!prefill?.prefillDestinationAccountNumber) return;
+
+        setRecipientType('TERCERO');
+        setManualAccountNumber(prefill.prefillDestinationAccountNumber);
+        if (prefill.prefillDescription) setDescription(prefill.prefillDescription);
+
+        navigation.setParams({
+            prefillDestinationAccountNumber: undefined,
+            prefillDescription: undefined,
+        });
+    }, [route?.params]);
 
     const validate = () => {
         const newErrors = {};

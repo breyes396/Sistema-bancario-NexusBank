@@ -16,7 +16,7 @@ import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 import styles from './TransferSuccessScreen.styles';
 
 const TransferSuccessScreen = ({ navigation, route }) => {
-    const { transfer, amount, sourceAccount, destinationNumber, recipientType, description } = route.params || {};
+    const { transfer, amount, sourceAccount, destinationNumber, recipientType, description, currency } = route.params || {};
     const [downloading, setDownloading] = useState(false);
 
     const formatDate = (dateStr) => {
@@ -35,7 +35,10 @@ const TransferSuccessScreen = ({ navigation, route }) => {
         { label: 'Cuenta origen', value: sourceAccount?.accountNumber || '—' },
         { label: 'Cuenta destino', value: destinationNumber || '—' },
         { label: 'Tipo de destinatario', value: recipientType === 'PROPIA' ? 'Cuenta propia' : 'Tercero' },
-        { label: 'Monto transferido', value: `Q ${parseFloat(amount || 0).toFixed(2)}` },
+        {
+            label: 'Monto transferido',
+            value: `${currency && currency !== 'GTQ' ? currency : 'Q'} ${parseFloat(amount || 0).toFixed(2)}`,
+        },
         { label: 'Concepto', value: description || 'Sin concepto' },
         { label: 'Estado', value: transfer?.status || 'COMPLETADA' },
         { label: 'Fecha y hora', value: formatDate(transfer?.createdAt) },

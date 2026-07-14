@@ -1,10 +1,11 @@
 import React from 'react';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
-import { COLORS, SPACING, SHADOWS, FONT_SIZE } from '../../constants/theme';
+import { SPACING, SHADOWS, FONT_SIZE } from '../../constants/theme';
+import { BANK_DARK as BANK } from '../../constants/colors';
 
 export const LoadingSpinner = () => (
     <View style={spinner.container}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={BANK.primary} />
     </View>
 );
 
@@ -37,18 +38,18 @@ const empty = StyleSheet.create({
     },
     text: {
         fontSize: FONT_SIZE.md,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
         textAlign: 'center',
     },
 });
 
 const card = StyleSheet.create({
     container: {
-        backgroundColor: COLORS.surface,
+        backgroundColor: BANK.surface,
         borderRadius: 12,
         padding: SPACING.md,
         borderWidth: 1,
-        borderColor: COLORS.border,
+        borderColor: BANK.border,
         ...SHADOWS.sm,
     },
 });

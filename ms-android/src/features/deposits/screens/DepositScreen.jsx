@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
-    StyleSheet,
     ScrollView,
     Modal,
     TouchableOpacity,
@@ -14,23 +13,52 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDeposit } from '../hooks/useDeposit';
 import Button from '../../../shared/components/common/Button';
 import Input from '../../../shared/components/common/Input';
-import { LoadingSpinner, EmptyState, Card } from '../../../shared/components/common/Common';
-import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme';
+import { EmptyState, Card } from '../../../shared/components/common/Common';
+import HeaderMenuButton from '../../../shared/components/common/HeaderMenuButton';
+import BottomNavBar from '../../../shared/components/common/BottomNavBar';
+import styles, { modal } from './DepositScreen.styles';
 
-const DepositScreen = ({ navigation }) => {
-    const { accounts, accountsLoading, loading, error, submitDeposit } = useDeposit();
+const RECIPIENT_TYPES = [
+    { value: 'PROPIA', label: 'Mis Cuentas' },
+    { value: 'TERCERO', label: 'Otra Cuenta' },
+];
 
+const DepositScreen = ({ navigation, route }) => {
+    const { accounts, loading, error, submitDeposit } = useDeposit();
+
+    const [recipientType, setRecipientType] = useState('PROPIA');
     const [selectedAccount, setSelectedAccount] = useState(null);
+    const [manualAccountNumber, setManualAccountNumber] = useState('');
     const [amount, setAmount] = useState('');
     const [description, setDescription] = useState('');
     const [pickerVisible, setPickerVisible] = useState(false);
 
     const [errors, setErrors] = useState({});
 
+    // Prellenado al llegar desde "Transacciones" de un favorito, igual que el
+    // patrón ya usado en TransferScreen.
+    useEffect(() => {
+        const prefill = route?.params;
+        if (!prefill?.prefillDestinationAccountNumber) return;
+
+        setRecipientType('TERCERO');
+        setManualAccountNumber(prefill.prefillDestinationAccountNumber);
+        if (prefill.prefillDescription) setDescription(prefill.prefillDescription);
+
+        navigation.setParams({
+            prefillDestinationAccountNumber: undefined,
+            prefillDescription: undefined,
+        });
+    }, [route?.params]);
+
     const validate = () => {
         const newErrors = {};
-        if (!selectedAccount) {
-            newErrors.account = 'Debes seleccionar una cuenta destino';
+        if (recipientType === 'PROPIA') {
+            if (!selectedAccount) {
+                newErrors.account = 'Debes seleccionar una cuenta destino';
+            }
+        } else if (!manualAccountNumber || manualAccountNumber.trim() === '') {
+            newErrors.account = 'El número de cuenta destino es requerido';
         }
         if (!amount || amount.trim() === '') {
             newErrors.amount = 'El monto es requerido';
@@ -58,21 +86,39 @@ const DepositScreen = ({ navigation }) => {
         }
     };
 
+    const handleChangeRecipientType = (type) => {
+        setRecipientType(type);
+        if (errors.account) {
+            setErrors((prev) => ({ ...prev, account: null }));
+        }
+    };
+
+    const handleManualAccountChange = (text) => {
+        setManualAccountNumber(text.replace(/[^0-9-]/g, ''));
+        if (errors.account) {
+            setErrors((prev) => ({ ...prev, account: null }));
+        }
+    };
+
     const handleSubmit = async () => {
         if (!validate()) return;
+        const destinationAccountNumber = recipientType === 'PROPIA'
+            ? selectedAccount.accountNumber
+            : manualAccountNumber;
         try {
             const result = await submitDeposit({
-                destinationAccountNumber: selectedAccount.accountNumber,
+                destinationAccountNumber,
                 amount,
                 description,
             });
-            navigation.replace('DepositSuccess', { deposit: result, amount, account: selectedAccount });
+            const account = recipientType === 'PROPIA'
+                ? selectedAccount
+                : { accountNumber: manualAccountNumber };
+            navigation.replace('DepositSuccess', { deposit: result, amount, account });
         } catch {
             // error already set in hook
         }
     };
-
-    if (accountsLoading) return <LoadingSpinner />;
 
     return (
         <SafeAreaView style={styles.safe}>
@@ -86,37 +132,66 @@ const DepositScreen = ({ navigation }) => {
                 >
                     {/* Header */}
                     <View style={styles.header}>
-                        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                            <Text style={styles.backText}>← Volver</Text>
-                        </TouchableOpacity>
+                        <HeaderMenuButton navigation={navigation} style={styles.backBtn} />
                         <Text style={styles.title}>Depósitos</Text>
                         <Text style={styles.subtitle}>
                             Solicita un depósito a tu cuenta. La solicitud queda pendiente de aprobación.
                         </Text>
                     </View>
 
-                    {/* Account Picker */}
+                    {/* Recipient Type Toggle */}
                     <View style={styles.section}>
                         <Text style={styles.label}>Cuenta destino</Text>
-                        <TouchableOpacity
-                            style={[styles.picker, errors.account && styles.pickerError]}
-                            onPress={() => setPickerVisible(true)}
-                            activeOpacity={0.8}
-                        >
-                            {selectedAccount ? (
-                                <View>
-                                    <Text style={styles.pickerValue}>
-                                        {selectedAccount.accountNumber}
+                        <View style={styles.toggleRow}>
+                            {RECIPIENT_TYPES.map((type) => (
+                                <TouchableOpacity
+                                    key={type.value}
+                                    style={[styles.toggleBtn, recipientType === type.value && styles.toggleBtnActive]}
+                                    onPress={() => handleChangeRecipientType(type.value)}
+                                >
+                                    <Text
+                                        style={[
+                                            styles.toggleBtnText,
+                                            recipientType === type.value && styles.toggleBtnTextActive,
+                                        ]}
+                                    >
+                                        {type.label}
                                     </Text>
-                                    <Text style={styles.pickerSub}>
-                                        {selectedAccount.accountType} · Q{parseFloat(selectedAccount.accountBalance || 0).toFixed(2)}
-                                    </Text>
-                                </View>
-                            ) : (
-                                <Text style={styles.pickerPlaceholder}>Selecciona una cuenta</Text>
-                            )}
-                            <Text style={styles.pickerArrow}>▼</Text>
-                        </TouchableOpacity>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </View>
+
+                    {/* Account Picker or Manual Entry */}
+                    <View style={styles.section}>
+                        {recipientType === 'PROPIA' ? (
+                            <TouchableOpacity
+                                style={[styles.picker, errors.account && styles.pickerError]}
+                                onPress={() => setPickerVisible(true)}
+                                activeOpacity={0.8}
+                            >
+                                {selectedAccount ? (
+                                    <View>
+                                        <Text style={styles.pickerValue}>
+                                            {selectedAccount.accountNumber}
+                                        </Text>
+                                        <Text style={styles.pickerSub}>
+                                            {selectedAccount.accountType} · Q{parseFloat(selectedAccount.accountBalance || 0).toFixed(2)}
+                                        </Text>
+                                    </View>
+                                ) : (
+                                    <Text style={styles.pickerPlaceholder}>Selecciona una cuenta</Text>
+                                )}
+                                <Text style={styles.pickerArrow}>▼</Text>
+                            </TouchableOpacity>
+                        ) : (
+                            <Input
+                                placeholder="Ingresa el número de cuenta de destino"
+                                value={manualAccountNumber}
+                                onChangeText={handleManualAccountChange}
+                                keyboardType="default"
+                            />
+                        )}
                         {errors.account ? (
                             <Text style={styles.errorText}>{errors.account}</Text>
                         ) : null}
@@ -166,6 +241,8 @@ const DepositScreen = ({ navigation }) => {
                 </ScrollView>
             </KeyboardAvoidingView>
 
+            <BottomNavBar navigation={navigation} />
+
             {/* Account Picker Modal */}
             <Modal visible={pickerVisible} transparent animationType="slide">
                 <View style={modal.overlay}>
@@ -206,160 +283,5 @@ const DepositScreen = ({ navigation }) => {
         </SafeAreaView>
     );
 };
-
-const styles = StyleSheet.create({
-    safe: {
-        flex: 1,
-        backgroundColor: COLORS.background,
-    },
-    container: {
-        padding: SPACING.lg,
-        paddingBottom: SPACING.xxl,
-    },
-    header: {
-        marginBottom: SPACING.xl,
-    },
-    backBtn: {
-        marginBottom: SPACING.md,
-    },
-    backText: {
-        fontSize: FONT_SIZE.sm,
-        color: COLORS.primary,
-        fontWeight: '600',
-    },
-    title: {
-        fontSize: FONT_SIZE.xxl,
-        fontWeight: 'bold',
-        color: COLORS.text,
-        marginBottom: SPACING.xs,
-    },
-    subtitle: {
-        fontSize: FONT_SIZE.sm,
-        color: COLORS.textLight,
-        lineHeight: 20,
-    },
-    section: {
-        marginBottom: SPACING.md,
-    },
-    label: {
-        fontSize: FONT_SIZE.sm,
-        fontWeight: '600',
-        color: COLORS.text,
-        marginBottom: SPACING.xs,
-    },
-    picker: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        borderWidth: 1,
-        borderColor: COLORS.border,
-        borderRadius: 10,
-        paddingVertical: SPACING.sm + 2,
-        paddingHorizontal: SPACING.md,
-        backgroundColor: COLORS.surface,
-    },
-    pickerError: {
-        borderColor: COLORS.error,
-    },
-    pickerValue: {
-        fontSize: FONT_SIZE.md,
-        color: COLORS.text,
-        fontWeight: '500',
-    },
-    pickerSub: {
-        fontSize: FONT_SIZE.xs,
-        color: COLORS.textLight,
-        marginTop: 2,
-    },
-    pickerPlaceholder: {
-        fontSize: FONT_SIZE.md,
-        color: COLORS.textLight,
-    },
-    pickerArrow: {
-        fontSize: 12,
-        color: COLORS.textLight,
-    },
-    errorText: {
-        fontSize: FONT_SIZE.xs,
-        color: COLORS.error,
-        marginTop: SPACING.xs,
-    },
-    errorCard: {
-        backgroundColor: '#fef2f2',
-        borderColor: COLORS.error,
-        marginBottom: SPACING.md,
-    },
-    errorCardText: {
-        color: COLORS.error,
-        fontSize: FONT_SIZE.sm,
-        textAlign: 'center',
-    },
-    infoCard: {
-        backgroundColor: '#eff6ff',
-        borderColor: '#bfdbfe',
-        marginBottom: SPACING.lg,
-    },
-    infoText: {
-        fontSize: FONT_SIZE.xs,
-        color: '#1e40af',
-        lineHeight: 18,
-    },
-    infoBold: {
-        fontWeight: 'bold',
-    },
-});
-
-const modal = StyleSheet.create({
-    overlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.4)',
-        justifyContent: 'flex-end',
-    },
-    sheet: {
-        backgroundColor: COLORS.surface,
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-        maxHeight: '60%',
-        paddingBottom: SPACING.xl,
-        ...SHADOWS.md,
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: SPACING.lg,
-        borderBottomWidth: 1,
-        borderBottomColor: COLORS.border,
-    },
-    title: {
-        fontSize: FONT_SIZE.lg,
-        fontWeight: 'bold',
-        color: COLORS.text,
-    },
-    close: {
-        fontSize: FONT_SIZE.lg,
-        color: COLORS.textLight,
-        paddingHorizontal: SPACING.sm,
-    },
-    item: {
-        paddingVertical: SPACING.md,
-        paddingHorizontal: SPACING.lg,
-        borderBottomWidth: 1,
-        borderBottomColor: COLORS.border,
-    },
-    itemSelected: {
-        backgroundColor: '#eff6ff',
-    },
-    itemNumber: {
-        fontSize: FONT_SIZE.md,
-        color: COLORS.text,
-        fontWeight: '600',
-    },
-    itemSub: {
-        fontSize: FONT_SIZE.xs,
-        color: COLORS.textLight,
-        marginTop: 2,
-    },
-});
 
 export default DepositScreen;

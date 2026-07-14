@@ -47,3 +47,20 @@ export const SHADOWS = {
         elevation: 5,
     },
 };
+
+// Paleta modo oscuro, usada únicamente por Home (DashboardScreen) y el Drawer.
+// El resto de la app sigue usando COLORS (modo claro) sin cambios.
+export const DARK = {
+    background: "#121212",
+    surface: "#1A1A1A",
+    card: "#2A2A2A",
+    balanceCard: "#0C3B6E",
+    accent: "#2E7BF6",
+    text: "#FFFFFF",
+    textMuted: "#A0A0A0",
+    textFaint: "#6B7280",
+    income: "#1D9E75",
+    expense: "#D85A30",
+    border: "#2E2E2E",
+    danger: "#E5484D",
+};

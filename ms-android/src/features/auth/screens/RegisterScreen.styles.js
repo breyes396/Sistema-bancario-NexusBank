@@ -1,10 +1,11 @@
 import { StyleSheet } from 'react-native';
-import { COLORS, SPACING, FONT_SIZE } from '../../../shared/constants/theme';
+import { SPACING, FONT_SIZE } from '../../../shared/constants/theme';
+import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 
 export default StyleSheet.create({
     safe: {
         flex: 1,
-        backgroundColor: COLORS.background,
+        backgroundColor: BANK.background,
     },
     keyboardView: {
         flex: 1,
@@ -21,40 +22,40 @@ export default StyleSheet.create({
     },
     backText: {
         fontSize: FONT_SIZE.sm,
-        color: COLORS.primary,
+        color: BANK.primary,
         fontWeight: '600',
     },
     title: {
         fontSize: FONT_SIZE.xxl,
         fontWeight: 'bold',
-        color: COLORS.text,
+        color: BANK.text,
         marginBottom: SPACING.xs,
     },
     subtitle: {
         fontSize: FONT_SIZE.sm,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
         lineHeight: 20,
     },
     infoCard: {
-        backgroundColor: '#eff6ff',
-        borderColor: '#bfdbfe',
+        backgroundColor: BANK.surface,
+        borderColor: BANK.accentLight,
         marginBottom: SPACING.md,
     },
     infoText: {
         fontSize: FONT_SIZE.xs,
-        color: '#1e40af',
+        color: BANK.primary,
         lineHeight: 18,
     },
     infoBold: {
         fontWeight: 'bold',
     },
     errorCard: {
-        backgroundColor: '#fef2f2',
-        borderColor: COLORS.error,
+        backgroundColor: BANK.surface,
+        borderColor: BANK.error,
         marginBottom: SPACING.md,
     },
     errorCardText: {
-        color: COLORS.error,
+        color: BANK.error,
         fontSize: FONT_SIZE.sm,
         textAlign: 'center',
     },
@@ -68,25 +69,27 @@ export default StyleSheet.create({
         width: 72,
         height: 72,
         borderRadius: 36,
-        backgroundColor: '#dcfce7',
+        backgroundColor: BANK.primary,
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: SPACING.lg,
+        borderWidth: 2,
+        borderColor: BANK.accent,
     },
     successIcon: {
         fontSize: 36,
-        color: COLORS.success,
+        color: BANK.onPrimary,
         fontWeight: 'bold',
     },
     successTitle: {
         fontSize: FONT_SIZE.xl,
         fontWeight: 'bold',
-        color: COLORS.text,
+        color: BANK.text,
         marginBottom: SPACING.sm,
     },
     successMessage: {
         fontSize: FONT_SIZE.md,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
         textAlign: 'center',
         marginBottom: SPACING.xl,
         lineHeight: 22,

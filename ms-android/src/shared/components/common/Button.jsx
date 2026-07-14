@@ -1,6 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Text, ActivityIndicator, StyleSheet } from 'react-native';
-import { COLORS, FONT_SIZE, SPACING } from '../../constants/theme';
+import { FONT_SIZE, SPACING } from '../../constants/theme';
+import { BANK_DARK as BANK } from '../../constants/colors';
 
 const Button = ({ title, onPress, loading = false, variant = 'primary', disabled = false, style }) => {
     const isDisabled = disabled || loading;
@@ -19,7 +20,7 @@ const Button = ({ title, onPress, loading = false, variant = 'primary', disabled
         >
             {loading ? (
                 <ActivityIndicator
-                    color={variant === 'primary' ? '#fff' : COLORS.primary}
+                    color={variant === 'primary' ? BANK.onPrimary : BANK.primary}
                     size="small"
                 />
             ) : (
@@ -41,23 +42,23 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     primary: {
-        backgroundColor: COLORS.primary,
+        backgroundColor: BANK.primary,
     },
     secondary: {
         backgroundColor: 'transparent',
         borderWidth: 1.5,
-        borderColor: COLORS.primary,
+        borderColor: BANK.primary,
     },
     disabled: {
         opacity: 0.6,
     },
     text: {
-        color: '#fff',
+        color: BANK.onPrimary,
         fontSize: FONT_SIZE.md,
         fontWeight: '600',
     },
     textSecondary: {
-        color: COLORS.primary,
+        color: BANK.primary,
     },
 });
 

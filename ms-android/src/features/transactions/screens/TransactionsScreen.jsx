@@ -12,7 +12,7 @@ import {
     useTransactions,
 } from '../hooks/useTransactions';
 import { useReversions } from '../hooks/useReversions';
-import { LoadingSpinner, EmptyState } from '../../../shared/components/common/Common';
+import { EmptyState } from '../../../shared/components/common/Common';
 import HeaderMenuButton from '../../../shared/components/common/HeaderMenuButton';
 import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 import TransactionCard from '../components/TransactionCard';
@@ -156,8 +156,6 @@ const TransactionsScreen = ({ navigation, route }) => {
         </View>
     );
 
-    if (loading && transactions.length === 0) return <LoadingSpinner />;
-
     if (error) {
         return (
             <SafeAreaView style={styles.safe}>
@@ -179,7 +177,7 @@ const TransactionsScreen = ({ navigation, route }) => {
                 ListHeaderComponent={renderHeader}
                 ListFooterComponent={renderFooter}
                 ListEmptyComponent={
-                    <EmptyState message="No hay transacciones registradas aún." />
+                    !loading && <EmptyState message="No hay transacciones registradas aún." />
                 }
                 contentContainerStyle={styles.list}
                 refreshControl={

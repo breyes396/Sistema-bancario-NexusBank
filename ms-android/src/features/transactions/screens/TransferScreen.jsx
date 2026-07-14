@@ -12,7 +12,7 @@ import { useTransfer } from '../hooks/useTransfer';
 import { useFavorites } from '../../favorites/hooks/useFavorites';
 import Button from '../../../shared/components/common/Button';
 import Input from '../../../shared/components/common/Input';
-import { LoadingSpinner, Card } from '../../../shared/components/common/Common';
+import { Card } from '../../../shared/components/common/Common';
 import HeaderMenuButton from '../../../shared/components/common/HeaderMenuButton';
 import AccountPickerModal from '../components/AccountPickerModal';
 import SecurityConfirmModal from '../components/SecurityConfirmModal';
@@ -22,7 +22,7 @@ import { SPACING } from '../../../shared/constants/theme';
 import styles from './TransferScreen.styles';
 
 const TransferScreen = ({ navigation, route }) => {
-    const { accounts, accountsLoading, loading, error, submitTransfer } = useTransfer();
+    const { accounts, loading, error, submitTransfer } = useTransfer();
     const { favorites } = useFavorites();
 
     const [selectedSource, setSelectedSource] = useState(null);
@@ -204,8 +204,6 @@ const TransferScreen = ({ navigation, route }) => {
     const destinationAccountsList = accounts.filter(
         (acc) => !selectedSource || acc.accountNumber !== selectedSource.accountNumber
     );
-
-    if (accountsLoading) return <LoadingSpinner />;
 
     return (
         <SafeAreaView style={styles.safe}>

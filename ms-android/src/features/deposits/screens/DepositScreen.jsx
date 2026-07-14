@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDeposit } from '../hooks/useDeposit';
 import Button from '../../../shared/components/common/Button';
 import Input from '../../../shared/components/common/Input';
-import { LoadingSpinner, EmptyState, Card } from '../../../shared/components/common/Common';
+import { EmptyState, Card } from '../../../shared/components/common/Common';
 import HeaderMenuButton from '../../../shared/components/common/HeaderMenuButton';
 import styles, { modal } from './DepositScreen.styles';
 
@@ -23,7 +23,7 @@ const RECIPIENT_TYPES = [
 ];
 
 const DepositScreen = ({ navigation }) => {
-    const { accounts, accountsLoading, loading, error, submitDeposit } = useDeposit();
+    const { accounts, loading, error, submitDeposit } = useDeposit();
 
     const [recipientType, setRecipientType] = useState('PROPIA');
     const [selectedAccount, setSelectedAccount] = useState(null);
@@ -102,8 +102,6 @@ const DepositScreen = ({ navigation }) => {
             // error already set in hook
         }
     };
-
-    if (accountsLoading) return <LoadingSpinner />;
 
     return (
         <SafeAreaView style={styles.safe}>

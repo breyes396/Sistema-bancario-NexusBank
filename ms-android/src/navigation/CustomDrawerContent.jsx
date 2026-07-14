@@ -1,11 +1,12 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useAuthStore } from '../shared/store/authStore';
 import { useNavigationStore } from '../shared/store/navigationStore';
 import { BANK_DARK as DARK } from '../shared/constants/colors';
 import { getInitials } from '../shared/utils/stringHelpers';
+import LogoutConfirmModal from './LogoutConfirmModal';
 import styles from './CustomDrawerContent.styles';
 
 const MENU_ITEMS = [
@@ -39,6 +40,7 @@ const CustomDrawerContent = (props) => {
     const user = useAuthStore((state) => state.user);
     const logout = useAuthStore((state) => state.logout);
     const activeRouteName = useNavigationStore((state) => state.activeRouteName);
+    const [logoutModalVisible, setLogoutModalVisible] = useState(false);
 
     const fullName = user?.name || user?.username || 'Usuario';
 
@@ -85,15 +87,13 @@ const CustomDrawerContent = (props) => {
     };
 
     const handleLogout = () => {
+        setLogoutModalVisible(true);
+    };
+
+    const handleConfirmLogout = () => {
+        setLogoutModalVisible(false);
         navigation.closeDrawer();
-        Alert.alert(
-            'Cerrar sesión',
-            '¿Estás seguro de que deseas salir de tu cuenta de NexusBank?',
-            [
-                { text: 'Cancelar', style: 'cancel' },
-                { text: 'Sí, salir', style: 'destructive', onPress: () => logout() },
-            ],
-        );
+        logout();
     };
 
     return (
@@ -140,6 +140,12 @@ const CustomDrawerContent = (props) => {
                     <Text style={styles.logoutText}>Cerrar sesión</Text>
                 </TouchableOpacity>
             </View>
+
+            <LogoutConfirmModal
+                visible={logoutModalVisible}
+                onCancel={() => setLogoutModalVisible(false)}
+                onConfirm={handleConfirmLogout}
+            />
         </SafeAreaView>
     );
 };

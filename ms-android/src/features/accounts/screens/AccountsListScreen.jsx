@@ -10,7 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Clipboard from 'expo-clipboard';
 import { useAccounts } from '../hooks/useAccounts';
 import AccountCard from '../components/AccountCard';
-import { LoadingSpinner, EmptyState } from '../../../shared/components/common/Common';
+import { EmptyState } from '../../../shared/components/common/Common';
 import HeaderMenuButton from '../../../shared/components/common/HeaderMenuButton';
 import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 import styles from './AccountsListScreen.styles';
@@ -29,8 +29,6 @@ const AccountsListScreen = ({ navigation }) => {
             accountNumber: account.accountNumber,
         });
     };
-
-    if (loading && accounts.length === 0) return <LoadingSpinner />;
 
     return (
         <SafeAreaView style={styles.safe}>

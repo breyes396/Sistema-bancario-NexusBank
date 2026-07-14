@@ -433,9 +433,20 @@ export const createTransfer = async (req, res) => {
 
         const { start, end } = getDayRange();
 
+        // Límite diario Q10,000 por usuario (no por cuenta): se suman las
+        // transferencias del día de TODAS las cuentas que le pertenecen, para
+        // que no se pueda evadir el límite repartiendo montos entre cuentas propias.
+        const userAccounts = await Account.findAll({
+            where: { userId: currentUserId },
+            attributes: ['id'],
+            raw: true,
+            transaction: dbTransaction
+        });
+        const userAccountIds = userAccounts.map((acc) => acc.id);
+
         const sourceTransferredTodayRaw = await Transaction.sum('amount', {
             where: {
-                accountId: sourceAccount.id,
+                accountId: { [Op.in]: userAccountIds },
                 type: 'TRANSFERENCIA_ENVIADA',
                 status: 'COMPLETADA',
                 createdAt: {
@@ -503,11 +514,11 @@ export const createTransfer = async (req, res) => {
             await dbTransaction.rollback();
             await notifyTransferRejected(
                 sourceAccount.userId,
-                `Transferencia rechazada: la cuenta origen supera el límite diario de Q${MAX_DAILY_TRANSFER_BY_SOURCE}`
+                `Transferencia rechazada: superaste el límite diario de Q${MAX_DAILY_TRANSFER_BY_SOURCE} entre todas tus cuentas`
             );
             return res.status(400).json({
                 success: false,
-                message: `Transferencia rechazada: la cuenta origen supera el limite diario de Q${MAX_DAILY_TRANSFER_BY_SOURCE}`,
+                message: `Transferencia rechazada: superaste el limite diario de Q${MAX_DAILY_TRANSFER_BY_SOURCE} entre todas tus cuentas`,
                 data: {
                     transferredToday: sourceTransferredToday.toFixed(2),
                     requestedAmount: baseAmount.toFixed(2),

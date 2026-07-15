@@ -4,8 +4,8 @@ import { jsPDF } from 'jspdf';
 import { useClientStore } from '../store/useClientStore.js';
 import { clientDepositService } from '../../../shared/api/clientDeposit.service.js';
 import { showError, showSuccess } from '../../../shared/utils/toast.js';
-import { useAuthStore } from '../../auth/store/authStore.js';
-import { addReversalRequest, getLatestReversibleTransaction, isReversalApproved, hasReversalRequest } from '../../../shared/utils/reversalRequests.js';
+import { clientAccountService } from '../../../shared/api/clientAccount.service.js';
+import { getLatestReversibleTransaction, isReversalApproved, hasReversalRequest } from '../../../shared/utils/reversalRequests.js';
 import RevertModal from '../../../shared/components/RevertModal.jsx';
 
 const getAccountTypeLabel = (account) => {
@@ -22,7 +22,6 @@ const getAccountTypeLabel = (account) => {
 export const Deposits = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const user = useAuthStore((state) => state.user);
 
   const { accounts, transactions, loading, error, fetchAllAccounts, fetchRecentTransactions, clearError } = useClientStore();
   const [selectedAccountNumber, setSelectedAccountNumber] = useState('');
@@ -351,7 +350,9 @@ export const Deposits = () => {
     return !hasReversalRequest(deposit.id) && !hasReversalRequest(deposit.reference);
   };
 
-  const isWithinRevertWindow = (deposit, windowMs = 60000) => {
+  const REVERT_WINDOW_MS = 10 * 60 * 1000; // 10 minutos
+
+  const isWithinRevertWindow = (deposit, windowMs = REVERT_WINDOW_MS) => {
     if (!deposit) return false;
     const created = new Date(deposit.date || deposit.createdAt || deposit.raw?.createdAt || 0).getTime();
     if (!created) return false;
@@ -361,11 +362,15 @@ export const Deposits = () => {
   const [revertTarget, setRevertTarget] = useState(null);
 
   const openRevertModal = (deposit) => {
+    if (!isWithinRevertWindow(deposit)) {
+      showError('El tiempo para solicitar la reversión ha expirado.');
+      return;
+    }
     setRevertTarget(deposit);
     setShowRevertModal(true);
   };
 
-  const handleConfirmRevert = (reason) => {
+  const handleConfirmRevert = async (reason) => {
     const deposit = revertTarget;
     setShowRevertModal(false);
     setRevertTarget(null);
@@ -376,7 +381,7 @@ export const Deposits = () => {
     }
 
     try {
-      addReversalRequest({
+      await clientAccountService.createReversalRequest({
         type: 'DEPOSITO',
         operationId: deposit.id,
         reference: deposit.reference,
@@ -385,15 +390,12 @@ export const Deposits = () => {
         operationDate: deposit.date,
         operationDescription: deposit.description,
         reason,
-        userId: user?.id,
-        userEmail: user?.email,
-        userName: user?.name || user?.username || null,
       });
 
       showSuccess('Solicitud de reversión enviada al administrador.');
       navigate('/clientdashboard/reversions');
     } catch (requestError) {
-      showError(requestError?.message || 'No fue posible solicitar la reversión.');
+      showError(requestError?.response?.data?.message || 'No fue posible solicitar la reversión.');
     }
   };
 
@@ -578,10 +580,9 @@ export const Deposits = () => {
                               e.stopPropagation();
                               openRevertModal(item);
                             }}
-                            disabled={!isWithinRevertWindow(item)}
-                            className={`rounded-full px-4 py-2 text-xs font-semibold border ${isWithinRevertWindow(item) ? 'border-[#B45309] text-[#B45309] bg-white hover:bg-[#B45309] hover:text-white' : 'border-gray-200 text-gray-400 bg-white cursor-not-allowed' } transition`}
+                            className={`rounded-full px-4 py-2 text-xs font-semibold border ${isWithinRevertWindow(item) ? 'border-[#B45309] text-[#B45309] bg-white hover:bg-[#B45309] hover:text-white' : 'border-gray-200 text-gray-400 bg-white' } transition`}
                           >
-                            Revertir
+                            {isWithinRevertWindow(item) ? 'Solicitar Reversión' : 'Reversión Expirada'}
                           </button>
                         )}
                       </div>
@@ -671,7 +672,7 @@ export const Deposits = () => {
           open={showRevertModal}
           onClose={() => { setShowRevertModal(false); setRevertTarget(null); }}
           onConfirm={handleConfirmRevert}
-          title={`Revertir depósito ${revertTarget?.reference || revertTarget?.id || ''}`}
+          title={`Solicitar reversión de depósito ${revertTarget?.reference || revertTarget?.id || ''}`}
           createdAt={revertTarget?.date || revertTarget?.createdAt || revertTarget?.raw?.createdAt}
         />
       )}

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useAuthStore } from '../../auth/store/authStore.js';
-import { getReversalRequestsByUser } from '../../../shared/utils/reversalRequests.js';
+import { clientAccountService } from '../../../shared/api/clientAccount.service.js';
 
 const statusLabel = (status) => {
   const normalized = String(status || '').toUpperCase();
@@ -49,30 +48,28 @@ const filterByQuery = (items, query) => {
 };
 
 const Reversions = () => {
-  const user = useAuthStore((state) => state.user);
   const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
 
   useEffect(() => {
-    const load = () => {
-      const next = getReversalRequestsByUser({
-        userId: user?.id,
-        email: user?.email,
-      });
-      setItems(next.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+    const load = async () => {
+      setLoading(true);
+      try {
+        const response = await clientAccountService.getMyReversalRequests();
+        const next = response?.data || [];
+        setItems(next.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+      } catch {
+        setItems([]);
+      } finally {
+        setLoading(false);
+      }
     };
 
     load();
-    window.addEventListener('nexusbank-reversals-updated', load);
-    window.addEventListener('storage', load);
-
-    return () => {
-      window.removeEventListener('nexusbank-reversals-updated', load);
-      window.removeEventListener('storage', load);
-    };
-  }, [user?.email, user?.id]);
+  }, []);
 
   const filtered = useMemo(() => {
     const byType = filterByType(items, typeFilter);
@@ -120,7 +117,11 @@ const Reversions = () => {
       </section>
 
       <section className="glass-panel rounded-3xl p-5 border border-white/60 shadow-lg">
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="rounded-2xl border border-dashed border-gray-300 p-8 text-center text-gray-500">
+            Cargando solicitudes...
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-gray-300 p-8 text-center text-gray-500">
             No hay solicitudes que coincidan con los filtros.
           </div>

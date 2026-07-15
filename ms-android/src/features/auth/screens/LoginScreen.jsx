@@ -23,6 +23,7 @@ const LoginScreen = ({ navigation }) => {
         setPassword,
         errors,
         apiError,
+        apiErrorCode,
         loading,
         submit,
     } = useLogin();
@@ -75,10 +76,26 @@ const LoginScreen = ({ navigation }) => {
                         error={errors.password}
                     />
 
+                    <TouchableOpacity
+                        style={styles.forgotLink}
+                        onPress={() => navigation.navigate('ForgotPassword')}
+                    >
+                        <Text style={styles.forgotLinkText}>Se me olvidó la contraseña</Text>
+                    </TouchableOpacity>
+
                     {apiError ? (
                         <Card style={styles.errorCard}>
                             <Text style={styles.errorCardText}>{apiError}</Text>
                         </Card>
+                    ) : null}
+
+                    {apiErrorCode === 'AUTH_EMAIL_NOT_VERIFIED' ? (
+                        <Button
+                            title="Reenviar correo de verificación"
+                            onPress={() => navigation.navigate('VerifyEmail', { email: emailOrUsername })}
+                            variant="secondary"
+                            style={styles.resendBtn}
+                        />
                     ) : null}
 
                     <Button

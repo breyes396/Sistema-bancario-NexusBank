@@ -10,6 +10,9 @@ import userClient from '../shared/api/userClient';
 import { BANK_DARK as BANK } from '../shared/constants/colors';
 import LoginScreen from '../features/auth/screens/LoginScreen';
 import RegisterScreen from '../features/auth/screens/RegisterScreen';
+import ForgotPasswordScreen from '../features/auth/screens/ForgotPasswordScreen';
+import ResetPasswordScreen from '../features/auth/screens/ResetPasswordScreen';
+import VerifyEmailScreen from '../features/auth/screens/VerifyEmailScreen';
 import DrawerNavigator from './DrawerNavigator';
 import IntroScreen from './IntroScreen';
 import styles from './AppNavigator.styles';
@@ -77,6 +80,9 @@ const AppNavigator = () => {
                     <Stack.Group>
                         <Stack.Screen name="Login" component={LoginScreen} />
                         <Stack.Screen name="Register" component={RegisterScreen} />
+                        <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+                        <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+                        <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
                     </Stack.Group>
                 )}
             </Stack.Navigator>

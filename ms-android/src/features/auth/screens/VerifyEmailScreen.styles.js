@@ -11,11 +11,12 @@ export default StyleSheet.create({
         flex: 1,
     },
     container: {
+        flexGrow: 1,
+        justifyContent: 'center',
         padding: SPACING.lg,
-        paddingBottom: SPACING.xxl,
     },
     header: {
-        marginBottom: SPACING.lg,
+        marginBottom: SPACING.xl,
     },
     backBtn: {
         marginBottom: SPACING.md,
@@ -46,9 +47,6 @@ export default StyleSheet.create({
         color: BANK.primary,
         lineHeight: 18,
     },
-    infoBold: {
-        fontWeight: 'bold',
-    },
     errorCard: {
         backgroundColor: BANK.surface,
         borderColor: BANK.error,
@@ -58,6 +56,31 @@ export default StyleSheet.create({
         color: BANK.error,
         fontSize: FONT_SIZE.sm,
         textAlign: 'center',
+    },
+    successCard: {
+        backgroundColor: BANK.surface,
+        borderColor: BANK.success,
+        marginBottom: SPACING.md,
+    },
+    successCardText: {
+        color: BANK.success,
+        fontSize: FONT_SIZE.sm,
+        textAlign: 'center',
+    },
+    resendBtn: {
+        marginTop: SPACING.sm,
+    },
+    switchLink: {
+        marginTop: SPACING.lg,
+        alignItems: 'center',
+    },
+    switchText: {
+        fontSize: FONT_SIZE.sm,
+        color: BANK.textMuted,
+    },
+    switchTextBold: {
+        color: BANK.accent,
+        fontWeight: '700',
     },
     successContainer: {
         flex: 1,
@@ -93,9 +116,5 @@ export default StyleSheet.create({
         textAlign: 'center',
         marginBottom: SPACING.xl,
         lineHeight: 22,
-    },
-    fullWidthBtn: {
-        width: '100%',
-        marginBottom: SPACING.sm,
     },
 });

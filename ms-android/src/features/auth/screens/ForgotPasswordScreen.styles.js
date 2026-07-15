@@ -11,11 +11,12 @@ export default StyleSheet.create({
         flex: 1,
     },
     container: {
+        flexGrow: 1,
+        justifyContent: 'center',
         padding: SPACING.lg,
-        paddingBottom: SPACING.xxl,
     },
     header: {
-        marginBottom: SPACING.lg,
+        marginBottom: SPACING.xl,
     },
     backBtn: {
         marginBottom: SPACING.md,
@@ -36,19 +37,6 @@ export default StyleSheet.create({
         color: BANK.textMuted,
         lineHeight: 20,
     },
-    infoCard: {
-        backgroundColor: BANK.surface,
-        borderColor: BANK.accentLight,
-        marginBottom: SPACING.md,
-    },
-    infoText: {
-        fontSize: FONT_SIZE.xs,
-        color: BANK.primary,
-        lineHeight: 18,
-    },
-    infoBold: {
-        fontWeight: 'bold',
-    },
     errorCard: {
         backgroundColor: BANK.surface,
         borderColor: BANK.error,
@@ -58,6 +46,18 @@ export default StyleSheet.create({
         color: BANK.error,
         fontSize: FONT_SIZE.sm,
         textAlign: 'center',
+    },
+    switchLink: {
+        marginTop: SPACING.lg,
+        alignItems: 'center',
+    },
+    switchText: {
+        fontSize: FONT_SIZE.sm,
+        color: BANK.textMuted,
+    },
+    switchTextBold: {
+        color: BANK.accent,
+        fontWeight: '700',
     },
     successContainer: {
         flex: 1,
@@ -91,8 +91,14 @@ export default StyleSheet.create({
         fontSize: FONT_SIZE.md,
         color: BANK.textMuted,
         textAlign: 'center',
-        marginBottom: SPACING.xl,
+        marginBottom: SPACING.sm,
         lineHeight: 22,
+    },
+    countdownText: {
+        fontSize: FONT_SIZE.xs,
+        color: BANK.textMuted,
+        textAlign: 'center',
+        marginBottom: SPACING.lg,
     },
     fullWidthBtn: {
         width: '100%',

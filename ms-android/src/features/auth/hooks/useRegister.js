@@ -27,6 +27,7 @@ export const useRegister = () => {
     const [apiError, setApiError] = useState(null);
     const [loading, setLoading] = useState(false);
     const [successMessage, setSuccessMessage] = useState(null);
+    const [registeredEmail, setRegisteredEmail] = useState(null);
 
     const setField = (field, value) => {
         setForm((prev) => ({ ...prev, [field]: value }));
@@ -82,10 +83,22 @@ export const useRegister = () => {
 
             const response = await authClient.post('/auth/register', payload);
 
+            // El backend no envía el correo de verificación al registrar (solo
+            // crea el usuario con isVerified:false); se dispara aquí para que
+            // el correo sí llegue, reusando el mismo endpoint que la web
+            // expone pero nunca llama desde su propio formulario de registro.
+            try {
+                await authClient.post('/auth/resend-verification', { email: payload.email });
+            } catch {
+                // No bloquea el registro si el envío del correo falla; el
+                // usuario puede reenviarlo manualmente desde VerifyEmailScreen.
+            }
+
             setSuccessMessage(
                 response.data?.msg ||
                     'Solicitud enviada. Tu cuenta Monetaria quedó pendiente de aprobación.'
             );
+            setRegisteredEmail(payload.email);
             setForm(INITIAL_FORM);
             return true;
         } catch (err) {
@@ -107,6 +120,7 @@ export const useRegister = () => {
         errors,
         apiError,
         successMessage,
+        registeredEmail,
         loading,
         submit,
     };

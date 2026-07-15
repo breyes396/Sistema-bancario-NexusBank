@@ -15,45 +15,33 @@ export default StyleSheet.create({
         justifyContent: 'center',
         padding: SPACING.lg,
     },
-    brand: {
-        alignItems: 'center',
+    header: {
         marginBottom: SPACING.xl,
     },
-    logoCircle: {
-        width: 92,
-        height: 92,
-        borderRadius: 46,
-        backgroundColor: '#000000',
-        alignItems: 'center',
-        justifyContent: 'center',
+    backBtn: {
         marginBottom: SPACING.md,
-        overflow: 'hidden',
     },
-    logoImage: {
-        width: '100%',
-        height: '100%',
+    backText: {
+        fontSize: FONT_SIZE.sm,
+        color: BANK.primary,
+        fontWeight: '600',
     },
-    brandTitle: {
+    title: {
         fontSize: FONT_SIZE.xxl,
         fontWeight: 'bold',
         color: BANK.text,
+        marginBottom: SPACING.xs,
     },
-    brandSubtitle: {
+    subtitle: {
         fontSize: FONT_SIZE.sm,
         color: BANK.textMuted,
-        marginTop: SPACING.xs,
+        lineHeight: 20,
     },
-    forgotLink: {
-        alignSelf: 'flex-end',
-        marginBottom: SPACING.md,
-    },
-    forgotLinkText: {
+    hint: {
         fontSize: FONT_SIZE.xs,
-        color: BANK.accent,
-        fontWeight: '600',
-    },
-    resendBtn: {
-        marginBottom: SPACING.sm,
+        color: BANK.textMuted,
+        marginBottom: SPACING.md,
+        lineHeight: 16,
     },
     errorCard: {
         backgroundColor: BANK.surface,

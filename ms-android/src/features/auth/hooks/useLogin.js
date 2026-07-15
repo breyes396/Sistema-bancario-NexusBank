@@ -8,6 +8,7 @@ export const useLogin = () => {
     const [password, setPassword] = useState('');
     const [errors, setErrors] = useState({});
     const [apiError, setApiError] = useState(null);
+    const [apiErrorCode, setApiErrorCode] = useState(null);
     const [loading, setLoading] = useState(false);
 
     const login = useAuthStore((state) => state.login);
@@ -28,6 +29,7 @@ export const useLogin = () => {
 
     const submit = async () => {
         setApiError(null);
+        setApiErrorCode(null);
         if (!validate()) return false;
 
         setLoading(true);
@@ -47,6 +49,7 @@ export const useLogin = () => {
         } catch (err) {
             const message = err.response?.data?.message || 'No fue posible iniciar sesión';
             setApiError(message);
+            setApiErrorCode(err.response?.data?.code || null);
             return false;
         } finally {
             setLoading(false);
@@ -60,6 +63,7 @@ export const useLogin = () => {
         setPassword,
         errors,
         apiError,
+        apiErrorCode,
         loading,
         submit,
     };

@@ -23,6 +23,10 @@ import FavoritePickerModal from '../../favorites/components/FavoritePickerModal'
 import { SPACING } from '../../../shared/constants/theme';
 import styles from './TransferScreen.styles';
 
+// Igual que la regla de negocio del backend: Q2,000 máximo por transferencia,
+// sin importar la moneda (se compara contra el equivalente ya convertido a GTQ).
+const MAX_TRANSFER_AMOUNT_GTQ = 2000;
+
 const TransferScreen = ({ navigation, route }) => {
     const { accounts, loading, error, submitTransfer, getExchangeRate } = useTransfer();
     const { favorites } = useFavorites();
@@ -139,6 +143,16 @@ const TransferScreen = ({ navigation, route }) => {
         };
     }, [effectiveCurrency, amount, selectedSource, getExchangeRate]);
 
+    // Equivalente en GTQ del monto ingresado: si es GTQ es el monto tal cual,
+    // si es otra moneda se usa la conversión ya calculada (null mientras carga).
+    const numericAmount = parseFloat(amount);
+    const amountInGTQ = effectiveCurrency === 'GTQ'
+        ? numericAmount
+        : (convertedAmount !== null ? parseFloat(convertedAmount) : null);
+    const limitError = (amountInGTQ !== null && amountInGTQ > MAX_TRANSFER_AMOUNT_GTQ)
+        ? `El monto no puede superar Q${MAX_TRANSFER_AMOUNT_GTQ.toFixed(2)} por transferencia`
+        : '';
+
     const validateForm = () => {
         const newErrors = {};
         if (!selectedSource) {
@@ -161,6 +175,10 @@ const TransferScreen = ({ navigation, route }) => {
             newErrors.amount = 'El monto debe ser mayor a Q0.00';
         } else if (localBalanceError) {
             newErrors.amount = 'Corrige el error de saldo antes de continuar';
+        } else if (effectiveCurrency !== 'GTQ' && convertLoading) {
+            newErrors.amount = 'Espera a que se calcule el equivalente en Quetzales';
+        } else if (limitError) {
+            newErrors.amount = limitError;
         }
         if (isManualCurrency && customCurrency.trim().length !== 3) {
             newErrors.currency = 'Ingresa un código de moneda válido (3 letras)';
@@ -331,7 +349,7 @@ const TransferScreen = ({ navigation, route }) => {
                             value={amount}
                             onChangeText={handleAmountChange}
                             keyboardType="decimal-pad"
-                            error={errors.amount || localBalanceError}
+                            error={errors.amount || localBalanceError || limitError}
                         />
                     </View>
 
@@ -368,7 +386,7 @@ const TransferScreen = ({ navigation, route }) => {
                     <Button
                         title="Continuar"
                         onPress={handleOpenConfirm}
-                        disabled={loading || !!localBalanceError}
+                        disabled={loading || !!localBalanceError || !!limitError || (effectiveCurrency !== 'GTQ' && convertLoading)}
                         style={{ marginTop: SPACING.md }}
                     />
                 </ScrollView>

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useAuthStore } from '../shared/store/authStore';
 import { useNavigationStore } from '../shared/store/navigationStore';
+import { useProfileStore } from '../shared/store/profileStore';
 import { BANK_DARK as DARK } from '../shared/constants/colors';
 import { getInitials } from '../shared/utils/stringHelpers';
 import LogoutConfirmModal from './LogoutConfirmModal';
@@ -40,11 +41,17 @@ const CustomDrawerContent = (props) => {
     const user = useAuthStore((state) => state.user);
     const logout = useAuthStore((state) => state.logout);
     const activeRouteName = useNavigationStore((state) => state.activeRouteName);
+    const photoUrl = useProfileStore((state) => state.photoUrl);
     const [logoutModalVisible, setLogoutModalVisible] = useState(false);
 
     const fullName = user?.name || user?.username || 'Usuario';
 
     const activeMenuKey = ROUTE_NAME_TO_MENU_KEY[activeRouteName] || null;
+
+    const goToProfile = () => {
+        navigation.navigate('Secondary', { screen: 'Profile' });
+        navigation.closeDrawer();
+    };
 
     const handleItemPress = (item) => {
         switch (item.key) {
@@ -99,11 +106,17 @@ const CustomDrawerContent = (props) => {
     return (
         <SafeAreaView style={styles.safe} edges={['top', 'bottom', 'left']}>
             <View style={styles.header}>
-                <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>{getInitials(fullName)}</Text>
-                </View>
+                <TouchableOpacity style={styles.avatar} onPress={goToProfile} activeOpacity={0.8}>
+                    {photoUrl ? (
+                        <Image source={{ uri: photoUrl }} style={styles.avatarImage} />
+                    ) : (
+                        <Text style={styles.avatarText}>{getInitials(fullName)}</Text>
+                    )}
+                </TouchableOpacity>
                 <Text style={styles.userName} numberOfLines={1}>{fullName}</Text>
-                <Text style={styles.userSubtitle}>Cliente</Text>
+                {user?.username ? (
+                    <Text style={styles.userSubtitle} numberOfLines={1}>@{user.username}</Text>
+                ) : null}
             </View>
 
             <ScrollView style={styles.menuList} showsVerticalScrollIndicator={false}>

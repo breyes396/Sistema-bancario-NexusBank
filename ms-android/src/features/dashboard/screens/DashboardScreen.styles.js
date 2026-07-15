@@ -50,6 +50,11 @@ export default StyleSheet.create({
         backgroundColor: DARK.accent,
         alignItems: 'center',
         justifyContent: 'center',
+        overflow: 'hidden',
+    },
+    avatarSmallImage: {
+        width: '100%',
+        height: '100%',
     },
     avatarSmallText: {
         color: DARK.text,

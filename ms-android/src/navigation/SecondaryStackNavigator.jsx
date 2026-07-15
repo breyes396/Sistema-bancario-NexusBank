@@ -8,6 +8,7 @@ import TransferSuccessScreen from '../features/transactions/screens/TransferSucc
 import ReversionsScreen from '../features/transactions/screens/ReversionsScreen';
 import FavoritesScreen from '../features/favorites/screens/FavoritesScreen';
 import PromotionsScreen from '../features/promotions/screens/PromotionsScreen';
+import ProfileScreen from '../features/profile/screens/ProfileScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -24,6 +25,7 @@ const SecondaryStackNavigator = () => {
             <Stack.Screen name="Reversions" component={ReversionsScreen} />
             <Stack.Screen name="Favorites" component={FavoritesScreen} />
             <Stack.Screen name="Promotions" component={PromotionsScreen} />
+            <Stack.Screen name="Profile" component={ProfileScreen} />
         </Stack.Navigator>
     );
 };

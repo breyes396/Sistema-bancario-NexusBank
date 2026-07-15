@@ -36,7 +36,13 @@
         }
       ],
       "expo-video",
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "NexusBank necesita acceso a tus fotos para que elijas una imagen de perfil."
+        }
+      ]
     ],
     "experiments": {
       "reactCompiler": true

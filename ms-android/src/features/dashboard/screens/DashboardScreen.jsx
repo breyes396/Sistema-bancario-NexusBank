@@ -50,7 +50,7 @@ const DashboardScreen = ({ navigation }) => {
     return (
         <SafeAreaView style={styles.safe}>
             <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-                <DashboardHeader fullName={fullName} openDrawer={openDrawer} />
+                <DashboardHeader fullName={fullName} openDrawer={openDrawer} navigation={navigation} />
 
                 <Text style={styles.greeting}>Hola, {firstName}</Text>
                 <Text style={styles.subtitle}>Esto es lo que pasa en tus cuentas hoy</Text>

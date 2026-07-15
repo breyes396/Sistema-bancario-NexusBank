@@ -22,6 +22,11 @@ export default StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: SPACING.sm,
+        overflow: 'hidden',
+    },
+    avatarImage: {
+        width: '100%',
+        height: '100%',
     },
     avatarText: {
         color: DARK.text,

@@ -5,7 +5,6 @@ import {
     FlatList,
     RefreshControl,
     ActivityIndicator,
-    Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -13,6 +12,7 @@ import {
 } from '../hooks/useTransactions';
 import { useReversions } from '../hooks/useReversions';
 import { EmptyState } from '../../../shared/components/common/Common';
+import InfoModal from '../../../shared/components/common/InfoModal';
 import HeaderMenuButton from '../../../shared/components/common/HeaderMenuButton';
 import BottomNavBar from '../../../shared/components/common/BottomNavBar';
 import { BANK_DARK as BANK } from '../../../shared/constants/colors';
@@ -83,10 +83,13 @@ const TransactionsScreen = ({ navigation, route }) => {
     const [revertReason, setRevertReason] = useState('');
     const [revertModalVisible, setRevertModalVisible] = useState(false);
     const [revertLoading, setRevertLoading] = useState(false);
+    const [infoModal, setInfoModal] = useState({ visible: false, type: 'success', title: '', message: '' });
 
     useEffect(() => {
         fetchTransactions({ pageNum: 1 });
     }, [fetchTransactions, accountId]);
+
+    const closeInfoModal = () => setInfoModal((prev) => ({ ...prev, visible: false }));
 
     const handleOpenRevert = (tx) => {
         setSelectedTx(tx);
@@ -94,9 +97,23 @@ const TransactionsScreen = ({ navigation, route }) => {
         setRevertModalVisible(true);
     };
 
+    const handleExpiredRevert = () => {
+        setInfoModal({
+            visible: true,
+            type: 'error',
+            title: 'Reversión Expirada',
+            message: 'El tiempo para solicitar la reversión ha expirado.',
+        });
+    };
+
     const handleConfirmRevert = async () => {
         if (!revertReason || revertReason.trim() === '') {
-            Alert.alert('Error', 'Debes escribir una justificación para solicitar la reversión.');
+            setInfoModal({
+                visible: true,
+                type: 'error',
+                title: 'Falta el motivo',
+                message: 'Debes escribir una justificación para solicitar la reversión.',
+            });
             return;
         }
 
@@ -118,17 +135,27 @@ const TransactionsScreen = ({ navigation, route }) => {
                 reason: revertReason
             });
 
-            Alert.alert('Éxito', 'Solicitud de reversión enviada correctamente para revisión.');
+            setInfoModal({
+                visible: true,
+                type: 'success',
+                title: 'Solicitud enviada',
+                message: 'Solicitud de reversión enviada correctamente para revisión.',
+            });
             refresh();
         } catch (err) {
-            Alert.alert('Error', err.message || 'No se pudo procesar la solicitud.');
+            setInfoModal({
+                visible: true,
+                type: 'error',
+                title: 'No se pudo enviar',
+                message: err.message || 'No se pudo procesar la solicitud.',
+            });
         } finally {
             setRevertLoading(false);
         }
     };
 
     const renderItem = useCallback(({ item }) => (
-        <TransactionCard item={item} onRevertPress={handleOpenRevert} />
+        <TransactionCard item={item} onRevertPress={handleOpenRevert} onExpiredPress={handleExpiredRevert} />
     ), []);
 
     const keyExtractor = useCallback((item) => item.id?.toString() ?? Math.random().toString(), []);
@@ -202,6 +229,14 @@ const TransactionsScreen = ({ navigation, route }) => {
                 reason={revertReason}
                 setReason={setRevertReason}
                 transactionId={selectedTx?.id}
+            />
+
+            <InfoModal
+                visible={infoModal.visible}
+                type={infoModal.type}
+                title={infoModal.title}
+                message={infoModal.message}
+                onClose={closeInfoModal}
             />
 
             <BottomNavBar navigation={navigation} />

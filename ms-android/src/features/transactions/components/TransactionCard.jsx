@@ -45,13 +45,15 @@ const formatAmount = (amount, type) => {
     return isIncome(type) ? `+Q${num}` : `-Q${num}`;
 };
 
+const REVERT_WINDOW_MS = 10 * 60 * 1000; // 10 minutos
+
 const isWithinRevertWindow = (dateStr) => {
     if (!dateStr) return false;
     const created = new Date(dateStr).getTime();
-    return (Date.now() - created) <= 60000; // 60 seconds
+    return (Date.now() - created) <= REVERT_WINDOW_MS;
 };
 
-const TransactionCard = ({ item, onRevertPress }) => {
+const TransactionCard = ({ item, onRevertPress, onExpiredPress }) => {
     const income = isIncome(item.type);
     const amountColor =
         item.status === 'REVERTIDA' ? STATUS_COLORS.REVERTIDA
@@ -113,12 +115,11 @@ const TransactionCard = ({ item, onRevertPress }) => {
                             card.revertBtn,
                             !activeRevert && card.revertBtnDisabled
                         ]}
-                        disabled={!activeRevert}
-                        onPress={() => onRevertPress(item)}
+                        onPress={() => (activeRevert ? onRevertPress(item) : onExpiredPress())}
                         activeOpacity={0.7}
                     >
                         <Text style={[card.revertBtnText, !activeRevert && card.revertBtnTextDisabled]}>
-                            {activeRevert ? 'Solicitar Reversión' : 'Reversión Expirada (1m)'}
+                            {activeRevert ? 'Solicitar Reversión' : 'Reversión Expirada'}
                         </Text>
                     </TouchableOpacity>
                 </View>

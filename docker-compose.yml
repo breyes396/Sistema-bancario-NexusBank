@@ -29,7 +29,7 @@ services:
     ports:
       - "3007:3007"
     env_file:
-      - ./ms-postgres/.env.docker
+      - ./ms-postgres/.env
     depends_on:
       - postgres-db
       - mongo-db
@@ -43,7 +43,7 @@ services:
     ports:
       - "3006:3006"
     env_file:
-      - ./ms-mongo/.env.docker
+      - ./ms-mongo/.env
     depends_on:
       - mongo-db
     restart: unless-stopped
@@ -58,6 +58,18 @@ services:
     container_name: nexusbank-frontend
     ports:
       - "80:80"
+    depends_on:
+      - postgres-service
+      - mongo-service
+    restart: unless-stopped
+
+  ms-android:
+    build:
+      context: .
+      dockerfile: ms-android/Dockerfile
+    container_name: nexusbank-ms-android
+    ports:
+      - "8081:8081"
     depends_on:
       - postgres-service
       - mongo-service

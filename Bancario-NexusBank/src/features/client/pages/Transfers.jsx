@@ -5,8 +5,7 @@ import { useClientStore } from '../store/useClientStore.js';
 import { clientTransferService } from '../../../shared/api/clientTransfer.service.js';
 import { clientAccountService } from '../../../shared/api/clientAccount.service.js';
 import { showError, showSuccess } from '../../../shared/utils/toast.js';
-import { useAuthStore } from '../../auth/store/authStore.js';
-import { addReversalRequest, getLatestReversibleTransaction, isReversalApproved } from '../../../shared/utils/reversalRequests.js';
+import { getLatestReversibleTransaction, isReversalApproved } from '../../../shared/utils/reversalRequests.js';
 import RevertModal from '../../../shared/components/RevertModal.jsx';
 
 const DAILY_TRANSFER_LIMIT = 2000;
@@ -52,7 +51,6 @@ const normalizeTransfer = (transfer, fallback = {}) => {
 export const Transfers = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const user = useAuthStore((state) => state.user);
 
   const {
     accounts,
@@ -486,7 +484,9 @@ export const Transfers = () => {
       || String(transfer.reference) === String(latestReversibleTransaction.reference);
   };
 
-  const isWithinRevertWindow = (transfer, windowMs = 60000) => {
+  const REVERT_WINDOW_MS = 10 * 60 * 1000; // 10 minutos
+
+  const isWithinRevertWindow = (transfer, windowMs = REVERT_WINDOW_MS) => {
     if (!transfer) return false;
     const created = new Date(transfer.date || transfer.createdAt || transfer.raw?.createdAt || 0).getTime();
     if (!created) return false;
@@ -497,11 +497,15 @@ export const Transfers = () => {
   const [revertTarget, setRevertTarget] = useState(null);
 
   const openRevertModal = (transfer) => {
+    if (!isWithinRevertWindow(transfer)) {
+      showError('El tiempo para solicitar la reversión ha expirado.');
+      return;
+    }
     setRevertTarget(transfer);
     setShowRevertModal(true);
   };
 
-  const handleConfirmRevert = (reason) => {
+  const handleConfirmRevert = async (reason) => {
     const transfer = revertTarget;
     setShowRevertModal(false);
     setRevertTarget(null);
@@ -512,7 +516,7 @@ export const Transfers = () => {
     }
 
     try {
-      addReversalRequest({
+      await clientAccountService.createReversalRequest({
         type: 'TRANSFERENCIA',
         operationId: transfer.id,
         reference: transfer.reference,
@@ -522,15 +526,12 @@ export const Transfers = () => {
         operationDate: transfer.date,
         operationDescription: transfer.description,
         reason,
-        userId: user?.id,
-        userEmail: user?.email,
-        userName: user?.name || user?.username || null,
       });
 
       showSuccess('Solicitud de reversión enviada al administrador.');
       navigate('/clientdashboard/reversions');
     } catch (requestError) {
-      showError(requestError?.message || 'No fue posible solicitar la reversión.');
+      showError(requestError?.response?.data?.message || 'No fue posible solicitar la reversión.');
     }
   };
 
@@ -917,10 +918,9 @@ export const Transfers = () => {
                           <button
                             type="button"
                             onClick={() => openRevertModal(item)}
-                            disabled={!isWithinRevertWindow(item)}
-                            className={`rounded-full px-4 py-2 text-xs font-semibold border ${isWithinRevertWindow(item) ? 'border-[#B45309] text-[#B45309] bg-white hover:bg-[#B45309] hover:text-white' : 'border-gray-200 text-gray-400 bg-white cursor-not-allowed' } transition`}
+                            className={`rounded-full px-4 py-2 text-xs font-semibold border ${isWithinRevertWindow(item) ? 'border-[#B45309] text-[#B45309] bg-white hover:bg-[#B45309] hover:text-white' : 'border-gray-200 text-gray-400 bg-white' } transition`}
                           >
-                            Revertir
+                            {isWithinRevertWindow(item) ? 'Solicitar Reversión' : 'Reversión Expirada'}
                           </button>
                         )}
                       </div>
@@ -941,7 +941,7 @@ export const Transfers = () => {
             setRevertTarget(null);
           }}
           onConfirm={handleConfirmRevert}
-          title={`Revertir transferencia ${revertTarget?.reference || revertTarget?.id || ''}`}
+          title={`Solicitar reversión de transferencia ${revertTarget?.reference || revertTarget?.id || ''}`}
           createdAt={revertTarget?.date || revertTarget?.createdAt || revertTarget?.raw?.createdAt}
         />
       )}

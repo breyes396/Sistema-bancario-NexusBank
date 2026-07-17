@@ -2,13 +2,12 @@ import React from 'react';
 import {
     View,
     Text,
-    StyleSheet,
     Modal,
     TouchableOpacity,
     FlatList,
 } from 'react-native';
 import { EmptyState } from '../../../shared/components/common/Common';
-import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme';
+import { accountPicker as styles } from '../screens/TransferScreen.styles';
 
 const AccountPickerModal = ({ visible, onClose, accounts, selectedAccount, onSelectAccount, title }) => {
     return (
@@ -50,58 +49,5 @@ const AccountPickerModal = ({ visible, onClose, accounts, selectedAccount, onSel
         </Modal>
     );
 };
-
-const styles = StyleSheet.create({
-    overlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.4)',
-        justifyContent: 'flex-end',
-    },
-    sheet: {
-        backgroundColor: COLORS.surface,
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-        maxHeight: '60%',
-        paddingBottom: SPACING.xl,
-        ...SHADOWS.md,
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: SPACING.lg,
-        borderBottomWidth: 1,
-        borderBottomColor: COLORS.border,
-    },
-    title: {
-        fontSize: FONT_SIZE.lg,
-        fontWeight: 'bold',
-        color: COLORS.text,
-    },
-    close: {
-        fontSize: FONT_SIZE.lg,
-        color: COLORS.textLight,
-        paddingHorizontal: SPACING.sm,
-    },
-    item: {
-        paddingVertical: SPACING.md,
-        paddingHorizontal: SPACING.lg,
-        borderBottomWidth: 1,
-        borderBottomColor: COLORS.border,
-    },
-    itemSelected: {
-        backgroundColor: '#eff6ff',
-    },
-    itemNumber: {
-        fontSize: FONT_SIZE.md,
-        color: COLORS.text,
-        fontWeight: '600',
-    },
-    itemSub: {
-        fontSize: FONT_SIZE.xs,
-        color: COLORS.textLight,
-        marginTop: 2,
-    },
-});
 
 export default AccountPickerModal;

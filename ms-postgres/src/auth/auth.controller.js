@@ -628,30 +628,19 @@ export const resendVerification = async (req, res) => {
 
     const verificationToken = generateEmailVerificationToken(user.id);
 
-    try {
-        await sendVerificationFlowEmail({
-        email,
-        profileName: profile?.Name || 'cliente',
-        verificationToken
-        });
-    } catch (emailError) {
-      console.error('Error reenviando email de verificacion:', emailError);
-
-      const response = {
-        msg: 'No se pudo reenviar el email de verificacion',
-        emailSent: false
-      };
-
-      if (process.env.NODE_ENV === 'development') {
-        response.devError = emailError.message;
-        response.devVerificationToken = verificationToken;
-        response.devVerifyEndpoint = '/api/v1/auth/verify-email';
-      }
-
-      return res.status(502).json(response);
-    }
-
     res.status(200).json({ msg: 'Email de verificacion reenviado', emailSent: true });
+
+    // El envio SMTP se dispara despues de responder: puede tardar varios
+    // segundos (o colgarse) y no debe bloquear la respuesta HTTP, porque el
+    // proxy de la plataforma corta la conexion si se demora demasiado y el
+    // cliente termina viendo un error de red en vez de la respuesta real.
+    sendVerificationFlowEmail({
+      email,
+      profileName: profile?.Name || 'cliente',
+      verificationToken
+    }).catch((emailError) => {
+      console.error('Error reenviando email de verificacion:', emailError);
+    });
   } catch (err) {
     res.status(500).json({ msg: 'Error en el servidor', error: err.message });
   }
@@ -690,10 +679,14 @@ export const forgotPassword = async (req, res) => {
       });
     }
 
-      await sendPasswordResetFlowEmail({ email, token });
-
     res.status(200).json({
       msg: 'Si el email existe, se envio un enlace de recuperacion'
+    });
+
+    // Igual que en resendVerification: el envio SMTP se dispara despues de
+    // responder para que un SMTP lento o colgado no tumbe la respuesta HTTP.
+    sendPasswordResetFlowEmail({ email, token }).catch((emailError) => {
+      console.error('Error enviando email de recuperacion:', emailError);
     });
   } catch (err) {
     res.status(500).json({ msg: 'Error en el servidor', error: err.message });

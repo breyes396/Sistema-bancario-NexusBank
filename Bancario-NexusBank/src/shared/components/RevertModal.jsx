@@ -14,7 +14,7 @@ export default function RevertModal({ open, onClose, onConfirm, title = 'Motivo 
     const created = new Date(createdAt).getTime();
     const now = Date.now();
     const elapsed = now - created;
-    setDisabled(elapsed > 60000); // disabled if more than 1 minute
+    setDisabled(elapsed > 10 * 60 * 1000); // disabled if more than 10 minutes
   }, [createdAt, open, disableTimeCheck]);
 
   if (!open) return null;
@@ -27,7 +27,7 @@ export default function RevertModal({ open, onClose, onConfirm, title = 'Motivo 
         </div>
         <div className="p-6">
           {disabled ? (
-            <p className="text-sm text-red-600">No se puede procesar: pasó más de 1 minuto desde la operación.</p>
+            <p className="text-sm text-red-600">El tiempo para solicitar la reversión ha expirado.</p>
           ) : (
             <textarea
               className="w-full h-28 p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#163c78]"

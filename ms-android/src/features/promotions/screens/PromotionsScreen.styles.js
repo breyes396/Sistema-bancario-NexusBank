@@ -1,10 +1,11 @@
 import { StyleSheet } from 'react-native';
-import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme';
+import { SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme';
+import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 
 export default StyleSheet.create({
     safe: {
         flex: 1,
-        backgroundColor: COLORS.background,
+        backgroundColor: BANK.background,
     },
     header: {
         paddingHorizontal: SPACING.lg,
@@ -16,18 +17,18 @@ export default StyleSheet.create({
     },
     backText: {
         fontSize: FONT_SIZE.sm,
-        color: COLORS.primary,
+        color: BANK.primary,
         fontWeight: '600',
     },
     title: {
         fontSize: FONT_SIZE.xxl,
         fontWeight: 'bold',
-        color: COLORS.text,
+        color: BANK.text,
         marginBottom: SPACING.xs,
     },
     subtitle: {
         fontSize: FONT_SIZE.sm,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
         lineHeight: 18,
     },
     toolbar: {
@@ -36,13 +37,13 @@ export default StyleSheet.create({
     },
     searchInput: {
         borderWidth: 1,
-        borderColor: COLORS.border,
+        borderColor: BANK.border,
         borderRadius: 10,
         paddingVertical: SPACING.sm,
         paddingHorizontal: SPACING.md,
         fontSize: FONT_SIZE.sm,
-        color: COLORS.text,
-        backgroundColor: COLORS.surface,
+        color: BANK.text,
+        backgroundColor: BANK.surface,
     },
     listContent: {
         padding: SPACING.lg,
@@ -56,7 +57,7 @@ export default StyleSheet.create({
     },
     cardBanner: {
         height: 8,
-        backgroundColor: COLORS.primary,
+        backgroundColor: BANK.accent,
     },
     cardBody: {
         padding: SPACING.md,
@@ -71,23 +72,23 @@ export default StyleSheet.create({
         paddingVertical: 4,
         paddingHorizontal: 10,
         borderRadius: 12,
-        backgroundColor: COLORS.primary + '18',
+        backgroundColor: BANK.primary + '18',
         marginBottom: SPACING.xs,
     },
     typeBadgeText: {
         fontSize: FONT_SIZE.xs - 1,
         fontWeight: '700',
-        color: COLORS.primary,
+        color: BANK.primary,
     },
     name: {
         fontSize: FONT_SIZE.lg,
         fontWeight: 'bold',
-        color: COLORS.text,
+        color: BANK.text,
         marginBottom: 4,
     },
     description: {
         fontSize: FONT_SIZE.sm,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
         lineHeight: 18,
         marginBottom: SPACING.sm,
     },
@@ -100,11 +101,11 @@ export default StyleSheet.create({
     benefitText: {
         fontSize: FONT_SIZE.sm,
         fontWeight: '600',
-        color: COLORS.text,
+        color: BANK.text,
     },
     validityText: {
         fontSize: FONT_SIZE.xs,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
         marginBottom: SPACING.md,
     },
     useBtn: {
@@ -114,16 +115,16 @@ export default StyleSheet.create({
         gap: 6,
         paddingVertical: SPACING.sm + 2,
         borderRadius: 8,
-        backgroundColor: COLORS.primary,
+        backgroundColor: BANK.primary,
     },
     useBtnText: {
         fontSize: FONT_SIZE.sm,
         fontWeight: '600',
-        color: '#fff',
+        color: BANK.onPrimary,
     },
     errorCard: {
-        backgroundColor: '#fef2f2',
-        borderColor: COLORS.error,
+        backgroundColor: BANK.surface,
+        borderColor: BANK.error,
         marginHorizontal: SPACING.lg,
         marginBottom: SPACING.sm,
         padding: SPACING.md,
@@ -131,18 +132,18 @@ export default StyleSheet.create({
         borderWidth: 1,
     },
     errorCardText: {
-        color: COLORS.error,
+        color: BANK.error,
         fontSize: FONT_SIZE.sm,
         textAlign: 'center',
     },
     // Modal de detalle
     overlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.4)',
+        backgroundColor: 'rgba(5,15,34,0.5)',
         justifyContent: 'flex-end',
     },
     sheet: {
-        backgroundColor: COLORS.surface,
+        backgroundColor: BANK.surface,
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
         maxHeight: '80%',
@@ -154,18 +155,18 @@ export default StyleSheet.create({
         alignItems: 'center',
         padding: SPACING.lg,
         borderBottomWidth: 1,
-        borderBottomColor: COLORS.border,
+        borderBottomColor: BANK.border,
     },
     sheetTitle: {
         flex: 1,
         fontSize: FONT_SIZE.lg,
         fontWeight: 'bold',
-        color: COLORS.text,
+        color: BANK.text,
         marginRight: SPACING.sm,
     },
     close: {
         fontSize: FONT_SIZE.lg,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
         paddingHorizontal: SPACING.sm,
     },
     sheetBody: {
@@ -174,14 +175,14 @@ export default StyleSheet.create({
     sectionLabel: {
         fontSize: FONT_SIZE.xs,
         fontWeight: '700',
-        color: COLORS.textLight,
+        color: BANK.textMuted,
         textTransform: 'uppercase',
         marginBottom: 4,
         marginTop: SPACING.md,
     },
     sectionText: {
         fontSize: FONT_SIZE.sm,
-        color: COLORS.text,
+        color: BANK.text,
         lineHeight: 20,
     },
     codeRow: {
@@ -189,16 +190,16 @@ export default StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         borderWidth: 1,
-        borderColor: COLORS.border,
+        borderColor: BANK.border,
         borderRadius: 10,
         paddingVertical: SPACING.sm,
         paddingHorizontal: SPACING.md,
-        backgroundColor: COLORS.background,
+        backgroundColor: BANK.background,
     },
     codeText: {
         fontSize: FONT_SIZE.sm,
         fontWeight: '600',
-        color: COLORS.text,
+        color: BANK.text,
     },
     copyBtn: {
         flexDirection: 'row',
@@ -208,6 +209,6 @@ export default StyleSheet.create({
     copyBtnText: {
         fontSize: FONT_SIZE.xs,
         fontWeight: '600',
-        color: COLORS.primary,
+        color: BANK.accent,
     },
 });

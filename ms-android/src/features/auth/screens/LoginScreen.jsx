@@ -2,6 +2,7 @@ import React from 'react';
 import {
     View,
     Text,
+    Image,
     ScrollView,
     KeyboardAvoidingView,
     Platform,
@@ -22,6 +23,7 @@ const LoginScreen = ({ navigation }) => {
         setPassword,
         errors,
         apiError,
+        apiErrorCode,
         loading,
         submit,
     } = useLogin();
@@ -44,7 +46,11 @@ const LoginScreen = ({ navigation }) => {
                 >
                     <View style={styles.brand}>
                         <View style={styles.logoCircle}>
-                            <Text style={styles.logoText}>NB</Text>
+                            <Image
+                                source={require('../../../../assets/images/Logo.jpg')}
+                                style={styles.logoImage}
+                                resizeMode="contain"
+                            />
                         </View>
                         <Text style={styles.brandTitle}>NexusBank</Text>
                         <Text style={styles.brandSubtitle}>Ingresa a tu cuenta</Text>
@@ -70,10 +76,26 @@ const LoginScreen = ({ navigation }) => {
                         error={errors.password}
                     />
 
+                    <TouchableOpacity
+                        style={styles.forgotLink}
+                        onPress={() => navigation.navigate('ForgotPassword')}
+                    >
+                        <Text style={styles.forgotLinkText}>Se me olvidó la contraseña</Text>
+                    </TouchableOpacity>
+
                     {apiError ? (
                         <Card style={styles.errorCard}>
                             <Text style={styles.errorCardText}>{apiError}</Text>
                         </Card>
+                    ) : null}
+
+                    {apiErrorCode === 'AUTH_EMAIL_NOT_VERIFIED' ? (
+                        <Button
+                            title="Reenviar correo de verificación"
+                            onPress={() => navigation.navigate('VerifyEmail', { email: emailOrUsername })}
+                            variant="secondary"
+                            style={styles.resendBtn}
+                        />
                     ) : null}
 
                     <Button

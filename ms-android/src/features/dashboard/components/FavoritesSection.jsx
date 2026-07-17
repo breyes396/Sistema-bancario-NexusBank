@@ -1,20 +1,48 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useFavorites } from '../../favorites/hooks/useFavorites';
-import { DARK } from '../../../shared/constants/theme';
+import FavoriteActionModal from '../../favorites/components/FavoriteActionModal';
+import { BANK_DARK as DARK } from '../../../shared/constants/colors';
 import styles from '../screens/DashboardScreen.styles';
 
 const FavoritesSection = ({ navigation }) => {
     const { favorites, loading } = useFavorites();
+    const [actionsVisible, setActionsVisible] = useState(false);
+    const [actionsFavorite, setActionsFavorite] = useState(null);
 
-    const goToFavorites = () => navigation?.navigate('Favorites');
+    const goToFavorites = () => navigation?.navigate('Secondary', { screen: 'Favorites' });
 
-    const goToTransfer = (favorite) => {
-        navigation?.navigate('Transfer', {
-            prefillDestinationAccountNumber: favorite.accountNumber,
-            prefillRecipientType: 'TERCERO',
-            prefillDescription: `Transferencia a favorito: ${favorite.alias}`,
+    const handleOpenActions = (favorite) => {
+        setActionsFavorite(favorite);
+        setActionsVisible(true);
+    };
+
+    const handleCloseActions = () => {
+        setActionsVisible(false);
+        setActionsFavorite(null);
+    };
+
+    const handleSelectTransfer = (favorite) => {
+        handleCloseActions();
+        navigation?.navigate('Secondary', {
+            screen: 'Transfer',
+            params: {
+                prefillDestinationAccountNumber: favorite.accountNumber,
+                prefillRecipientType: 'TERCERO',
+                prefillDescription: `Transferencia a favorito: ${favorite.alias}`,
+            },
+        });
+    };
+
+    const handleSelectDeposit = (favorite) => {
+        handleCloseActions();
+        navigation?.navigate('Secondary', {
+            screen: 'Deposit',
+            params: {
+                prefillDestinationAccountNumber: favorite.accountNumber,
+                prefillDescription: `Depósito a favorito: ${favorite.alias}`,
+            },
         });
     };
 
@@ -48,7 +76,7 @@ const FavoritesSection = ({ navigation }) => {
                             key={favorite.id}
                             style={styles.favoriteChip}
                             activeOpacity={0.7}
-                            onPress={() => goToTransfer(favorite)}
+                            onPress={() => handleOpenActions(favorite)}
                         >
                             <View style={styles.favoriteChipAvatar}>
                                 <Text style={styles.favoriteChipAvatarText}>
@@ -62,6 +90,14 @@ const FavoritesSection = ({ navigation }) => {
                     ))
                 )}
             </ScrollView>
+
+            <FavoriteActionModal
+                visible={actionsVisible}
+                favorite={actionsFavorite}
+                onClose={handleCloseActions}
+                onSelectTransfer={handleSelectTransfer}
+                onSelectDeposit={handleSelectDeposit}
+            />
         </>
     );
 };

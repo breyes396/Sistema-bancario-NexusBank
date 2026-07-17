@@ -1,17 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     View,
     Text,
-    StyleSheet,
     ScrollView,
+    TouchableOpacity,
+    ActivityIndicator,
+    Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Feather } from '@expo/vector-icons';
 import Button from '../../../shared/components/common/Button';
 import { Card } from '../../../shared/components/common/Common';
-import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme';
+import { downloadReceiptPdf } from '../../../shared/utils/receiptPdf';
+import { BANK_DARK as BANK } from '../../../shared/constants/colors';
+import styles from './DepositSuccessScreen.styles';
 
 const DepositSuccessScreen = ({ navigation, route }) => {
     const { deposit, amount, account } = route.params || {};
+    const [downloading, setDownloading] = useState(false);
 
     const formatDate = (dateStr) => {
         if (!dateStr) return '—';
@@ -33,6 +39,21 @@ const DepositSuccessScreen = ({ navigation, route }) => {
         { label: 'Estado', value: deposit?.status || 'PENDIENTE' },
         { label: 'Fecha', value: formatDate(deposit?.createdAt) },
     ];
+
+    const handleDownloadReceipt = async () => {
+        setDownloading(true);
+        try {
+            await downloadReceiptPdf({
+                title: 'Comprobante de Depósito',
+                subtitle: 'Solicitud pendiente de aprobación administrativa',
+                rows,
+            });
+        } catch (err) {
+            Alert.alert('No se pudo generar el comprobante', 'Intenta de nuevo.');
+        } finally {
+            setDownloading(false);
+        }
+    };
 
     return (
         <SafeAreaView style={styles.safe}>
@@ -70,6 +91,22 @@ const DepositSuccessScreen = ({ navigation, route }) => {
                     ))}
                 </Card>
 
+                <TouchableOpacity
+                    style={styles.downloadBtn}
+                    onPress={handleDownloadReceipt}
+                    activeOpacity={0.8}
+                    disabled={downloading}
+                >
+                    {downloading ? (
+                        <ActivityIndicator size="small" color={BANK.accent} />
+                    ) : (
+                        <>
+                            <Feather name="download" size={18} color={BANK.accent} />
+                            <Text style={styles.downloadBtnText}>Descargar comprobante</Text>
+                        </>
+                    )}
+                </TouchableOpacity>
+
                 <Card style={styles.noteCard}>
                     <Text style={styles.noteText}>
                         Recibirás una notificación cuando tu depósito sea procesado. El saldo se
@@ -79,7 +116,7 @@ const DepositSuccessScreen = ({ navigation, route }) => {
 
                 <Button
                     title="Volver al Inicio"
-                    onPress={() => navigation.navigate('Main')}
+                    onPress={() => navigation.navigate('MainTabs', { screen: 'Inicio' })}
                     style={styles.btnPrimary}
                 />
                 <Button
@@ -92,108 +129,5 @@ const DepositSuccessScreen = ({ navigation, route }) => {
         </SafeAreaView>
     );
 };
-
-const styles = StyleSheet.create({
-    safe: {
-        flex: 1,
-        backgroundColor: COLORS.background,
-    },
-    container: {
-        padding: SPACING.lg,
-        paddingBottom: SPACING.xxl,
-        alignItems: 'center',
-    },
-    iconWrap: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: COLORS.success,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: SPACING.xl,
-        marginBottom: SPACING.lg,
-        ...SHADOWS.md,
-    },
-    icon: {
-        color: '#fff',
-        fontSize: 36,
-        fontWeight: 'bold',
-    },
-    title: {
-        fontSize: FONT_SIZE.xxl,
-        fontWeight: 'bold',
-        color: COLORS.text,
-        marginBottom: SPACING.sm,
-        textAlign: 'center',
-    },
-    subtitle: {
-        fontSize: FONT_SIZE.sm,
-        color: COLORS.textLight,
-        textAlign: 'center',
-        lineHeight: 20,
-        marginBottom: SPACING.xl,
-        paddingHorizontal: SPACING.md,
-    },
-    badge: {
-        color: COLORS.warning,
-        fontWeight: 'bold',
-    },
-    card: {
-        width: '100%',
-        marginBottom: SPACING.md,
-    },
-    cardTitle: {
-        fontSize: FONT_SIZE.md,
-        fontWeight: 'bold',
-        color: COLORS.text,
-        marginBottom: SPACING.md,
-        textAlign: 'center',
-    },
-    row: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: SPACING.sm,
-        borderBottomWidth: 1,
-        borderBottomColor: COLORS.border,
-    },
-    rowLabel: {
-        fontSize: FONT_SIZE.sm,
-        color: COLORS.textLight,
-        flex: 1,
-    },
-    rowValue: {
-        fontSize: FONT_SIZE.sm,
-        color: COLORS.text,
-        fontWeight: '600',
-        flex: 1,
-        textAlign: 'right',
-    },
-    amountValue: {
-        color: COLORS.primary,
-        fontSize: FONT_SIZE.md,
-    },
-    statusValue: {
-        color: COLORS.warning,
-    },
-    noteCard: {
-        width: '100%',
-        backgroundColor: '#fffbeb',
-        borderColor: '#fde68a',
-        marginBottom: SPACING.xl,
-    },
-    noteText: {
-        fontSize: FONT_SIZE.xs,
-        color: '#92400e',
-        lineHeight: 18,
-        textAlign: 'center',
-    },
-    btnPrimary: {
-        marginBottom: SPACING.sm,
-    },
-    btnSecondary: {
-        marginBottom: SPACING.sm,
-    },
-});
 
 export default DepositSuccessScreen;

@@ -2,7 +2,6 @@ import React, { useState, useMemo, useCallback } from 'react';
 import {
     View,
     Text,
-    StyleSheet,
     FlatList,
     TextInput,
     TouchableOpacity,
@@ -11,7 +10,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useReversions } from '../hooks/useReversions';
 import { Card, EmptyState, LoadingSpinner } from '../../../shared/components/common/Common';
-import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme';
+import HeaderMenuButton from '../../../shared/components/common/HeaderMenuButton';
+import BottomNavBar from '../../../shared/components/common/BottomNavBar';
+import { BANK_DARK as BANK } from '../../../shared/constants/colors';
+import styles from './ReversionsScreen.styles';
 
 const STATUS_LABELS = {
     PENDING: 'Pendiente',
@@ -20,9 +22,9 @@ const STATUS_LABELS = {
 };
 
 const STATUS_COLORS = {
-    PENDING: COLORS.warning,
-    APPROVED: COLORS.success,
-    REJECTED: COLORS.error,
+    PENDING: BANK.warning,
+    APPROVED: BANK.success,
+    REJECTED: BANK.error,
 };
 
 const ReversionsScreen = ({ navigation }) => {
@@ -73,7 +75,7 @@ const ReversionsScreen = ({ navigation }) => {
     const renderItem = ({ item }) => {
         const status = String(item.status).toUpperCase();
         const typeText = item.type === 'DEPOSITO' ? 'Depósito' : 'Transferencia';
-        const badgeColor = STATUS_COLORS[status] || COLORS.textLight;
+        const badgeColor = STATUS_COLORS[status] || BANK.textMuted;
 
         return (
             <Card style={styles.card}>
@@ -132,9 +134,7 @@ const ReversionsScreen = ({ navigation }) => {
         <SafeAreaView style={styles.safe}>
             {/* Header */}
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                    <Text style={styles.backText}>← Volver</Text>
-                </TouchableOpacity>
+                <HeaderMenuButton navigation={navigation} style={styles.backBtn} />
                 <Text style={styles.title}>Reversiones</Text>
                 <Text style={styles.subtitle}>
                     Seguimiento de tus solicitudes de reversión de transferencias y depósitos.
@@ -146,7 +146,7 @@ const ReversionsScreen = ({ navigation }) => {
                 <TextInput
                     style={styles.searchInput}
                     placeholder="Buscar por referencia, cuenta o motivo..."
-                    placeholderTextColor={COLORS.textLight}
+                    placeholderTextColor={BANK.textMuted}
                     value={search}
                     onChangeText={setSearch}
                 />
@@ -196,7 +196,7 @@ const ReversionsScreen = ({ navigation }) => {
                         <RefreshControl
                             refreshing={loading}
                             onRefresh={handleRefresh}
-                            colors={[COLORS.primary]}
+                            colors={[BANK.primary]}
                         />
                     }
                     ListEmptyComponent={
@@ -204,165 +204,10 @@ const ReversionsScreen = ({ navigation }) => {
                     }
                 />
             )}
+
+            <BottomNavBar navigation={navigation} />
         </SafeAreaView>
     );
 };
-
-const styles = StyleSheet.create({
-    safe: {
-        flex: 1,
-        backgroundColor: COLORS.background,
-    },
-    header: {
-        paddingHorizontal: SPACING.lg,
-        paddingTop: SPACING.md,
-        paddingBottom: SPACING.sm,
-    },
-    backBtn: {
-        marginBottom: SPACING.sm,
-    },
-    backText: {
-        fontSize: FONT_SIZE.sm,
-        color: COLORS.primary,
-        fontWeight: '600',
-    },
-    title: {
-        fontSize: FONT_SIZE.xxl,
-        fontWeight: 'bold',
-        color: COLORS.text,
-        marginBottom: SPACING.xs,
-    },
-    subtitle: {
-        fontSize: FONT_SIZE.sm,
-        color: COLORS.textLight,
-        lineHeight: 18,
-    },
-    filtersContainer: {
-        paddingHorizontal: SPACING.lg,
-        paddingBottom: SPACING.sm,
-        gap: SPACING.sm,
-    },
-    searchInput: {
-        borderWidth: 1,
-        borderColor: COLORS.border,
-        borderRadius: 10,
-        paddingVertical: SPACING.sm,
-        paddingHorizontal: SPACING.md,
-        fontSize: FONT_SIZE.sm,
-        color: COLORS.text,
-        backgroundColor: COLORS.surface,
-    },
-    selectRow: {
-        flexDirection: 'row',
-        gap: SPACING.sm,
-    },
-    filterSelector: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        borderWidth: 1,
-        borderColor: COLORS.border,
-        borderRadius: 10,
-        paddingVertical: SPACING.sm,
-        paddingHorizontal: SPACING.md,
-        backgroundColor: COLORS.surface,
-    },
-    dropdownHalf: {
-        flex: 1,
-    },
-    filterSelectorText: {
-        fontSize: FONT_SIZE.xs + 1,
-        fontWeight: '600',
-        color: COLORS.text,
-    },
-    arrowIcon: {
-        fontSize: FONT_SIZE.xs,
-        color: COLORS.textLight,
-    },
-    listContent: {
-        padding: SPACING.lg,
-        paddingTop: SPACING.xs,
-        paddingBottom: SPACING.xxl,
-    },
-    card: {
-        marginBottom: SPACING.md,
-        padding: SPACING.md,
-    },
-    cardHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        borderBottomWidth: 1,
-        borderBottomColor: COLORS.border,
-        paddingBottom: SPACING.sm,
-    },
-    cardType: {
-        fontSize: FONT_SIZE.xs,
-        color: COLORS.textLight,
-        fontWeight: '500',
-        marginBottom: 2,
-    },
-    cardAmount: {
-        fontSize: FONT_SIZE.lg,
-        fontWeight: 'bold',
-        color: COLORS.text,
-    },
-    statusBadge: {
-        paddingVertical: 4,
-        paddingHorizontal: 10,
-        borderRadius: 12,
-    },
-    statusText: {
-        fontSize: FONT_SIZE.xs - 1,
-        fontWeight: '700',
-    },
-    detailsContainer: {
-        paddingTop: SPACING.sm,
-        gap: 6,
-    },
-    detailRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    detailLabel: {
-        fontSize: FONT_SIZE.xs,
-        color: COLORS.textLight,
-    },
-    detailValue: {
-        fontSize: FONT_SIZE.xs,
-        fontWeight: '600',
-        color: COLORS.text,
-    },
-    detailBlock: {
-        marginTop: 4,
-    },
-    reasonText: {
-        fontSize: FONT_SIZE.xs + 1,
-        color: COLORS.text,
-        backgroundColor: COLORS.background,
-        padding: SPACING.xs + 2,
-        borderRadius: 6,
-        marginTop: 4,
-        borderWidth: 1,
-        borderColor: COLORS.border,
-    },
-    adminCommentBlock: {
-        marginTop: 8,
-        paddingTop: 8,
-        borderTopWidth: 1,
-        borderTopColor: COLORS.border,
-    },
-    adminCommentLabel: {
-        fontSize: FONT_SIZE.xs,
-        color: COLORS.error,
-        fontWeight: '600',
-    },
-    adminCommentText: {
-        fontSize: FONT_SIZE.xs + 1,
-        color: COLORS.text,
-        fontStyle: 'italic',
-        marginTop: 2,
-    },
-});
 
 export default ReversionsScreen;

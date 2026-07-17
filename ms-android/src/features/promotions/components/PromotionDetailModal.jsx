@@ -8,7 +8,7 @@ import {
     getPromotionInstructions,
     formatPromotionDate,
 } from '../utils/promotionHelpers';
-import { COLORS } from '../../../shared/constants/theme';
+import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 import styles from '../screens/PromotionsScreen.styles';
 
 // Paridad con Promotions.jsx (web): "usar promoción" no abre nada externo,
@@ -65,7 +65,7 @@ const PromotionDetailModal = ({ visible, onClose, promotion }) => {
                                 <Feather
                                     name={copied ? 'check' : 'copy'}
                                     size={14}
-                                    color={COLORS.primary}
+                                    color={BANK.accent}
                                 />
                                 <Text style={styles.copyBtnText}>{copied ? 'Copiado' : 'Copiar'}</Text>
                             </TouchableOpacity>

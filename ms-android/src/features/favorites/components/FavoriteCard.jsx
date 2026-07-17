@@ -3,10 +3,10 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Card } from '../../../shared/components/common/Common';
 import { getFavoriteAccountTypeLabel } from '../utils/favoriteHelpers';
-import { COLORS } from '../../../shared/constants/theme';
+import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 import styles from '../screens/FavoritesScreen.styles';
 
-const FavoriteCard = ({ item, onTransfer, onEdit, onDelete }) => (
+const FavoriteCard = ({ item, onTransactions, onEdit, onDelete }) => (
     <Card style={styles.card}>
         <View style={styles.cardHeader}>
             <View>
@@ -19,17 +19,17 @@ const FavoriteCard = ({ item, onTransfer, onEdit, onDelete }) => (
         </View>
 
         <View style={styles.actionsRow}>
-            <TouchableOpacity style={styles.actionBtn} onPress={() => onTransfer(item)} activeOpacity={0.7}>
-                <Feather name="send" size={16} color={COLORS.primary} />
-                <Text style={[styles.actionBtnText, { color: COLORS.primary }]}>Transferir</Text>
+            <TouchableOpacity style={styles.actionBtn} onPress={() => onTransactions(item)} activeOpacity={0.7}>
+                <Feather name="repeat" size={16} color={BANK.primary} />
+                <Text style={[styles.actionBtnText, { color: BANK.primary }]}>Transacciones</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.actionBtn} onPress={() => onEdit(item)} activeOpacity={0.7}>
-                <Feather name="edit-2" size={16} color={COLORS.textLight} />
-                <Text style={[styles.actionBtnText, { color: COLORS.textLight }]}>Editar</Text>
+                <Feather name="edit-2" size={16} color={BANK.textMuted} />
+                <Text style={[styles.actionBtnText, { color: BANK.textMuted }]}>Editar</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.actionBtn} onPress={() => onDelete(item)} activeOpacity={0.7}>
-                <Feather name="trash-2" size={16} color={COLORS.error} />
-                <Text style={[styles.actionBtnText, { color: COLORS.error }]}>Eliminar</Text>
+                <Feather name="trash-2" size={16} color={BANK.error} />
+                <Text style={[styles.actionBtnText, { color: BANK.error }]}>Eliminar</Text>
             </TouchableOpacity>
         </View>
     </Card>

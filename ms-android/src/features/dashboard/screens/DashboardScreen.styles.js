@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
-import { DARK, SPACING, FONT_SIZE } from '../../../shared/constants/theme';
+import { SPACING, FONT_SIZE } from '../../../shared/constants/theme';
+import { BANK_DARK as DARK } from '../../../shared/constants/colors';
 
 export default StyleSheet.create({
     safe: {
@@ -49,6 +50,11 @@ export default StyleSheet.create({
         backgroundColor: DARK.accent,
         alignItems: 'center',
         justifyContent: 'center',
+        overflow: 'hidden',
+    },
+    avatarSmallImage: {
+        width: '100%',
+        height: '100%',
     },
     avatarSmallText: {
         color: DARK.text,
@@ -234,31 +240,5 @@ export default StyleSheet.create({
     movementAmount: {
         fontSize: FONT_SIZE.sm,
         fontWeight: '500',
-    },
-
-    // Barra inferior
-    bottomNav: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        alignItems: 'center',
-        paddingTop: SPACING.sm,
-        backgroundColor: DARK.surface,
-        borderTopWidth: 1,
-        borderTopColor: DARK.border,
-    },
-    navItem: {
-        alignItems: 'center',
-        gap: 4,
-        paddingVertical: 4,
-        paddingHorizontal: SPACING.sm,
-    },
-    navLabel: {
-        fontSize: 11,
-        fontWeight: '400',
-        color: DARK.textMuted,
-    },
-    navLabelActive: {
-        fontWeight: '500',
-        color: DARK.accent,
     },
 });

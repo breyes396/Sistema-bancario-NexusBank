@@ -2,22 +2,23 @@ import React, { useEffect, useCallback, useState } from 'react';
 import {
     View,
     Text,
-    StyleSheet,
     FlatList,
     RefreshControl,
-    TouchableOpacity,
     ActivityIndicator,
-    Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
     useTransactions,
 } from '../hooks/useTransactions';
 import { useReversions } from '../hooks/useReversions';
-import { LoadingSpinner, EmptyState } from '../../../shared/components/common/Common';
-import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme';
+import { EmptyState } from '../../../shared/components/common/Common';
+import InfoModal from '../../../shared/components/common/InfoModal';
+import HeaderMenuButton from '../../../shared/components/common/HeaderMenuButton';
+import BottomNavBar from '../../../shared/components/common/BottomNavBar';
+import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 import TransactionCard from '../components/TransactionCard';
 import RevertReasonModal from '../components/RevertReasonModal';
+import styles, { strip } from './TransactionsScreen.styles';
 
 // Colors consistent with web app
 const INCOME_COLOR = '#1A6637';
@@ -82,10 +83,13 @@ const TransactionsScreen = ({ navigation, route }) => {
     const [revertReason, setRevertReason] = useState('');
     const [revertModalVisible, setRevertModalVisible] = useState(false);
     const [revertLoading, setRevertLoading] = useState(false);
+    const [infoModal, setInfoModal] = useState({ visible: false, type: 'success', title: '', message: '' });
 
     useEffect(() => {
         fetchTransactions({ pageNum: 1 });
     }, [fetchTransactions, accountId]);
+
+    const closeInfoModal = () => setInfoModal((prev) => ({ ...prev, visible: false }));
 
     const handleOpenRevert = (tx) => {
         setSelectedTx(tx);
@@ -93,9 +97,23 @@ const TransactionsScreen = ({ navigation, route }) => {
         setRevertModalVisible(true);
     };
 
+    const handleExpiredRevert = () => {
+        setInfoModal({
+            visible: true,
+            type: 'error',
+            title: 'Reversión Expirada',
+            message: 'El tiempo para solicitar la reversión ha expirado.',
+        });
+    };
+
     const handleConfirmRevert = async () => {
         if (!revertReason || revertReason.trim() === '') {
-            Alert.alert('Error', 'Debes escribir una justificación para solicitar la reversión.');
+            setInfoModal({
+                visible: true,
+                type: 'error',
+                title: 'Falta el motivo',
+                message: 'Debes escribir una justificación para solicitar la reversión.',
+            });
             return;
         }
 
@@ -117,17 +135,27 @@ const TransactionsScreen = ({ navigation, route }) => {
                 reason: revertReason
             });
 
-            Alert.alert('Éxito', 'Solicitud de reversión enviada correctamente para revisión.');
+            setInfoModal({
+                visible: true,
+                type: 'success',
+                title: 'Solicitud enviada',
+                message: 'Solicitud de reversión enviada correctamente para revisión.',
+            });
             refresh();
         } catch (err) {
-            Alert.alert('Error', err.message || 'No se pudo procesar la solicitud.');
+            setInfoModal({
+                visible: true,
+                type: 'error',
+                title: 'No se pudo enviar',
+                message: err.message || 'No se pudo procesar la solicitud.',
+            });
         } finally {
             setRevertLoading(false);
         }
     };
 
     const renderItem = useCallback(({ item }) => (
-        <TransactionCard item={item} onRevertPress={handleOpenRevert} />
+        <TransactionCard item={item} onRevertPress={handleOpenRevert} onExpiredPress={handleExpiredRevert} />
     ), []);
 
     const keyExtractor = useCallback((item) => item.id?.toString() ?? Math.random().toString(), []);
@@ -136,7 +164,7 @@ const TransactionsScreen = ({ navigation, route }) => {
         if (!pagination || pagination.page >= pagination.pages) return null;
         return (
             <View style={styles.footerLoader}>
-                <ActivityIndicator size="small" color={COLORS.primary} />
+                <ActivityIndicator size="small" color={BANK.primary} />
             </View>
         );
     };
@@ -144,9 +172,7 @@ const TransactionsScreen = ({ navigation, route }) => {
     const renderHeader = () => (
         <View>
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                    <Text style={styles.backText}>← Volver</Text>
-                </TouchableOpacity>
+                <HeaderMenuButton navigation={navigation} style={styles.backBtn} />
                 <Text style={styles.title}>
                     {accountNumber ? `Movimientos: ${accountNumber}` : 'Historial de Transacciones'}
                 </Text>
@@ -158,18 +184,15 @@ const TransactionsScreen = ({ navigation, route }) => {
         </View>
     );
 
-    if (loading && transactions.length === 0) return <LoadingSpinner />;
-
     if (error) {
         return (
             <SafeAreaView style={styles.safe}>
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                        <Text style={styles.backText}>← Volver</Text>
-                    </TouchableOpacity>
+                    <HeaderMenuButton navigation={navigation} style={styles.backBtn} />
                     <Text style={styles.title}>Historial de Transacciones</Text>
                 </View>
                 <EmptyState message={error} />
+                <BottomNavBar navigation={navigation} />
             </SafeAreaView>
         );
     }
@@ -183,15 +206,15 @@ const TransactionsScreen = ({ navigation, route }) => {
                 ListHeaderComponent={renderHeader}
                 ListFooterComponent={renderFooter}
                 ListEmptyComponent={
-                    <EmptyState message="No hay transacciones registradas aún." />
+                    !loading && <EmptyState message="No hay transacciones registradas aún." />
                 }
                 contentContainerStyle={styles.list}
                 refreshControl={
                     <RefreshControl
                         refreshing={refreshing}
                         onRefresh={refresh}
-                        colors={[COLORS.primary]}
-                        tintColor={COLORS.primary}
+                        colors={[BANK.primary]}
+                        tintColor={BANK.primary}
                     />
                 }
                 onEndReached={loadMore}
@@ -207,79 +230,18 @@ const TransactionsScreen = ({ navigation, route }) => {
                 setReason={setRevertReason}
                 transactionId={selectedTx?.id}
             />
+
+            <InfoModal
+                visible={infoModal.visible}
+                type={infoModal.type}
+                title={infoModal.title}
+                message={infoModal.message}
+                onClose={closeInfoModal}
+            />
+
+            <BottomNavBar navigation={navigation} />
         </SafeAreaView>
     );
 };
-
-// ── Styles ────────────────────────────────────────────────────────────────────
-const styles = StyleSheet.create({
-    safe: {
-        flex: 1,
-        backgroundColor: COLORS.background,
-    },
-    list: {
-        paddingBottom: SPACING.xxl,
-    },
-    header: {
-        padding: SPACING.lg,
-        paddingBottom: SPACING.sm,
-    },
-    backBtn: {
-        marginBottom: SPACING.sm,
-    },
-    backText: {
-        fontSize: FONT_SIZE.sm,
-        color: COLORS.primary,
-        fontWeight: '600',
-    },
-    title: {
-        fontSize: FONT_SIZE.xl,
-        fontWeight: 'bold',
-        color: COLORS.text,
-        marginBottom: SPACING.xs,
-    },
-    count: {
-        fontSize: FONT_SIZE.xs,
-        color: COLORS.textLight,
-    },
-    footerLoader: {
-        paddingVertical: SPACING.md,
-        alignItems: 'center',
-    },
-});
-
-const strip = StyleSheet.create({
-    container: {
-        flexDirection: 'row',
-        marginHorizontal: SPACING.lg,
-        marginBottom: SPACING.md,
-        backgroundColor: COLORS.surface,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: COLORS.border,
-        ...SHADOWS.sm,
-    },
-    item: {
-        flex: 1,
-        alignItems: 'center',
-        paddingVertical: SPACING.md,
-    },
-    divider: {
-        width: 1,
-        backgroundColor: COLORS.border,
-        marginVertical: SPACING.sm,
-    },
-    label: {
-        fontSize: 10,
-        color: COLORS.textLight,
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
-        marginBottom: 4,
-    },
-    value: {
-        fontSize: FONT_SIZE.sm,
-        fontWeight: 'bold',
-    },
-});
 
 export default TransactionsScreen;

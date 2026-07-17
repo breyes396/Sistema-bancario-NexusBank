@@ -1,11 +1,12 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { Card } from '../../../shared/components/common/Common';
-import { COLORS, SPACING, FONT_SIZE } from '../../../shared/constants/theme';
+import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 import { isIncome } from '../hooks/useTransactions';
+import { card } from '../screens/TransactionsScreen.styles';
 
-const INCOME_COLOR = '#1A6637';
-const EXPENSE_COLOR = '#7A1A1A';
+const INCOME_COLOR = BANK.income;
+const EXPENSE_COLOR = BANK.expense;
 
 const STATUS_LABELS = {
     COMPLETADA: 'Completada',
@@ -15,9 +16,9 @@ const STATUS_LABELS = {
 };
 
 const STATUS_COLORS = {
-    COMPLETADA: COLORS.success,
-    PENDIENTE: COLORS.warning,
-    FALLIDA: COLORS.error,
+    COMPLETADA: BANK.success,
+    PENDIENTE: BANK.warning,
+    FALLIDA: BANK.error,
     REVERTIDA: '#d63a3a',
 };
 
@@ -44,13 +45,15 @@ const formatAmount = (amount, type) => {
     return isIncome(type) ? `+Q${num}` : `-Q${num}`;
 };
 
+const REVERT_WINDOW_MS = 10 * 60 * 1000; // 10 minutos
+
 const isWithinRevertWindow = (dateStr) => {
     if (!dateStr) return false;
     const created = new Date(dateStr).getTime();
-    return (Date.now() - created) <= 60000; // 60 seconds
+    return (Date.now() - created) <= REVERT_WINDOW_MS;
 };
 
-const TransactionCard = ({ item, onRevertPress }) => {
+const TransactionCard = ({ item, onRevertPress, onExpiredPress }) => {
     const income = isIncome(item.type);
     const amountColor =
         item.status === 'REVERTIDA' ? STATUS_COLORS.REVERTIDA
@@ -112,12 +115,11 @@ const TransactionCard = ({ item, onRevertPress }) => {
                             card.revertBtn,
                             !activeRevert && card.revertBtnDisabled
                         ]}
-                        disabled={!activeRevert}
-                        onPress={() => onRevertPress(item)}
+                        onPress={() => (activeRevert ? onRevertPress(item) : onExpiredPress())}
                         activeOpacity={0.7}
                     >
                         <Text style={[card.revertBtnText, !activeRevert && card.revertBtnTextDisabled]}>
-                            {activeRevert ? 'Solicitar Reversión' : 'Reversión Expirada (1m)'}
+                            {activeRevert ? 'Solicitar Reversión' : 'Reversión Expirada'}
                         </Text>
                     </TouchableOpacity>
                 </View>
@@ -125,105 +127,5 @@ const TransactionCard = ({ item, onRevertPress }) => {
         </Card>
     );
 };
-
-const card = StyleSheet.create({
-    container: {
-        marginHorizontal: SPACING.lg,
-        marginBottom: SPACING.sm,
-    },
-    row: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: SPACING.xs,
-    },
-    badge: {
-        paddingHorizontal: SPACING.sm,
-        paddingVertical: 3,
-        borderRadius: 6,
-    },
-    badgeIncome: {
-        backgroundColor: INCOME_COLOR + '18',
-    },
-    badgeExpense: {
-        backgroundColor: EXPENSE_COLOR + '18',
-    },
-    badgeText: {
-        fontSize: FONT_SIZE.xs,
-        fontWeight: '700',
-    },
-    date: {
-        fontSize: FONT_SIZE.xs,
-        color: COLORS.textLight,
-    },
-    accountWrap: {
-        flex: 1,
-        marginRight: SPACING.sm,
-    },
-    accountLabel: {
-        fontSize: 10,
-        color: COLORS.textLight,
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
-    },
-    accountValue: {
-        fontSize: FONT_SIZE.sm,
-        color: COLORS.text,
-        fontWeight: '500',
-    },
-    amount: {
-        fontSize: FONT_SIZE.lg,
-        fontWeight: 'bold',
-    },
-    id: {
-        fontSize: 10,
-        color: COLORS.textLight,
-        flex: 1,
-        marginRight: SPACING.sm,
-    },
-    statusBadge: {
-        paddingHorizontal: SPACING.sm,
-        paddingVertical: 2,
-        borderRadius: 6,
-    },
-    statusText: {
-        fontSize: 10,
-        fontWeight: '700',
-    },
-    description: {
-        fontSize: FONT_SIZE.xs,
-        color: COLORS.textLight,
-        marginTop: SPACING.xs,
-        borderTopWidth: 1,
-        borderTopColor: COLORS.border,
-        paddingTop: SPACING.xs,
-    },
-    revertContainer: {
-        marginTop: SPACING.sm,
-        paddingTop: SPACING.xs,
-        borderTopWidth: 1,
-        borderTopColor: COLORS.border,
-    },
-    revertBtn: {
-        backgroundColor: '#fffbeb',
-        borderWidth: 1,
-        borderColor: '#fef3c7',
-        borderRadius: 8,
-        paddingVertical: 6,
-        alignItems: 'center',
-    },
-    revertBtnDisabled: {
-        backgroundColor: COLORS.background,
-        borderColor: COLORS.border,
-    },
-    revertBtnText: {
-        fontSize: 11,
-        fontWeight: '700',
-        color: '#b45309',
-    },
-    revertBtnTextDisabled: {
-        color: COLORS.textLight,
-    },
-});
 
 export default TransactionCard;

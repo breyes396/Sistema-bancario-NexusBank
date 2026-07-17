@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { DARK } from '../../../shared/constants/theme';
+import { BANK_DARK as DARK } from '../../../shared/constants/colors';
 import { formatBalance } from '../../accounts/utils/accountHelpers';
 import { isIncome, TYPE_LABELS } from '../../transactions/hooks/useTransactions';
 import { formatMovementDate } from '../../../shared/utils/dateHelpers';
@@ -9,14 +9,16 @@ import styles from '../screens/DashboardScreen.styles';
 
 const RECENT_MOVEMENTS_LIMIT = 5;
 
-const RecentMovements = ({ transactions, loading }) => {
+const RecentMovements = ({ transactions, loading, navigation }) => {
     const recentMovements = transactions.slice(0, RECENT_MOVEMENTS_LIMIT);
+
+    const goToHistory = () => navigation?.navigate('MainTabs', { screen: 'Historial' });
 
     return (
         <>
             <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Movimientos recientes</Text>
-                <TouchableOpacity onPress={() => console.log('Movimientos: Ver todo')} activeOpacity={0.7}>
+                <TouchableOpacity onPress={goToHistory} activeOpacity={0.7}>
                     <Text style={styles.sectionLink}>Ver todo</Text>
                 </TouchableOpacity>
             </View>

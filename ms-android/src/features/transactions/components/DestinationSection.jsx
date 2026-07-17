@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import Input from '../../../shared/components/common/Input';
-import { COLORS } from '../../../shared/constants/theme';
+import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 import styles from '../screens/TransferScreen.styles';
 
 const RECIPIENT_TYPES = [
@@ -55,7 +55,7 @@ const DestinationSection = ({
                         onPress={onOpenFavoritePicker}
                         activeOpacity={0.7}
                     >
-                        <Feather name="star" size={14} color={COLORS.primary} />
+                        <Feather name="star" size={14} color={BANK.accent} />
                         <Text style={styles.favoritesShortcutText}>Favoritos</Text>
                     </TouchableOpacity>
                 ) : null}

@@ -1,10 +1,11 @@
 import { StyleSheet } from 'react-native';
-import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme';
+import { SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme';
+import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 
 export default StyleSheet.create({
     safe: {
         flex: 1,
-        backgroundColor: COLORS.background,
+        backgroundColor: BANK.background,
     },
     container: {
         padding: SPACING.lg,
@@ -18,18 +19,18 @@ export default StyleSheet.create({
     },
     backText: {
         fontSize: FONT_SIZE.sm,
-        color: COLORS.primary,
+        color: BANK.primary,
         fontWeight: '600',
     },
     title: {
         fontSize: FONT_SIZE.xxl,
         fontWeight: 'bold',
-        color: COLORS.text,
+        color: BANK.text,
         marginBottom: SPACING.xs,
     },
     subtitle: {
         fontSize: FONT_SIZE.sm,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
         lineHeight: 20,
     },
     section: {
@@ -44,7 +45,7 @@ export default StyleSheet.create({
     label: {
         fontSize: FONT_SIZE.sm,
         fontWeight: '600',
-        color: COLORS.text,
+        color: BANK.text,
     },
     favoritesShortcut: {
         flexDirection: 'row',
@@ -54,43 +55,43 @@ export default StyleSheet.create({
     favoritesShortcutText: {
         fontSize: FONT_SIZE.xs,
         fontWeight: '600',
-        color: COLORS.primary,
+        color: BANK.primary,
     },
     picker: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         borderWidth: 1,
-        borderColor: COLORS.border,
+        borderColor: BANK.border,
         borderRadius: 10,
         paddingVertical: SPACING.sm + 2,
         paddingHorizontal: SPACING.md,
-        backgroundColor: COLORS.surface,
+        backgroundColor: BANK.surface,
     },
     pickerError: {
-        borderColor: COLORS.error,
+        borderColor: BANK.error,
     },
     pickerValue: {
         fontSize: FONT_SIZE.md,
-        color: COLORS.text,
+        color: BANK.text,
         fontWeight: '500',
     },
     pickerSub: {
         fontSize: FONT_SIZE.xs,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
         marginTop: 2,
     },
     pickerPlaceholder: {
         fontSize: FONT_SIZE.md,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
     },
     pickerArrow: {
         fontSize: 12,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
     },
     toggleRow: {
         flexDirection: 'row',
-        backgroundColor: COLORS.border,
+        backgroundColor: BANK.border,
         borderRadius: 10,
         padding: 4,
     },
@@ -101,30 +102,205 @@ export default StyleSheet.create({
         borderRadius: 8,
     },
     toggleBtnActive: {
-        backgroundColor: COLORS.surface,
+        backgroundColor: BANK.surface,
         ...SHADOWS.sm,
     },
     toggleBtnText: {
         fontSize: FONT_SIZE.sm,
         fontWeight: '600',
-        color: COLORS.textLight,
+        color: BANK.textMuted,
     },
     toggleBtnTextActive: {
-        color: COLORS.primary,
+        color: BANK.primary,
     },
     errorText: {
         fontSize: FONT_SIZE.xs,
-        color: COLORS.error,
+        color: BANK.error,
         marginTop: SPACING.xs,
     },
     errorCard: {
-        backgroundColor: '#fef2f2',
-        borderColor: COLORS.error,
+        backgroundColor: BANK.surface,
+        borderColor: BANK.error,
         marginBottom: SPACING.md,
     },
     errorCardText: {
-        color: COLORS.error,
+        color: BANK.error,
         fontSize: FONT_SIZE.sm,
         textAlign: 'center',
+    },
+    currencyRow: {
+        flexDirection: 'row',
+        gap: SPACING.sm,
+        paddingVertical: 2,
+    },
+    currencyChip: {
+        paddingVertical: SPACING.sm,
+        paddingHorizontal: SPACING.md,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: BANK.border,
+        backgroundColor: BANK.surface,
+    },
+    currencyChipActive: {
+        borderColor: BANK.primary,
+        backgroundColor: BANK.primary + '22',
+    },
+    currencyChipText: {
+        fontSize: FONT_SIZE.sm,
+        fontWeight: '600',
+        color: BANK.textMuted,
+    },
+    currencyChipTextActive: {
+        color: BANK.primary,
+    },
+    currencyPreviewLoader: {
+        marginTop: SPACING.xs,
+        alignSelf: 'flex-start',
+    },
+    currencyPreviewText: {
+        fontSize: FONT_SIZE.xs,
+        color: BANK.accent,
+        marginTop: SPACING.xs,
+    },
+});
+
+// ── AccountPickerModal (used only by TransferScreen) ────────────────────────────
+export const accountPicker = StyleSheet.create({
+    overlay: {
+        flex: 1,
+        backgroundColor: 'rgba(5,15,34,0.5)',
+        justifyContent: 'flex-end',
+    },
+    sheet: {
+        backgroundColor: BANK.surface,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        maxHeight: '60%',
+        paddingBottom: SPACING.xl,
+        ...SHADOWS.md,
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: SPACING.lg,
+        borderBottomWidth: 1,
+        borderBottomColor: BANK.border,
+    },
+    title: {
+        fontSize: FONT_SIZE.lg,
+        fontWeight: 'bold',
+        color: BANK.text,
+    },
+    close: {
+        fontSize: FONT_SIZE.lg,
+        color: BANK.textMuted,
+        paddingHorizontal: SPACING.sm,
+    },
+    item: {
+        paddingVertical: SPACING.md,
+        paddingHorizontal: SPACING.lg,
+        borderBottomWidth: 1,
+        borderBottomColor: BANK.border,
+    },
+    itemSelected: {
+        backgroundColor: BANK.accentLight + '33',
+    },
+    itemNumber: {
+        fontSize: FONT_SIZE.md,
+        color: BANK.text,
+        fontWeight: '600',
+    },
+    itemSub: {
+        fontSize: FONT_SIZE.xs,
+        color: BANK.textMuted,
+        marginTop: 2,
+    },
+});
+
+// ── SecurityConfirmModal (used only by TransferScreen) ──────────────────────────
+export const securityModal = StyleSheet.create({
+    overlay: {
+        flex: 1,
+        backgroundColor: 'rgba(5,15,34,0.65)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: SPACING.lg,
+    },
+    card: {
+        width: '100%',
+        backgroundColor: BANK.surface,
+        borderRadius: 16,
+        padding: SPACING.lg,
+        ...SHADOWS.md,
+    },
+    title: {
+        fontSize: FONT_SIZE.lg,
+        fontWeight: 'bold',
+        color: BANK.text,
+        marginBottom: SPACING.xs,
+        textAlign: 'center',
+    },
+    subtitle: {
+        fontSize: FONT_SIZE.sm,
+        color: BANK.textMuted,
+        lineHeight: 18,
+        textAlign: 'center',
+        marginBottom: SPACING.md,
+    },
+    details: {
+        backgroundColor: BANK.background,
+        borderRadius: 10,
+        padding: SPACING.md,
+        marginBottom: SPACING.md,
+        borderWidth: 1,
+        borderColor: BANK.border,
+    },
+    detailRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingVertical: 4,
+    },
+    detailLabel: {
+        fontSize: FONT_SIZE.sm,
+        color: BANK.textMuted,
+    },
+    detailValue: {
+        fontSize: FONT_SIZE.sm,
+        fontWeight: '600',
+        color: BANK.text,
+    },
+    amountValue: {
+        color: BANK.primary,
+        fontWeight: 'bold',
+    },
+    btnRow: {
+        flexDirection: 'row',
+        gap: SPACING.sm,
+        marginTop: SPACING.md,
+    },
+    btn: {
+        flex: 1,
+        paddingVertical: SPACING.sm + 4,
+        borderRadius: 10,
+        alignItems: 'center',
+    },
+    btnCancel: {
+        borderWidth: 1,
+        borderColor: BANK.border,
+        backgroundColor: BANK.surface,
+    },
+    btnCancelText: {
+        fontSize: FONT_SIZE.md,
+        color: BANK.textMuted,
+        fontWeight: '600',
+    },
+    btnConfirm: {
+        backgroundColor: BANK.primary,
+    },
+    btnConfirmText: {
+        fontSize: FONT_SIZE.md,
+        color: BANK.onPrimary,
+        fontWeight: '600',
     },
 });

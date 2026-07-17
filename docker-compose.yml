@@ -29,7 +29,7 @@ services:
     ports:
       - "3007:3007"
     env_file:
-      - ./ms-postgres/.env.docker
+      - ./ms-postgres/.env
     depends_on:
       - postgres-db
       - mongo-db
@@ -43,7 +43,7 @@ services:
     ports:
       - "3006:3006"
     env_file:
-      - ./ms-mongo/.env.docker
+      - ./ms-mongo/.env
     depends_on:
       - mongo-db
     restart: unless-stopped

@@ -30,6 +30,75 @@ export const sendEmail = async (to, subject, html) => {
     try {
         const fromAddress = process.env.EMAIL_FROM || config.smtp.from || process.env.SMTP_USERNAME;
         const fromName = process.env.EMAIL_FROM_NAME || 'NexusBank';
+        const brevoApiKey = process.env.BREVO_API_KEY;
+        const resendApiKey = process.env.RESEND_API_KEY;
+
+        // Intentar Brevo primero si está configurado
+        if (brevoApiKey) {
+            try {
+                console.log('→ Intentando enviar email mediante API de Brevo...');
+                const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+                    method: 'POST',
+                    headers: {
+                        'accept': 'application/json',
+                        'api-key': brevoApiKey,
+                        'content-type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        sender: {
+                            name: fromName,
+                            email: fromAddress
+                        },
+                        to: [{ email: to }],
+                        subject: subject,
+                        htmlContent: html
+                    })
+                });
+
+                const resData = await response.json();
+                if (response.ok) {
+                    console.log('✓ Email enviado por Brevo:', resData);
+                    return { success: true, messageId: resData.messageId || resData.id };
+                } else {
+                    console.error('Error de API Brevo:', resData);
+                }
+            } catch (brevoErr) {
+                console.error('Error de conexión con Brevo:', brevoErr.message);
+            }
+            console.log('Procediendo a intentar Resend/SMTP como fallback...');
+        }
+
+        // Intentar Resend si está configurado
+        if (resendApiKey) {
+            try {
+                console.log('→ Intentando enviar email mediante API de Resend...');
+                const fromEmail = process.env.EMAIL_FROM || 'onboarding@resend.dev';
+                const response = await fetch('https://api.resend.com/emails', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${resendApiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        from: fromEmail.includes('onboarding@resend.dev') ? `NexusBank <onboarding@resend.dev>` : `"${fromName}" <${fromEmail}>`,
+                        to: [to],
+                        subject,
+                        html
+                    })
+                });
+
+                const resData = await response.json();
+                if (response.ok) {
+                    console.log('✓ Email enviado por Resend:', resData);
+                    return { success: true, messageId: resData.id };
+                } else {
+                    console.error('Error de API Resend:', resData);
+                }
+            } catch (resendErr) {
+                console.error('Error de conexión con Resend:', resendErr.message);
+            }
+            console.log('Procediendo a intentar SMTP como fallback...');
+        }
 
         console.log('→ Intentando enviar email a:', to);
         try {
@@ -92,7 +161,7 @@ export const sendEmail = async (to, subject, html) => {
 };
 
 export const sendVerificationEmail = async (email, name, token) => {
-    const verificationUrl = `${config.frontendUrl}/verify-email?token=${encodeURIComponent(token)}`;
+    const verificationUrl = `${config.frontendUrl}/#/verify-email?token=${encodeURIComponent(token)}`;
     
     const html = `
         <!DOCTYPE html>

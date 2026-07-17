@@ -20,5 +20,5 @@ export default {
     pass: process.env.SMTP_PASSWORD,
     from: process.env.EMAIL_FROM || process.env.SMTP_USERNAME
   },
-  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173'
+  frontendUrl: process.env.FRONTEND_URL || 'https://sistema-bancario-nexusbank.onrender.com'
 };

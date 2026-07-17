@@ -18,7 +18,7 @@
 .btn-cta { background: var(--nb-gold); color:#082238; padding:10px 16px; border-radius:4px; font-weight:800; text-decoration:none; transition: filter 180ms ease, transform 180ms ease }
 .btn-cta:hover { filter: brightness(1.05); transform: translateY(-1px) }
 
-.home-hero { background: url('/src/assets/img/MenuPrincipal.png') right 50% / cover no-repeat; background-color:#07111d; color:#fff; padding:240px 0 120px }
+.home-hero { background: url('/src/assets/img/Menuprincipal.png') right 50% / cover no-repeat; background-color:#07111d; color:#fff; padding:240px 0 120px }
 .home-hero-inner { max-width:1200px; margin:0 auto; display:flex; gap:36px; align-items:center }
 .hero-left { flex:1; max-width: 610px }
 .kicker { color:var(--nb-gold); font-weight:700; letter-spacing:0.08em; margin-bottom:10px; text-transform:uppercase }

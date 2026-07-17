@@ -158,6 +158,36 @@ export const clientAccountService = {
     }
   },
 
+  // Solicitar la reversión de una transferencia/depósito: queda PENDIENTE
+  // hasta que un administrador la apruebe o rechace.
+  createReversalRequest: async (payload) => {
+    try {
+      const response = await axiosClientFallback.post('/accounts/reversal-requests', payload, {
+        headers: {
+          ...getAuthHeaders(),
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error creating reversal request:', error);
+      throw error;
+    }
+  },
+
+  getMyReversalRequests: async () => {
+    try {
+      const response = await axiosClientFallback.get('/accounts/reversal-requests', {
+        headers: {
+          ...getAuthHeaders(),
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching reversal requests:', error);
+      throw error;
+    }
+  },
+
   // Obtener historial completo de movimientos con filtros y paginación
   getAccountHistory: async (filters = {}) => {
     try {

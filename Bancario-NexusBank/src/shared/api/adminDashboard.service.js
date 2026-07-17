@@ -196,6 +196,38 @@ export const adminDashboardService = {
     }
   },
 
+  listReversalRequests: async (status) => {
+    try {
+      const response = await adminRequest('get', '/admin/reversal-requests', {
+        params: status ? { status } : undefined,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error listing reversal requests:', error);
+      throw error;
+    }
+  },
+
+  approveReversalRequest: async (id) => {
+    try {
+      const response = await adminRequest('put', `/admin/reversal-requests/${id}/approve`);
+      return response.data;
+    } catch (error) {
+      console.error('Error approving reversal request:', error);
+      throw error;
+    }
+  },
+
+  rejectReversalRequest: async (id, comment) => {
+    try {
+      const response = await adminRequest('put', `/admin/reversal-requests/${id}/reject`, { comment });
+      return response.data;
+    } catch (error) {
+      console.error('Error rejecting reversal request:', error);
+      throw error;
+    }
+  },
+
   approveAccount: async (id) => {
     try {
       const response = await adminRequest('post', `/admin/accounts/${id}/enable`);

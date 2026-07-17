@@ -23,6 +23,7 @@ import notificationRoutes from '../src/notifications/notification.routes.js';
 import depositRoutes from '../src/deposit/deposit.routes.js';
 import depositEmployeeRoutes from '../src/deposit/depositEmployee.routes.js';
 import transactionRoutes from '../src/transaction/transaction.routes.js';
+import reversalRoutes from '../src/reversal/reversal.routes.js';
 import userRoutes from '../src/user/user.routes.js';
 import { editOwnProfile } from '../src/user/user.controller.js';
 import { sendEmail } from '../services/email.service.js';
@@ -94,6 +95,7 @@ export const createApp = () => {
   app.use(`${BASE_PATH}`, depositRoutes);
   app.use(`${BASE_PATH}`, depositEmployeeRoutes);
   app.use(`${BASE_PATH}`, transactionRoutes);
+  app.use(`${BASE_PATH}`, reversalRoutes);
   app.put(`${BASE_PATH}/profile/edit`, verifyTokenAndGetUser, validateEditOwnProfile, editOwnProfile);
   app.use(`${BASE_PATH}/user`, userRoutes);
   app.use(`${BASE_PATH}/users`, userRoutes);

@@ -4,6 +4,7 @@ import { Role, UserRole } from '../src/auth/role.model.js';
 import { Account } from '../src/account/account.model.js';
 import { AccountRequest } from '../src/account/accountRequest.model.js';
 import { Transaction } from '../src/transaction/transaction.model.js';
+import { ReversalRequest } from '../src/reversal/reversalRequest.model.js';
 import { AuditEvent } from '../src/audit/auditEvent.model.js';
 import Notification from '../src/notifications/notification.model.js';
 
@@ -99,6 +100,16 @@ export function initializeAssociations() {
     AccountRequest.belongsTo(User, { 
         foreignKey: 'userId', 
         as: 'User' 
+    });
+
+    User.hasMany(ReversalRequest, {
+        foreignKey: 'userId',
+        as: 'ReversalRequests',
+        onDelete: 'CASCADE'
+    });
+    ReversalRequest.belongsTo(User, {
+        foreignKey: 'userId',
+        as: 'User'
     });
 
     Account.hasMany(Transaction, {

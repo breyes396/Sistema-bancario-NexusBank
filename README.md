@@ -25,12 +25,23 @@ Ademas, incluye controles de seguridad por JWT, validacion de roles, rate limite
 - `ms-mongo/`: Microservicio MongoDB (catalogo, favoritos, seguridad)
 - `ms-postgres/`: Microservicio PostgreSQL (auth, usuarios, cuentas, transacciones)
 
-## Credenciales de Inicio
-Administrador por defecto (entorno local):
-- Email: `adminb@nexusbank.com`
-- Password: `ADMINB`
+## 🔐 Credenciales de Inicio (Entorno Local)
 
-Recomendacion: cambiar credenciales en ambientes no locales.
+El sistema se inicializa automáticamente con dos usuarios de prueba predeterminados para la validación de roles en Swagger, Postman, la aplicación móvil y el panel de administración:
+
+### 1. Administrador (Admin)
+- **Email:** `adminb@nexusbank.com`
+- **Username:** `ADMINB`
+- **Password:** `ADMINB`
+
+### 2. Empleado (Employee)
+- **Email:** `empleado@nexusbank.com`
+- **Username:** `EMPLEADO1`
+- **Password:** `EMPLEADO1`
+
+> [!WARNING]
+> Estas credenciales son únicamente para el ambiente de desarrollo local. Se recomienda cambiarlas en ambientes de staging o producción.
+
 
 ## Configuracion Tecnica
 ### Importante
@@ -90,36 +101,102 @@ ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000,http://localhost:300
 ADMIN_ALLOWED_ORIGINS=http://localhost:5173
 ```
 
-## Levantar el Proyecto
-### Requisitos
-- Node.js LTS
-- pnpm
-- Docker + Docker Compose
+## 🐳 Levantar el Proyecto (Manual de Instalación con Docker)
 
-### Comandos sugeridos
-```bash
-docker compose up -d
-```
+Esta guía te permitirá levantar todo el ecosistema de **NexusBank** (Base de datos PostgreSQL, MongoDB, microservicios backend, aplicación web frontend y Metro Bundler para la aplicación móvil) con un solo comando utilizando **Docker Compose**.
 
-En cada servicio backend:
-```bash
-cd ms-mongo
-pnpm install
-pnpm run dev
-```
+### Requisitos Previos
+- Tener instalado **Docker Desktop** (con Docker Compose).
+- Si vas a probar en un emulador o dispositivo móvil físico, asegúrate de tener el **Android SDK / Xcode** o **Expo Go** instalado.
+
+---
+
+### Paso 1: Levantar los contenedores con Docker Compose
+Desde la raíz del proyecto, ejecuta el siguiente comando para construir e iniciar todos los servicios en segundo plano:
 
 ```bash
-cd ms-postgres
-pnpm install
-pnpm run dev
+docker compose up --build -d
 ```
 
-Frontend:
+Esto levantará los siguientes servicios y puertos:
+- **`postgres-db`**: Base de datos relacional (PostgreSQL) expuesta en el puerto `5435`.
+- **`mongo-db`**: Base de datos no relacional (MongoDB) expuesta en el puerto `27017`.
+- **`postgres-service`**: Microservicio backend Postgres (Auth, Cuentas, Usuarios) expuesto en el puerto `3007`.
+- **`mongo-service`**: Microservicio backend Mongo (Catálogo, Favoritos, Auditoría) expuesto en el puerto `3006`.
+- **`frontend`**: Aplicación web frontend (React + Vite) accesible desde tu navegador en el puerto `80` (ej. `http://localhost`).
+- **`ms-android`**: Servidor de desarrollo Metro de Expo (App Móvil React Native) expuesto en el puerto `8081`.
+
+Para ver los logs de todos los servicios en ejecución, puedes usar:
 ```bash
-cd Bancario-NexusBank
-npm install
-npm run dev
+docker compose logs -f
 ```
+
+---
+
+### Paso 2: Configuración y Conexión de la App Móvil (`ms-android`)
+
+Dado que la aplicación móvil corre a través de Expo Metro Bundler dentro de Docker, sigue estas instrucciones según tu entorno de pruebas para poder depurar y correr la app:
+
+#### Opción A: Pruebas con Emulador de Android (Recomendado)
+1. **Redirección de Puertos (adb reverse)**:
+   Abre una terminal en tu máquina host (anfitrión) y ejecuta el siguiente comando para que el emulador pueda conectarse al Metro Bundler que corre en Docker:
+   ```bash
+   adb reverse tcp:8081 tcp:8081
+   ```
+2. **Redirección de APIs locales**:
+   Para que el emulador pueda comunicarse con los servicios de backend expuestos localmente en los puertos `3007` y `3006`, ejecuta también:
+   ```bash
+   adb reverse tcp:3007 tcp:3007
+   adb reverse tcp:3006 tcp:3006
+   ```
+3. **Archivo de variables de entorno**:
+   Asegúrate de que el archivo `ms-android/.env` tenga las variables de conexión correctas hacia local en lugar de las URL públicas de Render si deseas pruebas completamente locales:
+   ```env
+   EXPO_PUBLIC_API_URL=http://localhost:3007/api/v1
+   EXPO_PUBLIC_MONGO_API_URL=http://localhost:3006/api/v1
+   EXPO_ROUTER_DISABLE_RN_NAVIGATION_CHECK=1
+   ```
+
+#### Opción B: Pruebas con Dispositivo Físico (Expo Go)
+1. **Modificar `.env` móvil**:
+   Abre `ms-android/.env` en tu computadora y reemplaza las URLs por la dirección IP local de tu máquina host (por ejemplo, `192.168.1.15`):
+   ```env
+   EXPO_PUBLIC_API_URL=http://192.168.1.15:3007/api/v1
+   EXPO_PUBLIC_MONGO_API_URL=http://192.168.1.15:3006/api/v1
+   EXPO_ROUTER_DISABLE_RN_NAVIGATION_CHECK=1
+   ```
+2. **Escaneo del QR**:
+   Abre la consola de Docker o ejecuta `docker compose logs -f ms-android`. Expo generará un código QR y un enlace Metro en la consola. Escanea el código QR utilizando la app **Expo Go** en tu celular (ambos dispositivos deben estar conectados a la misma red Wi-Fi).
+
+---
+
+### Opción Alternativa: Levantar los servicios manualmente (Sin Docker)
+Si necesitas desarrollar y prefieres correr los servicios localmente sin contenedores:
+
+1. **Microservicio Mongo**:
+   ```bash
+   cd ms-mongo
+   pnpm install
+   pnpm run dev
+   ```
+2. **Microservicio Postgres**:
+   ```bash
+   cd ms-postgres
+   pnpm install
+   pnpm run dev
+   ```
+3. **Aplicación Web Frontend**:
+   ```bash
+   cd Bancario-NexusBank
+   npm install
+   npm run dev
+   ```
+4. **Aplicación Móvil**:
+   ```bash
+   cd ms-android
+   pnpm install
+   pnpm start
+   ```
 
 Base URL local API por microservicio:
 - `ms-postgres`: `http://localhost:3006/api/v1`

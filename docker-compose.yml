@@ -63,6 +63,18 @@ services:
       - mongo-service
     restart: unless-stopped
 
+  ms-android:
+    build:
+      context: .
+      dockerfile: ms-android/Dockerfile
+    container_name: nexusbank-ms-android
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres-service
+      - mongo-service
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   mongo_data:

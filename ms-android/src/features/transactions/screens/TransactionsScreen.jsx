@@ -1,103 +1,28 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import {
     View,
     Text,
-    StyleSheet,
     FlatList,
     RefreshControl,
-    TouchableOpacity,
     ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
     useTransactions,
-    isIncome,
-    TYPE_LABELS,
-    STATUS_LABELS,
 } from '../hooks/useTransactions';
-import { LoadingSpinner, EmptyState, Card } from '../../../shared/components/common/Common';
-import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme';
+import { useReversions } from '../hooks/useReversions';
+import { EmptyState } from '../../../shared/components/common/Common';
+import InfoModal from '../../../shared/components/common/InfoModal';
+import HeaderMenuButton from '../../../shared/components/common/HeaderMenuButton';
+import BottomNavBar from '../../../shared/components/common/BottomNavBar';
+import { BANK_DARK as BANK } from '../../../shared/constants/colors';
+import TransactionCard from '../components/TransactionCard';
+import RevertReasonModal from '../components/RevertReasonModal';
+import styles, { strip } from './TransactionsScreen.styles';
 
 // Colors consistent with web app
 const INCOME_COLOR = '#1A6637';
 const EXPENSE_COLOR = '#7A1A1A';
-
-const STATUS_COLORS = {
-    COMPLETADA: COLORS.success,
-    PENDIENTE: COLORS.warning,
-    FALLIDA: COLORS.error,
-    REVERTIDA: '#d63a3a',
-};
-
-const formatDate = (dateStr) => {
-    if (!dateStr) return '—';
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('es-GT', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-    }) + ' ' + d.toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' });
-};
-
-const formatAmount = (amount, type) => {
-    const num = parseFloat(amount || 0).toFixed(2);
-    return isIncome(type) ? `+Q${num}` : `-Q${num}`;
-};
-
-// ── Transaction card ──────────────────────────────────────────────────────────
-const TransactionCard = ({ item }) => {
-    const income = isIncome(item.type);
-    const amountColor =
-        item.status === 'REVERTIDA' ? STATUS_COLORS.REVERTIDA
-        : income ? INCOME_COLOR
-        : EXPENSE_COLOR;
-
-    return (
-        <Card style={card.container}>
-            {/* Row 1: type badge + date */}
-            <View style={card.row}>
-                <View style={[card.badge, income ? card.badgeIncome : card.badgeExpense]}>
-                    <Text style={[card.badgeText, { color: income ? INCOME_COLOR : EXPENSE_COLOR }]}>
-                        {TYPE_LABELS[item.type] || item.type}
-                    </Text>
-                </View>
-                <Text style={card.date}>{formatDate(item.createdAt)}</Text>
-            </View>
-
-            {/* Row 2: account + amount */}
-            <View style={card.row}>
-                <View style={card.accountWrap}>
-                    <Text style={card.accountLabel}>Cuenta</Text>
-                    <Text style={card.accountValue} numberOfLines={1}>
-                        {item.accountNumber || '—'}
-                    </Text>
-                </View>
-                <Text style={[card.amount, { color: amountColor }]}>
-                    {formatAmount(item.amount, item.type)}
-                </Text>
-            </View>
-
-            {/* Row 3: ID + status */}
-            <View style={card.row}>
-                <Text style={card.id} numberOfLines={1}>
-                    ID: {item.id || '—'}
-                </Text>
-                <View style={[card.statusBadge, { backgroundColor: STATUS_COLORS[item.status] + '22' }]}>
-                    <Text style={[card.statusText, { color: STATUS_COLORS[item.status] }]}>
-                        {STATUS_LABELS[item.status] || item.status}
-                    </Text>
-                </View>
-            </View>
-
-            {/* Description (if present) */}
-            {item.description ? (
-                <Text style={card.description} numberOfLines={1}>
-                    {item.description}
-                </Text>
-            ) : null}
-        </Card>
-    );
-};
 
 // ── Summary strip ─────────────────────────────────────────────────────────────
 const SummaryStrip = ({ summary }) => {
@@ -151,11 +76,87 @@ const TransactionsScreen = ({ navigation, route }) => {
         loadMore,
     } = useTransactions(accountId);
 
+    const { addReversion } = useReversions();
+    
+    // Reversion state
+    const [selectedTx, setSelectedTx] = useState(null);
+    const [revertReason, setRevertReason] = useState('');
+    const [revertModalVisible, setRevertModalVisible] = useState(false);
+    const [revertLoading, setRevertLoading] = useState(false);
+    const [infoModal, setInfoModal] = useState({ visible: false, type: 'success', title: '', message: '' });
+
     useEffect(() => {
         fetchTransactions({ pageNum: 1 });
     }, [fetchTransactions, accountId]);
 
-    const renderItem = useCallback(({ item }) => <TransactionCard item={item} />, []);
+    const closeInfoModal = () => setInfoModal((prev) => ({ ...prev, visible: false }));
+
+    const handleOpenRevert = (tx) => {
+        setSelectedTx(tx);
+        setRevertReason('');
+        setRevertModalVisible(true);
+    };
+
+    const handleExpiredRevert = () => {
+        setInfoModal({
+            visible: true,
+            type: 'error',
+            title: 'Reversión Expirada',
+            message: 'El tiempo para solicitar la reversión ha expirado.',
+        });
+    };
+
+    const handleConfirmRevert = async () => {
+        if (!revertReason || revertReason.trim() === '') {
+            setInfoModal({
+                visible: true,
+                type: 'error',
+                title: 'Falta el motivo',
+                message: 'Debes escribir una justificación para solicitar la reversión.',
+            });
+            return;
+        }
+
+        setRevertModalVisible(false);
+        setRevertLoading(true);
+
+        try {
+            const isTransfer = String(selectedTx.type).includes('TRANSFERENCIA');
+            await addReversion({
+                type: isTransfer ? 'TRANSFERENCIA' : 'DEPOSITO',
+                operationId: selectedTx.id,
+                reference: selectedTx.id,
+                amount: selectedTx.amount,
+                accountNumber: selectedTx.accountNumber || '',
+                sourceAccountNumber: isTransfer ? selectedTx.accountNumber : '',
+                destinationAccountNumber: isTransfer ? selectedTx.relatedAccountNumber : '',
+                operationDate: selectedTx.createdAt,
+                operationDescription: selectedTx.description || '',
+                reason: revertReason
+            });
+
+            setInfoModal({
+                visible: true,
+                type: 'success',
+                title: 'Solicitud enviada',
+                message: 'Solicitud de reversión enviada correctamente para revisión.',
+            });
+            refresh();
+        } catch (err) {
+            setInfoModal({
+                visible: true,
+                type: 'error',
+                title: 'No se pudo enviar',
+                message: err.message || 'No se pudo procesar la solicitud.',
+            });
+        } finally {
+            setRevertLoading(false);
+        }
+    };
+
+    const renderItem = useCallback(({ item }) => (
+        <TransactionCard item={item} onRevertPress={handleOpenRevert} onExpiredPress={handleExpiredRevert} />
+    ), []);
 
     const keyExtractor = useCallback((item) => item.id?.toString() ?? Math.random().toString(), []);
 
@@ -163,7 +164,7 @@ const TransactionsScreen = ({ navigation, route }) => {
         if (!pagination || pagination.page >= pagination.pages) return null;
         return (
             <View style={styles.footerLoader}>
-                <ActivityIndicator size="small" color={COLORS.primary} />
+                <ActivityIndicator size="small" color={BANK.primary} />
             </View>
         );
     };
@@ -171,9 +172,7 @@ const TransactionsScreen = ({ navigation, route }) => {
     const renderHeader = () => (
         <View>
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                    <Text style={styles.backText}>← Volver</Text>
-                </TouchableOpacity>
+                <HeaderMenuButton navigation={navigation} style={styles.backBtn} />
                 <Text style={styles.title}>
                     {accountNumber ? `Movimientos: ${accountNumber}` : 'Historial de Transacciones'}
                 </Text>
@@ -185,18 +184,15 @@ const TransactionsScreen = ({ navigation, route }) => {
         </View>
     );
 
-    if (loading) return <LoadingSpinner />;
-
     if (error) {
         return (
             <SafeAreaView style={styles.safe}>
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                        <Text style={styles.backText}>← Volver</Text>
-                    </TouchableOpacity>
+                    <HeaderMenuButton navigation={navigation} style={styles.backBtn} />
                     <Text style={styles.title}>Historial de Transacciones</Text>
                 </View>
                 <EmptyState message={error} />
+                <BottomNavBar navigation={navigation} />
             </SafeAreaView>
         );
     }
@@ -210,168 +206,42 @@ const TransactionsScreen = ({ navigation, route }) => {
                 ListHeaderComponent={renderHeader}
                 ListFooterComponent={renderFooter}
                 ListEmptyComponent={
-                    <EmptyState message="No hay transacciones registradas aún." />
+                    !loading && <EmptyState message="No hay transacciones registradas aún." />
                 }
                 contentContainerStyle={styles.list}
                 refreshControl={
                     <RefreshControl
                         refreshing={refreshing}
                         onRefresh={refresh}
-                        colors={[COLORS.primary]}
-                        tintColor={COLORS.primary}
+                        colors={[BANK.primary]}
+                        tintColor={BANK.primary}
                     />
                 }
                 onEndReached={loadMore}
                 onEndReachedThreshold={0.3}
                 showsVerticalScrollIndicator={false}
             />
+
+            <RevertReasonModal
+                visible={revertModalVisible}
+                onClose={() => setRevertModalVisible(false)}
+                onConfirm={handleConfirmRevert}
+                reason={revertReason}
+                setReason={setRevertReason}
+                transactionId={selectedTx?.id}
+            />
+
+            <InfoModal
+                visible={infoModal.visible}
+                type={infoModal.type}
+                title={infoModal.title}
+                message={infoModal.message}
+                onClose={closeInfoModal}
+            />
+
+            <BottomNavBar navigation={navigation} />
         </SafeAreaView>
     );
 };
-
-// ── Styles ────────────────────────────────────────────────────────────────────
-const styles = StyleSheet.create({
-    safe: {
-        flex: 1,
-        backgroundColor: COLORS.background,
-    },
-    list: {
-        paddingBottom: SPACING.xxl,
-    },
-    header: {
-        padding: SPACING.lg,
-        paddingBottom: SPACING.sm,
-    },
-    backBtn: {
-        marginBottom: SPACING.sm,
-    },
-    backText: {
-        fontSize: FONT_SIZE.sm,
-        color: COLORS.primary,
-        fontWeight: '600',
-    },
-    title: {
-        fontSize: FONT_SIZE.xl,
-        fontWeight: 'bold',
-        color: COLORS.text,
-        marginBottom: SPACING.xs,
-    },
-    count: {
-        fontSize: FONT_SIZE.xs,
-        color: COLORS.textLight,
-    },
-    footerLoader: {
-        paddingVertical: SPACING.md,
-        alignItems: 'center',
-    },
-});
-
-const card = StyleSheet.create({
-    container: {
-        marginHorizontal: SPACING.lg,
-        marginBottom: SPACING.sm,
-    },
-    row: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: SPACING.xs,
-    },
-    badge: {
-        paddingHorizontal: SPACING.sm,
-        paddingVertical: 3,
-        borderRadius: 6,
-    },
-    badgeIncome: {
-        backgroundColor: INCOME_COLOR + '18',
-    },
-    badgeExpense: {
-        backgroundColor: EXPENSE_COLOR + '18',
-    },
-    badgeText: {
-        fontSize: FONT_SIZE.xs,
-        fontWeight: '700',
-    },
-    date: {
-        fontSize: FONT_SIZE.xs,
-        color: COLORS.textLight,
-    },
-    accountWrap: {
-        flex: 1,
-        marginRight: SPACING.sm,
-    },
-    accountLabel: {
-        fontSize: 10,
-        color: COLORS.textLight,
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
-    },
-    accountValue: {
-        fontSize: FONT_SIZE.sm,
-        color: COLORS.text,
-        fontWeight: '500',
-    },
-    amount: {
-        fontSize: FONT_SIZE.lg,
-        fontWeight: 'bold',
-    },
-    id: {
-        fontSize: 10,
-        color: COLORS.textLight,
-        flex: 1,
-        marginRight: SPACING.sm,
-    },
-    statusBadge: {
-        paddingHorizontal: SPACING.sm,
-        paddingVertical: 2,
-        borderRadius: 6,
-    },
-    statusText: {
-        fontSize: 10,
-        fontWeight: '700',
-    },
-    description: {
-        fontSize: FONT_SIZE.xs,
-        color: COLORS.textLight,
-        marginTop: SPACING.xs,
-        borderTopWidth: 1,
-        borderTopColor: COLORS.border,
-        paddingTop: SPACING.xs,
-    },
-});
-
-const strip = StyleSheet.create({
-    container: {
-        flexDirection: 'row',
-        marginHorizontal: SPACING.lg,
-        marginBottom: SPACING.md,
-        backgroundColor: COLORS.surface,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: COLORS.border,
-        ...SHADOWS.sm,
-    },
-    item: {
-        flex: 1,
-        alignItems: 'center',
-        paddingVertical: SPACING.md,
-    },
-    divider: {
-        width: 1,
-        backgroundColor: COLORS.border,
-        marginVertical: SPACING.sm,
-    },
-    label: {
-        fontSize: 10,
-        color: COLORS.textLight,
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
-        marginBottom: 4,
-    },
-    value: {
-        fontSize: FONT_SIZE.sm,
-        fontWeight: 'bold',
-    },
-});
 
 export default TransactionsScreen;

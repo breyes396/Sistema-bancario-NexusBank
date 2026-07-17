@@ -1,10 +1,11 @@
 import { StyleSheet } from 'react-native';
-import { COLORS, SPACING, FONT_SIZE } from '../../../shared/constants/theme';
+import { SPACING, FONT_SIZE } from '../../../shared/constants/theme';
+import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 
 export default StyleSheet.create({
     safe: {
         flex: 1,
-        backgroundColor: COLORS.background,
+        backgroundColor: BANK.background,
     },
     keyboardView: {
         flex: 1,
@@ -19,36 +20,48 @@ export default StyleSheet.create({
         marginBottom: SPACING.xl,
     },
     logoCircle: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        backgroundColor: COLORS.primary,
+        width: 92,
+        height: 92,
+        borderRadius: 46,
+        backgroundColor: '#000000',
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: SPACING.sm,
+        marginBottom: SPACING.md,
+        overflow: 'hidden',
     },
-    logoText: {
-        color: '#fff',
-        fontSize: FONT_SIZE.xl,
-        fontWeight: 'bold',
+    logoImage: {
+        width: '100%',
+        height: '100%',
     },
     brandTitle: {
         fontSize: FONT_SIZE.xxl,
         fontWeight: 'bold',
-        color: COLORS.text,
+        color: BANK.text,
     },
     brandSubtitle: {
         fontSize: FONT_SIZE.sm,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
         marginTop: SPACING.xs,
     },
+    forgotLink: {
+        alignSelf: 'flex-end',
+        marginBottom: SPACING.md,
+    },
+    forgotLinkText: {
+        fontSize: FONT_SIZE.xs,
+        color: BANK.accent,
+        fontWeight: '600',
+    },
+    resendBtn: {
+        marginBottom: SPACING.sm,
+    },
     errorCard: {
-        backgroundColor: '#fef2f2',
-        borderColor: COLORS.error,
+        backgroundColor: BANK.surface,
+        borderColor: BANK.error,
         marginBottom: SPACING.md,
     },
     errorCardText: {
-        color: COLORS.error,
+        color: BANK.error,
         fontSize: FONT_SIZE.sm,
         textAlign: 'center',
     },
@@ -58,10 +71,10 @@ export default StyleSheet.create({
     },
     switchText: {
         fontSize: FONT_SIZE.sm,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
     },
     switchTextBold: {
-        color: COLORS.primary,
+        color: BANK.accent,
         fontWeight: '700',
     },
 });

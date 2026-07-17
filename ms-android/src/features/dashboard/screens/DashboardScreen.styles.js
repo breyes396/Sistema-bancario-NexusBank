@@ -1,111 +1,244 @@
 import { StyleSheet } from 'react-native';
-import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme';
+import { SPACING, FONT_SIZE } from '../../../shared/constants/theme';
+import { BANK_DARK as DARK } from '../../../shared/constants/colors';
 
 export default StyleSheet.create({
     safe: {
         flex: 1,
-        backgroundColor: COLORS.background,
+        backgroundColor: DARK.background,
     },
     container: {
         padding: SPACING.lg,
-        paddingBottom: SPACING.xxl,
+        paddingBottom: 110,
     },
+
+    // Header
     header: {
         flexDirection: 'row',
+        alignItems: 'center',
         justifyContent: 'space-between',
-        alignItems: 'flex-start',
         marginBottom: SPACING.lg,
     },
+    iconBtn: {
+        padding: SPACING.xs,
+    },
+    brand: {
+        fontSize: FONT_SIZE.lg,
+        fontWeight: '500',
+        color: DARK.text,
+    },
+    headerRight: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: SPACING.sm,
+    },
+    notifDot: {
+        position: 'absolute',
+        top: 4,
+        right: 4,
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: DARK.expense,
+        borderWidth: 1,
+        borderColor: DARK.background,
+    },
+    avatarSmall: {
+        width: 34,
+        height: 34,
+        borderRadius: 17,
+        backgroundColor: DARK.accent,
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+    },
+    avatarSmallImage: {
+        width: '100%',
+        height: '100%',
+    },
+    avatarSmallText: {
+        color: DARK.text,
+        fontSize: FONT_SIZE.sm,
+        fontWeight: '500',
+    },
+
+    // Saludo
     greeting: {
         fontSize: FONT_SIZE.xxl,
-        fontWeight: 'bold',
-        color: COLORS.text,
+        fontWeight: '500',
+        color: DARK.text,
     },
     subtitle: {
         fontSize: FONT_SIZE.sm,
-        color: COLORS.textLight,
-        marginTop: SPACING.xs,
+        fontWeight: '400',
+        color: DARK.textMuted,
+        marginTop: 2,
+        marginBottom: SPACING.lg,
     },
-    logoutBtn: {
-        paddingVertical: SPACING.xs,
-        paddingHorizontal: SPACING.sm,
+
+    // Tarjeta de saldo
+    balanceCard: {
+        backgroundColor: DARK.balanceCard,
+        borderRadius: 16,
+        padding: SPACING.lg,
+        marginBottom: SPACING.md,
     },
-    logoutText: {
+    balanceHeaderRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    balanceLabel: {
         fontSize: FONT_SIZE.sm,
-        color: COLORS.error,
-        fontWeight: '600',
+        fontWeight: '400',
+        color: 'rgba(255,255,255,0.75)',
     },
-    welcomeCard: {
-        marginBottom: SPACING.xl,
+    balanceAmount: {
+        fontSize: FONT_SIZE.huge,
+        fontWeight: 'bold',
+        color: DARK.text,
+        marginTop: SPACING.sm,
     },
-    welcomeLabel: {
+    balanceUpdated: {
         fontSize: FONT_SIZE.xs,
-        color: COLORS.textLight,
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
+        fontWeight: '400',
+        color: 'rgba(255,255,255,0.6)',
+        marginTop: SPACING.sm,
     },
-    welcomeValue: {
-        fontSize: FONT_SIZE.md,
-        color: COLORS.text,
-        fontWeight: '600',
-        marginTop: 4,
+
+    // Ingresos / Gastos
+    row: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: SPACING.lg,
+    },
+    miniCard: {
+        width: '48%',
+        backgroundColor: DARK.card,
+        borderRadius: 16,
+        padding: SPACING.md,
+    },
+    miniCardTop: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        marginBottom: SPACING.sm,
+    },
+    miniCardLabel: {
+        fontSize: FONT_SIZE.sm,
+        fontWeight: '400',
+        color: DARK.textMuted,
+    },
+    miniCardAmount: {
+        fontSize: FONT_SIZE.lg,
+        fontWeight: '500',
+    },
+
+    // Secciones
+    sectionHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: SPACING.md,
     },
     sectionTitle: {
         fontSize: FONT_SIZE.lg,
-        fontWeight: 'bold',
-        color: COLORS.text,
-        marginBottom: SPACING.md,
+        fontWeight: '500',
+        color: DARK.text,
     },
-    grid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
-        marginBottom: SPACING.xl,
+    sectionLink: {
+        fontSize: FONT_SIZE.sm,
+        fontWeight: '400',
+        color: DARK.accent,
     },
-    actionCard: {
-        width: '48%',
-        backgroundColor: COLORS.surface,
-        borderRadius: 14,
-        borderWidth: 1,
-        borderColor: COLORS.border,
-        paddingVertical: SPACING.lg,
-        alignItems: 'center',
-        marginBottom: SPACING.sm,
-        ...SHADOWS.sm,
+
+    // Favoritos
+    favoritesRow: {
+        marginBottom: SPACING.lg,
     },
-    actionIconWrap: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        backgroundColor: COLORS.background,
+    favoritesContent: {
+        gap: SPACING.md,
+        paddingRight: SPACING.md,
+    },
+    addFavoriteBtn: {
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        borderWidth: 1.5,
+        borderColor: DARK.textFaint,
+        borderStyle: 'dashed',
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: SPACING.sm,
     },
-    actionIcon: {
-        fontSize: FONT_SIZE.xl,
-        color: COLORS.primary,
+    emptyFavoritesHint: {
+        fontSize: FONT_SIZE.xs,
+        fontWeight: '400',
+        color: DARK.textFaint,
+        marginLeft: SPACING.sm,
+        alignSelf: 'center',
     },
-    actionLabel: {
-        fontSize: FONT_SIZE.sm,
+    favoriteChip: {
+        alignItems: 'center',
+        width: 64,
+    },
+    favoriteChipAvatar: {
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: DARK.card,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    favoriteChipAvatarText: {
+        color: DARK.accent,
+        fontSize: FONT_SIZE.md,
         fontWeight: '600',
-        color: COLORS.text,
     },
-    historyRow: {
-        marginBottom: SPACING.md,
+    favoriteChipLabel: {
+        fontSize: FONT_SIZE.xs,
+        fontWeight: '400',
+        color: DARK.textMuted,
+        marginTop: 6,
+        textAlign: 'center',
     },
-    historyCard: {
+
+    // Movimientos
+    emptyText: {
+        fontSize: FONT_SIZE.sm,
+        fontWeight: '400',
+        color: DARK.textMuted,
+        marginBottom: SPACING.lg,
+    },
+    movementRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        marginBottom: SPACING.md,
     },
-    historyText: {
-        fontSize: FONT_SIZE.md,
-        color: COLORS.text,
+    movementIconWrap: {
+        width: 38,
+        height: 38,
+        borderRadius: 19,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: SPACING.sm,
+    },
+    movementInfo: {
+        flex: 1,
+        marginRight: SPACING.sm,
+    },
+    movementDesc: {
+        fontSize: FONT_SIZE.sm,
         fontWeight: '500',
+        color: DARK.text,
     },
-    historyArrow: {
-        fontSize: FONT_SIZE.xl,
-        color: COLORS.textLight,
+    movementDate: {
+        fontSize: FONT_SIZE.xs,
+        fontWeight: '400',
+        color: DARK.textMuted,
+        marginTop: 2,
+    },
+    movementAmount: {
+        fontSize: FONT_SIZE.sm,
+        fontWeight: '500',
     },
 });

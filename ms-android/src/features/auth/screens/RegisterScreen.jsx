@@ -15,7 +15,7 @@ import { Card } from '../../../shared/components/common/Common';
 import styles from './RegisterScreen.styles';
 
 const RegisterScreen = ({ navigation }) => {
-    const { form, setField, errors, apiError, successMessage, loading, submit } = useRegister();
+    const { form, setField, errors, apiError, successMessage, registeredEmail, loading, submit } = useRegister();
 
     // Registro no inicia sesión: el backend crea una solicitud de cuenta
     // Monetaria pendiente de aprobación administrativa (ver ms-postgres
@@ -40,8 +40,20 @@ const RegisterScreen = ({ navigation }) => {
                         <Text style={styles.successIcon}>✓</Text>
                     </View>
                     <Text style={styles.successTitle}>¡Solicitud enviada!</Text>
-                    <Text style={styles.successMessage}>{successMessage}</Text>
-                    <Button title="Volver a Iniciar Sesión" onPress={() => navigation.replace('Login')} />
+                    <Text style={styles.successMessage}>
+                        {successMessage} Te enviamos un correo para verificar tu cuenta.
+                    </Text>
+                    <Button
+                        title="Verificar mi correo ahora"
+                        onPress={() => navigation.replace('VerifyEmail', { email: registeredEmail })}
+                        style={styles.fullWidthBtn}
+                    />
+                    <Button
+                        title="Volver a Iniciar Sesión"
+                        onPress={() => navigation.replace('Login')}
+                        variant="secondary"
+                        style={styles.fullWidthBtn}
+                    />
                 </View>
             </SafeAreaView>
         );

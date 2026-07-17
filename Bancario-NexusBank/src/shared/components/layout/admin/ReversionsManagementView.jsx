@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import AdminLayout from './AdminLayout.jsx';
 import AdminPageHeader from './AdminPageHeader.jsx';
-import { getReversalRequests, updateReversalRequest } from '../../../utils/reversalRequests.js';
 import RevertModal from '../../RevertModal.jsx';
 import { adminDashboardService } from '../../../api/adminDashboard.service.js';
 import { showError, showSuccess } from '../../../utils/toast.js';
@@ -24,28 +23,26 @@ const statusClass = (status) => {
 
 const ReversionsManagementView = () => {
   const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
 
-  const load = () => {
-    const next = getReversalRequests();
-    setItems(next.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+  const load = async () => {
+    setLoading(true);
+    try {
+      const response = await adminDashboardService.listReversalRequests();
+      const next = response?.data || [];
+      setItems(next.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+    } catch (err) {
+      showError(err.response?.data?.message || 'No se pudieron cargar las solicitudes de reversión.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     load();
-
-    const onUpdated = () => load();
-    const onStorage = () => load();
-
-    window.addEventListener('nexusbank-reversals-updated', onUpdated);
-    window.addEventListener('storage', onStorage);
-
-    return () => {
-      window.removeEventListener('nexusbank-reversals-updated', onUpdated);
-      window.removeEventListener('storage', onStorage);
-    };
   }, []);
 
   const filtered = useMemo(() => {
@@ -61,11 +58,11 @@ const ReversionsManagementView = () => {
 
       const haystack = [
         item.reference,
-        item.userEmail,
-        item.userName,
         item.reason,
         item.operationDescription,
         item.accountNumber,
+        item.sourceAccountNumber,
+        item.destinationAccountNumber,
       ].join(' ').toLowerCase();
 
       return haystack.includes(normalizedQuery);
@@ -97,24 +94,16 @@ const ReversionsManagementView = () => {
       return;
     }
 
-    if (nextStatus === 'APPROVED') {
-      try {
-        if (item.type === 'TRANSFERENCIA') {
-          await adminDashboardService.revertTransfer(item.operationId, { reason: comment || item.reason });
-        } else if (item.type === 'DEPOSITO') {
-          await adminDashboardService.rejectDeposit(item.operationId);
-        }
-      } catch (err) {
-        showError(err.response?.data?.message || 'Error al procesar la reversión en el servidor.');
-        return;
+    try {
+      if (nextStatus === 'APPROVED') {
+        await adminDashboardService.approveReversalRequest(item.id);
+      } else {
+        await adminDashboardService.rejectReversalRequest(item.id, comment.trim() || null);
       }
+    } catch (err) {
+      showError(err.response?.data?.message || 'Error al procesar la solicitud de reversión en el servidor.');
+      return;
     }
-
-    updateReversalRequest(item.id, {
-      status: nextStatus,
-      adminComment: comment.trim() || null,
-      resolvedAt: new Date().toISOString(),
-    });
 
     showSuccess(nextStatus === 'APPROVED' ? 'Reversión aprobada' : 'Reversión rechazada');
     load();
@@ -136,7 +125,7 @@ const ReversionsManagementView = () => {
           <input
             className="search-input support-search-input"
             type="text"
-            placeholder="Buscar por correo, referencia o motivo"
+            placeholder="Buscar por referencia, cuenta o motivo"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
@@ -159,8 +148,8 @@ const ReversionsManagementView = () => {
             <option value="APPROVED">Aprobadas</option>
             <option value="REJECTED">Rechazadas</option>
           </select>
-          <button type="button" className="support-refresh-btn" onClick={load}>
-            Refrescar
+          <button type="button" className="support-refresh-btn" onClick={load} disabled={loading}>
+            {loading ? 'Cargando...' : 'Refrescar'}
           </button>
         </div>
 
@@ -173,7 +162,7 @@ const ReversionsManagementView = () => {
                 <div key={item.id} className="support-account-item" style={{ alignItems: 'flex-start' }}>
                   <div style={{ flex: 1 }}>
                     <div className="support-account-number">{typeLabel(item.type)} · REF {item.reference}</div>
-                    <div className="support-account-meta">Cliente: {item.userEmail || 'Sin correo'} · Monto: Q {Number(item.amount || 0).toLocaleString('es-GT', { minimumFractionDigits: 2 })}</div>
+                    <div className="support-account-meta">Monto: Q {Number(item.amount || 0).toLocaleString('es-GT', { minimumFractionDigits: 2 })}</div>
                     <div className="support-account-meta">Motivo: {item.reason || 'Sin motivo'}</div>
                     <div className="support-account-meta">Fecha: {new Date(item.createdAt).toLocaleString('es-GT')}</div>
                     {item.adminComment && (

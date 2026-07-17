@@ -1,45 +1,75 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     View,
     Text,
-    FlatList,
     TouchableOpacity,
+    FlatList,
     Alert,
     RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Feather } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { useAccounts } from '../hooks/useAccounts';
+import { useAccountRequest } from '../hooks/useAccountRequest';
 import AccountCard from '../components/AccountCard';
-import { LoadingSpinner, EmptyState } from '../../../shared/components/common/Common';
-import { COLORS } from '../../../shared/constants/theme';
+import NewAccountRequestModal from '../components/NewAccountRequestModal';
+import { EmptyState } from '../../../shared/components/common/Common';
+import InfoModal from '../../../shared/components/common/InfoModal';
+import HeaderMenuButton from '../../../shared/components/common/HeaderMenuButton';
+import BottomNavBar from '../../../shared/components/common/BottomNavBar';
+import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 import styles from './AccountsListScreen.styles';
 
 const AccountsListScreen = ({ navigation }) => {
     const { accounts, loading, error, refetch } = useAccounts();
+    const { submitting, submitRequest } = useAccountRequest();
+    const [requestModalVisible, setRequestModalVisible] = useState(false);
+    const [infoModal, setInfoModal] = useState({ visible: false, type: 'success', title: '', message: '' });
 
     const handleCopyNumber = async (number) => {
         await Clipboard.setStringAsync(number);
         Alert.alert('Copiado', 'El número de cuenta ha sido copiado al portapapeles.');
     };
 
-    const handleSelectAccount = (account) => {
-        navigation.navigate('Historial', {
-            accountId: account.id,
-            accountNumber: account.accountNumber,
+    const closeInfoModal = () => setInfoModal((prev) => ({ ...prev, visible: false }));
+
+    const handleSubmitAccountRequest = async ({ accountType, note }) => {
+        const result = await submitRequest({ accountType, note });
+        setRequestModalVisible(false);
+        setInfoModal({
+            visible: true,
+            type: 'success',
+            title: 'Solicitud enviada',
+            message: `Tu solicitud de ${accountType === 'ahorro' ? 'Cuenta de Ahorros' : 'Cuenta Corriente'} quedó en estado ${result?.status || 'PENDIENTE'}, a la espera de aprobación del administrador.`,
         });
+        refetch();
     };
 
-    if (loading && accounts.length === 0) return <LoadingSpinner />;
+    const handleSelectAccount = (account) => {
+        navigation.navigate('MainTabs', {
+            screen: 'Historial',
+            params: {
+                accountId: account.id,
+                accountNumber: account.accountNumber,
+            },
+        });
+    };
 
     return (
         <SafeAreaView style={styles.safe}>
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                    <Text style={styles.backText}>← Volver</Text>
-                </TouchableOpacity>
+                <HeaderMenuButton navigation={navigation} style={styles.backBtn} />
                 <Text style={styles.title}>Mis Cuentas Bancarias</Text>
                 <Text style={styles.subtitle}>Consulta tus saldos y detalles de cuentas activas</Text>
+                <TouchableOpacity
+                    style={styles.requestBtn}
+                    onPress={() => setRequestModalVisible(true)}
+                    activeOpacity={0.8}
+                >
+                    <Feather name="plus-circle" size={18} color={BANK.primary} />
+                    <Text style={styles.requestBtnText}>Solicitar Cuenta</Text>
+                </TouchableOpacity>
             </View>
 
             <FlatList
@@ -58,8 +88,8 @@ const AccountsListScreen = ({ navigation }) => {
                     <RefreshControl
                         refreshing={loading}
                         onRefresh={refetch}
-                        colors={[COLORS.primary]}
-                        tintColor={COLORS.primary}
+                        colors={[BANK.primary]}
+                        tintColor={BANK.primary}
                     />
                 }
                 ListEmptyComponent={
@@ -68,6 +98,23 @@ const AccountsListScreen = ({ navigation }) => {
                     )
                 }
                 showsVerticalScrollIndicator={false}
+            />
+
+            <BottomNavBar navigation={navigation} />
+
+            <NewAccountRequestModal
+                visible={requestModalVisible}
+                onClose={() => setRequestModalVisible(false)}
+                onSubmit={handleSubmitAccountRequest}
+                submitting={submitting}
+            />
+
+            <InfoModal
+                visible={infoModal.visible}
+                type={infoModal.type}
+                title={infoModal.title}
+                message={infoModal.message}
+                onClose={closeInfoModal}
             />
         </SafeAreaView>
     );

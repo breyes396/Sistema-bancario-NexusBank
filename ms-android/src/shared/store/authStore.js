@@ -29,6 +29,13 @@ export const useAuthStore = create(
             // Only update the accessToken in memory
             setAccessToken: (token) => set({ token }),
 
+            // Fusiona cambios (ej. tras editar el perfil) para que el nombre
+            // se refleje al instante en el header y el drawer sin relogin.
+            updateUser: (partial) =>
+                set((state) => ({
+                    user: { ...state.user, ...partial },
+                })),
+
             // Clear state and delete secure refreshToken
             logout: async () => {
                 set({

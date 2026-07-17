@@ -1,10 +1,11 @@
 import { StyleSheet } from 'react-native';
-import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme';
+import { SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme';
+import { BANK_DARK as BANK } from '../../../shared/constants/colors';
 
 export default StyleSheet.create({
     safe: {
         flex: 1,
-        backgroundColor: COLORS.background,
+        backgroundColor: BANK.background,
     },
     header: {
         padding: SPACING.lg,
@@ -15,32 +16,66 @@ export default StyleSheet.create({
     },
     backText: {
         fontSize: FONT_SIZE.sm,
-        color: COLORS.primary,
+        color: BANK.primary,
         fontWeight: '600',
     },
     title: {
         fontSize: FONT_SIZE.xxl,
         fontWeight: 'bold',
-        color: COLORS.text,
+        color: BANK.text,
         marginBottom: SPACING.xs,
     },
     subtitle: {
         fontSize: FONT_SIZE.sm,
-        color: COLORS.textLight,
+        color: BANK.textMuted,
+    },
+    requestBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: SPACING.xs,
+        borderWidth: 1.5,
+        borderColor: BANK.primary,
+        borderStyle: 'dashed',
+        borderRadius: 10,
+        paddingVertical: SPACING.sm + 2,
+        marginTop: SPACING.md,
+    },
+    requestBtnText: {
+        fontSize: FONT_SIZE.sm,
+        fontWeight: '600',
+        color: BANK.primary,
     },
     list: {
         padding: SPACING.lg,
         paddingBottom: SPACING.xxl,
     },
     card: {
-        borderRadius: 16,
+        borderRadius: 22,
         padding: SPACING.xl,
         marginBottom: SPACING.lg,
         ...SHADOWS.md,
-        minHeight: 180,
-        justifyContent: 'space-between',
+        minHeight: 190,
         position: 'relative',
         overflow: 'hidden',
+    },
+    cardDecorCircleLg: {
+        position: 'absolute',
+        top: -60,
+        right: -40,
+        width: 160,
+        height: 160,
+        borderRadius: 80,
+        backgroundColor: 'rgba(255,255,255,0.06)',
+    },
+    cardDecorCircleSm: {
+        position: 'absolute',
+        bottom: -30,
+        right: 40,
+        width: 90,
+        height: 90,
+        borderRadius: 45,
+        backgroundColor: 'rgba(255,255,255,0.05)',
     },
     cardHeader: {
         flexDirection: 'row',
@@ -58,19 +93,18 @@ export default StyleSheet.create({
         fontSize: FONT_SIZE.xs,
         marginTop: 2,
     },
-    chipLogoContainer: {
-        alignItems: 'flex-end',
-    },
     cardChip: {
-        width: 35,
-        height: 25,
-        backgroundColor: '#ecc94b',
-        borderRadius: 4,
-        marginBottom: SPACING.xs,
+        width: 38,
+        height: 28,
+        backgroundColor: BANK.accent,
+        borderRadius: 6,
+        marginTop: SPACING.lg,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.35)',
     },
     statusBadge: {
-        paddingHorizontal: 8,
-        paddingVertical: 2,
+        paddingHorizontal: 10,
+        paddingVertical: 3,
         borderRadius: 20,
     },
     statusActive: {
@@ -91,29 +125,27 @@ export default StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginVertical: SPACING.md,
+        marginTop: SPACING.md,
+        marginBottom: SPACING.lg,
+        gap: SPACING.sm,
     },
     cardNumber: {
+        flex: 1,
         color: '#ffffff',
         fontSize: FONT_SIZE.lg,
         fontWeight: 'bold',
         letterSpacing: 2,
     },
     copyBtn: {
+        width: 30,
+        height: 30,
+        borderRadius: 15,
         backgroundColor: 'rgba(255, 255, 255, 0.15)',
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        borderRadius: 6,
-    },
-    copyBtnText: {
-        color: '#ffffff',
-        fontSize: 10,
-        fontWeight: '600',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     cardFooter: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-end',
+        marginBottom: 2,
     },
     balanceLabel: {
         color: 'rgba(255, 255, 255, 0.6)',
@@ -123,9 +155,16 @@ export default StyleSheet.create({
     },
     balanceValue: {
         color: '#ffffff',
-        fontSize: FONT_SIZE.xl,
+        fontSize: FONT_SIZE.xxl,
         fontWeight: 'bold',
         marginTop: 2,
+    },
+    tapTipRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        alignSelf: 'flex-end',
+        gap: 4,
+        marginTop: SPACING.sm,
     },
     tapTip: {
         color: 'rgba(255, 255, 255, 0.8)',
